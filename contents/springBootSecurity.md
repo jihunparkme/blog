@@ -121,6 +121,15 @@ public class MemberController {
     private MemberService memberService;
 
     /**
+     * 메인 페이지 이동
+     * @return
+     */
+    @GetMapping("/")
+    public String main() {
+        return "index";
+    }
+
+    /**
      * 로그인 페이지 이동
      * @return
      */
