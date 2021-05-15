@@ -125,7 +125,7 @@ public class MemberController {
      * @return
      */
     @GetMapping("/user/login")
-    public String dispLogin() {
+    public String goLogin() {
         return "login/login";
     }
 
@@ -146,7 +146,7 @@ public class MemberController {
      * @return
      */
     @GetMapping("/signup")
-    public String dispSignup() {
+    public String goSignup() {
         return "login/signup";
     }
 
@@ -156,7 +156,7 @@ public class MemberController {
      * @return
      */
     @PostMapping("/signup")
-    public String execSignup(MemberDto memberDto) {
+    public String signup(MemberDto memberDto) {
         memberService.joinUser(memberDto);
 
         return "redirect:/user/login";
@@ -167,7 +167,7 @@ public class MemberController {
      * @return
      */
     @GetMapping("/denied")
-    public String dispDenied() {
+    public String doDenied() {
         return "login/denied";
     }
 
@@ -176,7 +176,7 @@ public class MemberController {
      * @return
      */
     @GetMapping("/info")
-    public String dispMyInfo() {
+    public String goMyInfo() {
         return "login/myinfo";
     }
 
@@ -185,7 +185,7 @@ public class MemberController {
      * @return
      */
     @GetMapping("/admin")
-    public String dispAdmin() {
+    public String goAdmin() {
         return "login/admin";
     }
 }

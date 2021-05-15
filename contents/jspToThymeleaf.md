@@ -2,7 +2,7 @@
 
 - JSP
 
-```jsp
+```html
 <%@ page language="java" contentType="text/html; charset=UTF-8"
 pageEncoding="UTF-8"%> <!DOCTYPE html>
 <html></html>
@@ -20,8 +20,16 @@ pageEncoding="UTF-8"%> <!DOCTYPE html>
 
 - JSP
 
-```jsp
+```html
 <%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags" %>
+
+<sec:authorize access="isAnonymous()">
+  This content is only shown to anonymous users.
+</sec:authorize>
+
+<sec:authorize access="isAuthenticated()">
+  This content is only shown to authenticated users.
+</sec:authorize>
 ```
 
 - Thymeleaf
@@ -32,6 +40,16 @@ pageEncoding="UTF-8"%> <!DOCTYPE html>
   xmlns:th="http://www.thymeleaf.org"
   xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity5"
 ></html>
+
+<div sec:authorize="isAuthenticated()">
+  This content is only shown to authenticated users.
+</div>
+<div sec:authorize="hasRole('ROLE_ADMIN')">
+  This content is only shown to administrators.
+</div>
+<div sec:authorize="hasRole('ROLE_USER')">
+  This content is only shown to users.
+</div>
 ```
 
 ---
@@ -40,7 +58,7 @@ pageEncoding="UTF-8"%> <!DOCTYPE html>
 
 - JSP
 
-```jsp
+```html
 <%@ include file="/WEB-INF/views/common/head.jsp"%>
 ```
 
@@ -56,7 +74,7 @@ pageEncoding="UTF-8"%> <!DOCTYPE html>
 
 - JSP
 
-```jsp
+```html
 <link href="assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet" />
 ```
 
@@ -72,7 +90,7 @@ pageEncoding="UTF-8"%> <!DOCTYPE html>
 
 - JSP
 
-```jsp
+```html
 <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
 ```
 
@@ -89,7 +107,7 @@ pageEncoding="UTF-8"%> <!DOCTYPE html>
 
 - JSP
 
-```jsp
+```html
 
 ```
 
