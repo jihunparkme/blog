@@ -1,8 +1,8 @@
 # SpringBoot Security
 
-[Spring Security Docs](https://docs.spring.io/spring-security/site/docs/5.4.6/reference/html5/)
+[Spring Security Docs](https://docs.spring.io/spring-security/site/docs/5.4.6/reference/html5/){:target="\_blank"}
 
-[Spring Security Architecture](https://spring.io/guides/topicals/spring-security-architecture#_web_security)
+[Spring Security Architecture](https://spring.io/guides/topicals/spring-security-architecture#_web_security){:target="\_blank"}
 
 ## Dependency
 
@@ -11,8 +11,44 @@
 - thymeleaf에서 security 사용을 위한 의존성
 
 ```gradle
-implementation 'org.springframework.boot:spring-boot-starter-security'
-implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity5'
+  // Security
+	implementation 'org.springframework.boot:spring-boot-starter-security'
+	implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity5'
+
+	// Lombok
+	implementation 'org.projectlombok:lombok:1.18.18'
+	compileOnly("org.projectlombok:lombok")
+	testCompileOnly("org.projectlombok:lombok")
+	annotationProcessor("org.projectlombok:lombok")
+	testAnnotationProcessor("org.projectlombok:lombok")
+
+	// JPA
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+
+	// Mysql
+	runtimeOnly 'mysql:mysql-connector-java'
+```
+
+## Properties
+
+```properties
+  # API 호출시, SQL 문을 콘솔에 출력
+  spring.jpa.show-sql=true
+
+  # DDL 정의시 데이터베이스의 고유 기능을 사용
+  spring.jpa.generate-ddl=true
+
+  # MySQL 사용
+  spring.jpa.database=mysql
+
+  # MySQL 설정
+  spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+  spring.datasource.url=jdbc:mysql://localhost:0000/dbname?useSSL=false&characterEncoding=UTF-8&serverTimezone=UTC
+  spring.datasource.username=username
+  spring.datasource.password=password
+
+  # MySQL 상세 지정
+  spring.jpa.database-platform=org.hibernate.dialect.MySQL5InnoDBDialect
 ```
 
 ## Config
