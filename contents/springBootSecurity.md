@@ -12,6 +12,8 @@ Project code in [the Github](https://github.com/jihunparkme/blog/tree/main/proje
 
 - thymeleaf에서 security 사용을 위한 의존성
 
+`build.gradle`
+
 ```gradle
 plugins {
 	id 'org.springframework.boot' version '2.5.0'
@@ -63,6 +65,8 @@ test {
 ```
 
 ## Properties
+
+`application.properties`
 
 ```properties
   # API 호출시, SQL 문을 콘솔에 출력
