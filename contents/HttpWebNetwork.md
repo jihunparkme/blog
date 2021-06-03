@@ -32,6 +32,29 @@ message를 서버를 통해 어떻게 전달될까?
 - 프로그램 구분
 
 2. `TCP, UDP`
+
+- `참고 `> 프로토콜 계층 순서
+
+  - 애플리케이션 계층 (브라우저, 채팅, 게임 등)
+    - HTTP, FTP
+  - OS
+    - 전송 계층 : TCP, UDP
+    - 인터넷 계층 : IP
+  - 네트워크 인터페이스
+    - LAN 드라이버/장비
+
+- `TCP (Transmission Control Protocol)` 특징
+
+  - 연결지향 (3 Way Handshake)
+  - 데이터 전달 보증
+  - 순서 보장 등..
+  - IP의 한계를 해결. 대부분이 사용
+
+- `UDP (User Datagram Protocol)`
+  - 기능이 거의 없지만, 추가 설정 가능
+  - 단순하고 빠름
+  - IP와 동일하지만 PORT, 체크섬 정도 추가
+
 3. `PORT`
 4. `DNS`
 
