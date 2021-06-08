@@ -20,7 +20,7 @@ HTTP Web Network 강의 노트
 
 message를 서버를 통해 어떻게 전달될까?
 
-1. `IP(Internet Protocol)`
+1.`IP(Internet Protocol)`
 
 - 지정한 IP Address에 데이터 전달
 - Packet이라는 통신 단위로 데이터 전달
@@ -31,7 +31,7 @@ message를 서버를 통해 어떻게 전달될까?
   - 비신뢰성 (패킷이 사라지거나, 순서가 지켜지지 않을 경우)
 - 프로그램 구분
 
-2. `TCP, UDP`
+  2.`TCP, UDP`
 
 - `참고 `> 프로토콜 계층 순서
 
@@ -51,11 +51,12 @@ message를 서버를 통해 어떻게 전달될까?
   - IP의 한계를 해결. 대부분이 사용
 
 - `UDP (User Datagram Protocol)`
+
   - 기능이 거의 없지만, 추가 설정 가능
   - 단순하고 빠름
   - IP와 동일하지만 PORT, 체크섬 정도 추가
 
-3. `PORT`
+    3.`PORT`
 
 - TCP/IP 패킷
   - IP로 목적지 서버 찾기
@@ -64,12 +65,13 @@ message를 서버를 통해 어떻게 전달될까?
   - 서버 IP : 200.200.200:80
 - 0 ~ 65535 까지 할당 가능
 - 0 ~ 1023 은 잘 알려진 포트이므로, 사용하지 않는 것을 추천
+
   - FTP : 20, 21
   - TELNET : 23
   - HTTP : 80
   - HTTPS : 443
 
-4. `DNS`
+    4.`DNS`
 
 - Domain Name System
 - `도메인명`(이름)과 `IP`(전화번호)가 저장된 전화번호부
@@ -84,6 +86,24 @@ IP는 변하기 쉽고 외우기 어렵기 때문에 DNS가 필요
 ```
 
 ## URI과 웹 브라우저 요청 흐름
+
+1.URI (**U**niform **R**esource **I**dentifier)
+
+- 자원을 식별하는 방법
+- **URI**는
+  - **UR**esource**L**ocator : 리소스가 있는 위치를 지정
+    - foo://example.com:8042/over/there?name=ferret#nose
+  - **UR**esource**N**ame : 리소스에 이름을 부여
+    - urn:example:animal:ferret:nose
+  - 또는 둘 다 추가로 분류될 수 있음.
+- [RFC Reference](https://www.ietf.org/rfc/rfc3986.txt)
+- URL 문법
+  - https://www.google.com:433/search?q=hello&hl=ko
+    - `https` : 프로토콜 (http, https, ftp 등)
+    - `www.google.com` : 호스트명
+    - `433` : 포트 번호 (http는 80, https는 443)
+    - `/search` : Path (리소스 경로)
+    - `q=hello&hl=ko` : query parameter or query string 으로 불림
 
 ## HTTP 기본
 
