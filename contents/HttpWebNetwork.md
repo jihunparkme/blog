@@ -20,7 +20,7 @@ HTTP Web Network 강의 노트
 
 message를 서버를 통해 어떻게 전달될까?
 
-1.`IP(Internet Protocol)`
+### `IP(Internet Protocol)`
 
 - 지정한 IP Address에 데이터 전달
 - Packet이라는 통신 단위로 데이터 전달
@@ -31,7 +31,7 @@ message를 서버를 통해 어떻게 전달될까?
   - 비신뢰성 (패킷이 사라지거나, 순서가 지켜지지 않을 경우)
 - 프로그램 구분
 
-  2.`TCP, UDP`
+### `TCP, UDP`
 
 - `참고 `> 프로토콜 계층 순서
 
@@ -56,7 +56,7 @@ message를 서버를 통해 어떻게 전달될까?
   - 단순하고 빠름
   - IP와 동일하지만 PORT, 체크섬 정도 추가
 
-    3.`PORT`
+### `PORT`
 
 - TCP/IP 패킷
   - IP로 목적지 서버 찾기
@@ -71,7 +71,7 @@ message를 서버를 통해 어떻게 전달될까?
   - HTTP : 80
   - HTTPS : 443
 
-    4.`DNS`
+### `DNS`
 
 - Domain Name System
 - `도메인명`(이름)과 `IP`(전화번호)가 저장된 전화번호부
@@ -85,9 +85,11 @@ IP만으로는 신뢰가 부족하고 구분이 힘들기 때문에 TCP/UDP가 �
 IP는 변하기 쉽고 외우기 어렵기 때문에 DNS가 필요
 ```
 
+---
+
 ## URI과 웹 브라우저 요청 흐름
 
-1.URI (**U**niform **R**esource **I**dentifier)
+### URI (**U**niform **R**esource **I**dentifier)
 
 - 자원을 식별하는 방법
 - **URI**는
@@ -104,6 +106,19 @@ IP는 변하기 쉽고 외우기 어렵기 때문에 DNS가 필요
     - `433` : 포트 번호 (http는 80, https는 443)
     - `/search` : Path (리소스 경로)
     - `q=hello&hl=ko` : query parameter or query string 으로 불림
+
+### 웹 브라우저 요청 흐름
+
+- https://www.google.com:433/search?q=hello&hl=ko
+  - www.google.com : DNS 조회 -> 200.200.200.2
+    - 443 : HTTPS PORT 생략
+  - 웹 브라우저가 HTTP 요청 메시지 생성
+    - GET /search?q=hello&hl=ko HTTP/1.1
+    - Host: www.google.com
+  - socket 라이브러리를 통해 TCP/IP에 전달
+  - TCP/IP 패킷 생성, HTTP 메시지 포함
+  - ..
+  - 응답 메시지
 
 ## HTTP 기본
 
