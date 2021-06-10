@@ -120,7 +120,28 @@ IP는 변하기 쉽고 외우기 어렵기 때문에 DNS가 필요
   - ..
   - 응답 메시지
 
+---
+
 ## HTTP 기본
+
+### HTTP
+
+- **H**yper**T**ext **T**ransfer **P**rotocol
+- HTTP에 거의 모든 형태의 데이터를 전송할 수 있음
+  - HTML, TEXT, IMAGE, 음성, 영상, 파일, JSON, XML ...
+- 특징
+  - 클라이언트 서버 구조
+  - Stateless, connectionless
+  - HTTP 메시지로 통신
+  - 단순, 확장성
+
+### 클라이언트 서버 구조
+
+### Stateful, Stateless
+
+### 비 연결성(connectionless)
+
+### HTTP 메시지
 
 ## HTTP 메서드
 
