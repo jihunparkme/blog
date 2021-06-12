@@ -137,6 +137,10 @@ IP는 변하기 쉽고 외우기 어렵기 때문에 DNS가 필요
 
 ### 클라이언트 서버 구조
 
+- Request-Response 구조
+- 클라이언트는 서버에 request 후 response 대기
+- 서버가 request에 대한 결과를 만들어서 응답
+
 ### Stateful, Stateless
 
 ### 비 연결성(connectionless)
