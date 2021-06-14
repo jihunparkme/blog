@@ -16,11 +16,11 @@ HTTP Web Network 강의 노트
 
 ---
 
-## 인터넷 네트워크
+# 인터넷 네트워크
 
 message를 서버를 통해 어떻게 전달될까?
 
-### `IP(Internet Protocol)`
+## `IP(Internet Protocol)`
 
 - 지정한 IP Address에 데이터 전달
 - Packet이라는 통신 단위로 데이터 전달
@@ -31,7 +31,7 @@ message를 서버를 통해 어떻게 전달될까?
   - 비신뢰성 (패킷이 사라지거나, 순서가 지켜지지 않을 경우)
 - 프로그램 구분
 
-### `TCP, UDP`
+## `TCP, UDP`
 
 - `참고 `> 프로토콜 계층 순서
 
@@ -56,7 +56,7 @@ message를 서버를 통해 어떻게 전달될까?
   - 단순하고 빠름
   - IP와 동일하지만 PORT, 체크섬 정도 추가
 
-### `PORT`
+## `PORT`
 
 - TCP/IP 패킷
   - IP로 목적지 서버 찾기
@@ -71,7 +71,7 @@ message를 서버를 통해 어떻게 전달될까?
   - HTTP : 80
   - HTTPS : 443
 
-### `DNS`
+## `DNS`
 
 - Domain Name System
 - `도메인명`(이름)과 `IP`(전화번호)가 저장된 전화번호부
@@ -87,9 +87,9 @@ IP는 변하기 쉽고 외우기 어렵기 때문에 DNS가 필요
 
 ---
 
-## URI과 웹 브라우저 요청 흐름
+# URI과 웹 브라우저 요청 흐름
 
-### URI (**U**niform **R**esource **I**dentifier)
+## `URI` (**U**niform **R**esource **I**dentifier)
 
 - 자원을 식별하는 방법
 - **URI**는
@@ -107,7 +107,7 @@ IP는 변하기 쉽고 외우기 어렵기 때문에 DNS가 필요
     - `/search` : Path (리소스 경로)
     - `q=hello&hl=ko` : query parameter or query string 으로 불림
 
-### 웹 브라우저 요청 흐름
+## 웹 브라우저 요청 흐름
 
 - https://www.google.com:433/search?q=hello&hl=ko
   - www.google.com : DNS 조회 -> 200.200.200.2
@@ -122,9 +122,9 @@ IP는 변하기 쉽고 외우기 어렵기 때문에 DNS가 필요
 
 ---
 
-## HTTP 기본
+# HTTP 기본
 
-### HTTP
+## `HTTP`
 
 - **H**yper**T**ext **T**ransfer **P**rotocol
 - HTTP에 거의 모든 형태의 데이터를 전송할 수 있음
@@ -135,24 +135,52 @@ IP는 변하기 쉽고 외우기 어렵기 때문에 DNS가 필요
   - HTTP 메시지로 통신
   - 단순, 확장성
 
-### 클라이언트 서버 구조
+## 클라이언트 서버 구조
 
 - Request-Response 구조
 - 클라이언트는 서버에 request 후 response 대기
 - 서버가 request에 대한 결과를 만들어서 응답
 
-### Stateful, Stateless
+## `Stateful, Stateless`
 
-### 비 연결성(connectionless)
+### `Stateful`
 
-### HTTP 메시지
+- 서버가 클라이언트의 `이전 상태를 보존`
+- ex) 점원이 바뀌면 고객의 상태를 알 수 없음 (로그인)
+  - 항상 같은 서버와 연결
+- 일반적으로 브라우저 쿠키와 서버 세션들을 사용해 상태 유지
+- 상태 유지는 <i>최소한</i>만 사용
 
-## HTTP 메서드
+### `Stateless`
 
-## HTTP 메서드 활용
+- 서버가 클라이언트의 `이전 상태를 보존 X`
+- ex) 점원이 바뀌어도 고객의 상태를 알 수 있음 (소개 페이지)
+  - 스케일 아웃(수평 확장)에 유리
+- 장: 서버 확장성이 높음, 응답 서버를 쉽게 바꿀 수 있음
+- 단: 클라이언트가 필요한 데이터를 지속적으로 전송
 
-## HTTP 상태코드
+## 비 연결성(connectionless)
 
-## HTTP 해더 (일반 헤더)
+## HTTP 메시지
 
-## HTTP 해더 (캐시와 조건부 요청)
+---
+
+# HTTP 메서드
+
+---
+
+# HTTP 메서드 활용
+
+---
+
+# HTTP 상태코드
+
+---
+
+# HTTP 해더 (일반 헤더)
+
+---
+
+# HTTP 해더 (캐시와 조건부 요청)
+
+---
