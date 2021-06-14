@@ -178,6 +178,16 @@ IP는 변하기 쉽고 외우기 어렵기 때문에 DNS가 필요
 
 ## 비 연결성(connectionless)
 
+- Connectionless
+  - 서버 연결을 유지하는 모델
+    - 서버 자원 소모
+  - 서버 연결을 유지하지 않는 모델
+    - 최소한의 자원 유지
+- HTTP는 기본이 연결을 유지하지 않는 모델
+- 서버의 자원을 효율적으로 사용
+- HTTP 지속 연결(Persistent Connections)로 TCP/IP의 3 way handshake 시간 소요 해결
+- HTTP/2, HTTP/3 에서 최적화
+
 ## HTTP 메시지
 
 ---
