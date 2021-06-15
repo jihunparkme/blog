@@ -190,6 +190,52 @@ IP는 변하기 쉽고 외우기 어렵기 때문에 DNS가 필요
 
 ## HTTP 메시지
 
+- HTTP 메시지 구조
+  - 시작 라인 (start-line)
+  - 헤더 (header)
+  - 공백 라인 (empty line, CRLF)
+  - message body
+
+### Start-Line
+
+- request-line (`GET` `/search?q=hello&hl=ko` `HTTP/1.1`)
+  - HTTP 메서드
+    -GET, POST, PUT, DELETE
+  - 요청 대상 (absolute-path[?query])
+  - HTTP Version
+  ```text
+  // 요청 메시지
+  GET /search?q=hello&hl=ko HTTP/1.1
+  Host: www.google.com
+  ```
+- status-line
+
+  - HTTP 버전
+  - HTTP 상태 코드
+    - 200, 400, 500
+  - 이유 문구
+
+  ```text
+  // 응답 메시지
+  HTTP/1.1 200 OK
+  Content-Type: text/html;charset=UTF-8
+  Content-Length: 3423
+
+  <html>
+      <body>...</body>
+  </html>
+  ```
+
+### HTTP Header
+
+- HTTP 전송에 필요한 모든 부가정보
+  - message body를 제외하고 필요한 모든 메타 정보
+
+### Message Body
+
+- 실제 전송할 데이터
+  - HTML 문서, 이미지, 영상, JSON 등등 (Byte 표현 가능한 모든 데이터)
+
 ---
 
 # HTTP 메서드
