@@ -26,6 +26,12 @@ HTTP Web Network 강의 노트
 - HTTP 메시지
 
 4. [HTTP 메서드](#HTTP-메서드)
+
+- HTTP API
+- GET, POST
+- PUT, PATCH, DELETE
+- HTTP 메서드 속성
+
 5. [HTTP 메서드 활용](#HTTP-메서드-활용)
 6. [HTTP 상태코드](#HTTP-상태코드)
 7. [HTTP 해더 (일반 헤더)](<#HTTP-해더-(일반-헤더)>)
@@ -239,6 +245,18 @@ IP는 변하기 쉽고 외우기 어렵기 때문에 DNS가 필요
 ---
 
 # HTTP 메서드
+
+## API URI 설계
+
+- 좋은 URI 설계는 리소스 식별이 중요
+  - 회원 = 리소스
+  - **회원** 목록 조회 /members
+  - **회원** 조회 /members/{id} `GET`
+  - **회원** 등록 /members/{id} `POST`
+  - **회원** 수정 /members/{id} `PUT`
+  - **회원** 삭제 /members/{id} `DELETE`
+- 리소스(회원)와 행위(조회, 등록, 삭제, 변경)를 분리
+  - URI는 리소스만 식별
 
 ---
 
