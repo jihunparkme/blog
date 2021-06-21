@@ -277,6 +277,23 @@ IP는 변하기 쉽고 외우기 어렵기 때문에 DNS가 필요
   - 컨트롤 URI
 - massage body를 통해 서버로 요청 데이터 전달
 
+### `PUT`
+
+- 리소스가 있으면 대체, 없으면 생성 **(덮어쓰기)**
+- 클라이언트가 리소스 위치를 알고 URI 지정 (POST와의 차이)
+  - `PUT /members/100 HTTP/1.1`
+  - `POST /members HTTP/1.1`
+
+### `PATCH`
+
+- 리소스 **부분 변경**
+  - `PATCH /members/100 HTTP/1.1`
+
+### `DELETE`
+
+- 리소스 **제거**
+  - `DELETE /members/100 HTTP/1.1`
+
 ---
 
 # HTTP 메서드 활용
