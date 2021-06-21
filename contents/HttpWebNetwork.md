@@ -294,6 +294,18 @@ IP는 변하기 쉽고 외우기 어렵기 때문에 DNS가 필요
 - 리소스 **제거**
   - `DELETE /members/100 HTTP/1.1`
 
+## HTTP 메서드의 속성
+
+[HTTP 속성](https://ko.wikipedia.org/wiki/HTTP#%EC%9A%94%EC%95%BD%ED%91%9C)
+
+- 안전(Safe)
+  - 리소스 변경이 일어나지 않는 것 (ex. GET, HEAD ..)
+- 멱등(Idempotent)
+  - 몇 번을 호출하든 결과는 같다 (GET, PUT, DELETE)
+  - 자동 복구 메커니즘에서 활용
+- 캐시가능(Cacheable)
+  - 응답 결과 리소스를 캐시해서 사용 (GET, HEAD 정도만 캐시로 사용)
+
 ---
 
 # HTTP 메서드 활용
