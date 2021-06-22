@@ -33,6 +33,10 @@ HTTP Web Network 강의 노트
 - HTTP 메서드 속성
 
 5. [HTTP 메서드 활용](#HTTP-메서드-활용)
+
+- 클라이언트에서 서버로 데이터 전송
+- HTTP API 설계 예시
+
 6. [HTTP 상태코드](#HTTP-상태코드)
 7. [HTTP 해더 (일반 헤더)](<#HTTP-해더-(일반-헤더)>)
 8. [HTTP 해더 (캐시와 조건부 요청)](<#HTTP-해더-(캐시와-조건부-요청)>)
@@ -309,6 +313,49 @@ IP는 변하기 쉽고 외우기 어렵기 때문에 DNS가 필요
 ---
 
 # HTTP 메서드 활용
+
+## 클라이언트에서 서버로 데이터 전송
+
+- Query Parameter를 통한 데이터 전송
+  - GET
+  - ex) 정렬 필터(검색)
+- Message Body를 통한 데이터 전송
+  - POST, PUT, PATCH
+  - ex) 회원가입, 상품주문, 리소스 등록, 리소스 변경
+
+**정적 데이터 조회**
+
+- GET
+- 이미지, 정적 텍스트 문서
+- Query Parameter 없이 리소스 경로로 단순 조회
+
+**동적 데이터 조회**
+
+- GET
+- 게시물 검색, 정렬, 필터
+- Query Parameter 사용
+
+**HTML FORM을 통한 데이터 전송**
+
+- POST
+- 등록, 변경
+- Content-Type
+  - application/x-www-form-urlencoded
+    - form 내용을 Message Body를 통해 전송
+    - 전송 데이터를 url encoding 처리
+  - multipart/form-data
+    - 파일 업로드 같은 바이너리 데이터 전송 시 사용
+    - 다른 종류의 여러 파일과 폼 내용을 함께 전송 가능
+- HTML Form 전송은 GET, POST만 지원
+
+**HTTP API를 통한 데이터 전송**
+
+- Server to Server 통신
+- 모바일 앱 클라이언트
+- Ajax 웹 클라이언트
+- GET -> Query Parameter로 데이터 전달 후 조회
+- POST, PUT, PATCH -> Message Body를 통해 데이터 전송
+- Content-Type : application/json
 
 ---
 
