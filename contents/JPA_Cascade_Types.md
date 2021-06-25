@@ -8,18 +8,18 @@ Spring JPA CascadeType 종류
 
 ## JPA Cascade Type
 
--   ALL
--   PERSIST
--   MERGE
--   REMOVE
--   REFRESH
--   DETACH
+- ALL
+- PERSIST
+- MERGE
+- REMOVE
+- REFRESH
+- DETACH
 
 ---
 
 ## CascadeType.ALL
 
--   상위 엔터티에서 하위 엔터티로 모든 작업을 전파
+- 상위 엔터티에서 하위 엔터티로 모든 작업을 전파
 
 ```java
 @Entity
@@ -56,8 +56,8 @@ public class Address {
 
 ## CascadeType.PERSIST
 
--   하위 엔티티까지 영속성 전달
-    -   Person Entity를 저장하면 Address Entity도 저장
+- 하위 엔티티까지 영속성 전달
+  - Person Entity를 저장하면 Address Entity도 저장
 
 ```java
 @Test
@@ -82,8 +82,8 @@ Hibernate: insert into Address (
 
 ## CascadeType.MERGE
 
--   하위 엔티티까지 병합 작업을 지속
-    -   Address와 Person 엔티티를 조회한 후 업데이트
+- 하위 엔티티까지 병합 작업을 지속
+  - Address와 Person 엔티티를 조회한 후 업데이트
 
 ```java
 @Test
@@ -120,8 +120,8 @@ Hibernate: update Person set name=? where id=?
 
 ## CascadeType.REMOVE
 
--   하위 엔티티까지 제거 작업을 지속
-    -   연결된 하위 엔티티까지 엔티티 제거
+- 하위 엔티티까지 제거 작업을 지속
+  - 연결된 하위 엔티티까지 엔티티 제거
 
 ```java
 @Test
@@ -150,8 +150,8 @@ Hibernate: delete from Person where id=?
 
 ## CascadeType.REFRESH
 
--   데이터베이스로부터 인스턴스 값을 다시 읽어 오기(새로고침)
-    -   연결된 하위 엔티티까지 인스턴스 값 새로고침
+- 데이터베이스로부터 인스턴스 값을 다시 읽어 오기(새로고침)
+  - 연결된 하위 엔티티까지 인스턴스 값 새로고침
 
 ```java
 @Test
@@ -174,8 +174,8 @@ public void whenParentRefreshedThenChildRefreshed() {
 
 ## CascadeType.DETACH
 
--   영속성 컨텍스트에서 엔티티 제거
-    -   연결된 하위 엔티티까지 영속성 제거
+- 영속성 컨텍스트에서 엔티티 제거
+  - 연결된 하위 엔티티까지 영속성 제거
 
 ```java
 @Test

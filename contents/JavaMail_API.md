@@ -2,7 +2,7 @@
 
 ## Add Dependency
 
--   pom.xml
+- pom.xml
 
 ```xml
 <!-- https://mvnrepository.com/artifact/com.sun.mail/javax.mail -->
@@ -13,7 +13,7 @@
 </dependency>
 ```
 
--   build.gradle
+- build.gradle
 
 ```gradle
 implementation group: 'com.sun.mail', name: 'javax.mail', version: '1.6.2'
@@ -21,9 +21,9 @@ implementation group: 'com.sun.mail', name: 'javax.mail', version: '1.6.2'
 
 ## Set Gmail SMTP
 
--   [Gmail IMAP 액세스 설정](https://support.google.com/mail/answer/7126229?hl=ko&rd=3&visit_id=637595769711568664-1727186650#ts=1665018){:target="\_blank"}
--   [앱 허용 보안 수준 설정](https://myaccount.google.com/intro/security){:target="\_blank"}
-    -   구글 내계정 -> 보안 -> 보안 수준이 낮은 앱의 엑세스 허용
+- [Gmail IMAP 액세스 설정](https://support.google.com/mail/answer/7126229?hl=ko&rd=3&visit_id=637595769711568664-1727186650#ts=1665018)
+- [앱 허용 보안 수준 설정](https://myaccount.google.com/intro/security)
+  - 구글 내계정 -> 보안 -> 보안 수준이 낮은 앱의 엑세스 허용
 
 > 보안 수준이 낮은 앱의 엑세스를 허용하지 않으면 아래 Exception 발생
 >
@@ -35,9 +35,9 @@ SSL(Secure Sockets Layer) Protocol 은 서버 구성 측면에서 취약점, 구
 
 **Reference**
 
-> [https://smartits.tistory.com/209](https://smartits.tistory.com/209){:target="\_blank"}
+> [https://smartits.tistory.com/209](https://smartits.tistory.com/209)
 >
-> [https://www.itworld.co.kr/tags/52416/SSL/113007](https://www.itworld.co.kr/tags/52416/SSL/113007){:target="\_blank"}
+> [https://www.itworld.co.kr/tags/52416/SSL/113007](https://www.itworld.co.kr/tags/52416/SSL/113007)
 
 ## Google SMTP TLS
 
@@ -76,7 +76,7 @@ public static void sendMail(String _email, String _password) {
 
         message.setFrom(new InternetAddress(fromMail, MimeUtility.encodeText(fromName, "UTF-8", "B"))); // 한글의 경우 encoding 필요
         message.setRecipients(
-            Message.RecipientType.TO, 
+            Message.RecipientType.TO,
             InternetAddress.parse(toMail)
         );
         message.setSubject(subject);
@@ -98,6 +98,6 @@ public static void sendMail(String _email, String _password) {
 
 ## Reference
 
-> [https://mkyong.com/java/javamail-api-sending-email-via-gmail-smtp-example/](https://mkyong.com/java/javamail-api-sending-email-via-gmail-smtp-example/){:target="\_blank"}
+> [https://mkyong.com/java/javamail-api-sending-email-via-gmail-smtp-example/](https://mkyong.com/java/javamail-api-sending-email-via-gmail-smtp-example/)
 >
-> [https://mkyong.com/spring-boot/spring-boot-how-to-send-email-via-smtp/](https://mkyong.com/spring-boot/spring-boot-how-to-send-email-via-smtp/){:target="\_blank"}
+> [https://mkyong.com/spring-boot/spring-boot-how-to-send-email-via-smtp/](https://mkyong.com/spring-boot/spring-boot-how-to-send-email-via-smtp/)
