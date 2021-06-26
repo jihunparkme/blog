@@ -4,7 +4,7 @@
 
 코드와 주석 위주로 작성하였습니다.
 
-파일 업로드 테스트에 초점을 맞춰 작성해본 코드로 에러 발생 시 댓글 남겨주시면 대단히 감사하겠습니다..! 😊🎉
+파일 업로드 테스트에 초점을 맞춰 작성해본 코드로 추가 설명이 필요하시거나 에러 발생 시 댓글 남겨주시면 대단히 감사하겠습니다..! 😊🎉
 
 ---
 
@@ -620,6 +620,10 @@ public class FileUtilities {
 
 ## Controller
 
+- Controller에서 가장 중요한 부분은 다중 파일을 클라이언트로부터 전달받기 위해 MultipartHttpServletRequest 를 매개변수로 두어야 한다.
+
+- MultipartHttpServletRequest에는 files와 parameter가 같이 담겨져 온다.
+
 **GalleryApiController.java**
 
 ```java
@@ -842,6 +846,8 @@ public class GalleryController {
 ---
 
 ## View
+
+- 클라이언트 단에서 중요한 부분은 multipart/form-data type으로 서버에 데이터를 전송해야 한다.
 
 `thymeleaf`
 
@@ -1094,7 +1100,7 @@ function saveGallery() {
 
 ## Result
 
-<img src="../img/file_upload.png" alt="img" style="zoom: 80%;" />
+![Result](https://raw.githubusercontent.com/jihunparkme/blog/main/img/file_upload.png 'Result')
 
 ## Reference
 
