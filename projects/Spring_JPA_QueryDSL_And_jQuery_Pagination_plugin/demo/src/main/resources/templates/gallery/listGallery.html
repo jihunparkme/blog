@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<title>리스트</title>
+<link rel='stylesheet' href='/css/bootstrap.min.css'>
+<link rel='stylesheet' href='/css/common.css'>
+<style>
+body {
+	padding-top: 70px;
+	padding-bottom: 30px;
+}
+</style>
+</head>
+<body>
+<article>
+	<div class="container">
+		<div class="table-responsive">
+			<div th:if="${galleryListPage.totalElements} != 0">
+				Total : <span th:text="${galleryListPage.totalElements}"></span>
+			</div>
+			<form name="form" id="form" th:action="@{/gallery/list}" method="get">
+				<input type="hidden" id="page" name="page" value="1"/>
+				<div class="form-group">
+					<div style="float: left;">
+						<select style="height:30px" name="searchType" id="searchType" class="select">
+							<option value="ALL" selected>전체</option>
+							<option value="TITLE">제목</option>
+							<option value="WRITER">작성자</option>
+						</select>
+					</div>
+					<input type="text" style="float: left;" name="searchValue" id="searchValue" class="text" value="" th:value="${param.searchValue}">
+					<!-- 서버에 Page 정보도 함께 전달 -->
+					<button type="button" class="btn btn-sm btn-primary" id="btnSearch">검색</button>
+					<button type="button" class="btn btn-sm btn-secondary" id="btnReset">초기화</button>
+				</div>
+				<div class="form-group">
+					<strong>기간</strong>
+					<label class="radio"><input type="radio" name="period" id="periodAll" value="ALL" checked><span>전체</span></label>
+					<label class="radio"><input type="radio" name="period" id="periodCustom" value="CUSTOM"><span>입력</span></label>
+					<div class="input_period" >
+						<div>
+							<input type="date" style="float: left;" id="fromDate" name="fromDate" class="datepicker" value="">
+						</div>
+						<span style="float: left; padding: 0 5px 0 5px">~</span>
+						<div>
+							<input type="date" style="float: left;" id="toDate" name="toDate" class="datepicker" value="">
+						</div>
+					</div>
+				</div>
+			</form>
+			<table class="table table-striped table-sm">
+				<colgroup>
+					<col style="width:5%;" />
+					<col style="width:auto;" />
+					<col style="width:15%;" />
+					<col style="width:10%;" />
+					<col style="width:10%;" />
+				</colgroup>
+				<thead>
+					<tr>
+						<th>NO</th>
+						<th>글제목</th>
+						<th>작성자</th>
+						<th>조회수</th>
+						<th>작성일</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr th:if="${galleryListPage.totalElements} == 0">
+						<td colspan="5" align="center">데이터가 없습니다.</td>
+					</tr>
+					<tr th:each="gallery, status : ${galleryListPage.content}" th:unless="${#lists.isEmpty(galleryListPage.content)}">
+						<td th:text="${gallery.id}"></td>
+						<td><a th:href="@{'/gallery/' + ${gallery.id}}" th:text="${gallery.title}"></a></td>
+						<td th:text="${gallery.memberName}"></td>
+						<td th:text="0"></td>
+						<td th:text="${#temporals.format(gallery.createdDateTime, 'yyyy-MM-dd HH:mm')}"></td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+		<div>
+			<button type="button" class="btn btn-sm btn-primary" id="btnWrite">글쓰기</button>
+		</div>
+		<!-- pagination -->
+		<div class="paging-div">
+			<ul class="pagination" id="pagination"></ul>
+		</div>
+	</div>
+</article>
+
+<script src="/js/jquery-3.6.0.min.js"></script>
+<script src="/js/bootstrap.min.js"></script>
+<script src="/js/jquery.twbsPagination.js"></script>
+
+<script type="text/javascript" th:inline="javascript">
+/*<![CDATA[*/
+$(function() {
+	
+	// 키워드 입력 후 Enter 처리
+	$("#searchValue").on("keyup", function(e) {
+		if (e.keyCode == 13) { searchGalleryList(1); }
+	});
+	
+	// 기간 입력 클릭
+	$("input[name=period]").change(function() {
+		if (this.id == "periodCustom") {
+			$(".input_period").addClass("on");
+		} else {
+			$(".input_period").removeClass("on");
+			$("#fromDate").val("");
+			$("#toDate").val("");
+		}
+	});
+	
+	// 글쓰기 버튼 클릭
+	$("#btnWrite").click(function(e) {
+		location.href = "/gallery/edit";
+	});
+	
+	// 검색 버튼 클릭
+	$("#btnSearch").click(function() {
+		searchGalleryList(1);
+	});
+	
+	// 검색 초기화 버튼 클릭
+	$("#btnReset").click(function() {
+		
+		$("#searchType").val("ALL");
+		$("#searchValue").val("");
+		
+		$("input[name=period][value=ALL]").prop('checked', 'checked');
+		$("#fromDate").val("");
+		$("#toDate").val("");
+		
+		searchGalleryList(1);
+	});
+	
+	/**
+	 * Set Pagination
+	 */
+	window.pagObj = $('#pagination').twbsPagination({
+        totalPages: [[${galleryListPage.totalPages}]],
+        startPage: parseInt([[${galleryListPage.number}]] + 1),
+        visiblePages: 10,
+        prev: "‹",
+		next: "›",
+		first: '«',
+		last: '»',
+        onPageClick: function (event, page) {
+            console.info("current page : " + page);
+        }
+    }).on('page', function (event, page) {
+        searchGalleryList(page);
+    });
+
+	init();
+});
+
+function searchGalleryList(page) {
+	
+	if (page == undefined) {
+		page = 1;
+	}
+
+	if ($("#searchType").val() !=  "ALL" && $("#searchString").val() == "") {
+		alert("'검색어'를 입력해주세요.");
+		$("#searchValue").focus();
+		return;
+	}
+	
+	$("#page").val(page); // page 정보 저장 후
+	$("#form").submit(); // form data 와 함께 전송
+}
+
+function init() {
+	
+	if ([[${param.searchType}]] == null) {
+		$("#searchType").val("ALL");
+	} else {
+		$("#searchType").val([[${param.searchType}]]);
+	}
+	
+	$("input[name=period][value=" + [[${param.period}]] + "]").prop('checked', 'checked');
+	if($("input[name=period]:checked").val() == "CUSTOM") {
+		$(".input_period").addClass("on");
+		$("#fromDate").val([[${param.fromDate}]]);
+		$("#toDate").val([[${param.toDate}]]);
+	}
+}
+/*]]>*/
+</script>
+</body>
+</html>
