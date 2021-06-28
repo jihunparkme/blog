@@ -8,7 +8,7 @@
 
 ## Add Dependency
 
-- `querydsl-jpa`, `querydsl-apt`
+- `querydsl-jpa` / `querydsl-apt`
 - QueryDSL에서 QClass를 사용하기 위해 plugin 등록이 필요하다.
 
 **pom.xml**
