@@ -6,6 +6,8 @@
 
 > [[Spring] pagination, 3분만에 paging 만들기](https://data-make.tistory.com/670)
 
+---
+
 ## Add Dependency
 
 - `querydsl-jpa` / `querydsl-apt`
@@ -46,6 +48,8 @@
 <!-- ... -->
 ```
 
+---
+
 ## Set properties
 
 - Spring Boot Pageable의 start page index는 0부터 시작한다.
@@ -84,6 +88,8 @@ spring.data.web.pageable.size-parameter=size
 # Sort parameter name.
 spring.data.web.sort.sort-parameter=sort
 ```
+
+---
 
 ## View
 
@@ -357,6 +363,8 @@ spring.data.web.sort.sort-parameter=sort
 </html>
 ```
 
+---
+
 ## Controller
 
 - pageable 정보를 form data와 함께 전달 받는다.
@@ -411,6 +419,8 @@ private GalleryParam setGalleryParameter(String searchType, String searchValue,
 }
 ```
 
+---
+
 ## Repository
 
 **GalleryRepository.java**
@@ -419,6 +429,8 @@ private GalleryParam setGalleryParameter(String searchType, String searchValue,
 public interface GalleryRepository extends JpaRepository<Gallery, Long>, GalleryRepositoryCustom {
 }
 ```
+
+---
 
 ## RepositoryCustom
 
@@ -528,8 +540,18 @@ public class GalleryRepositoryCustomImpl extends QuerydslRepositorySupport imple
 }
 ```
 
+## Result
+
+![Result](https://raw.githubusercontent.com/jihunparkme/blog/main/img/queryDSL.jpg 'Result')
+
 ---
 
 ## Reference
 
 > [Spring 블로그 만들기](https://freehoon.tistory.com/category/%EA%B0%9C%EB%B0%9C/Spring%20%20%EB%B8%94%EB%A1%9C%EA%B7%B8%20%EB%A7%8C%EB%93%A4%EA%B8%B0)
+
+---
+
+## Project Code
+
+> [Github](https://github.com/jihunparkme/blog/tree/main/projects/Spring_JPA_QueryDSL_And_jQuery_Pagination_plugin/demo)
