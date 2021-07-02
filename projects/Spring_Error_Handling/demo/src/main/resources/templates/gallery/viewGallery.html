@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<title th:text="@{'게시판 - ' + ${gallery.title}}"></title>
+<link rel='stylesheet' href='/css/bootstrap.min.css'>
+<link rel='stylesheet' href='/css/common.css'>
+</head>
+<body>
+	<div class="container">
+		<div class="card">
+			<div class="card-body">
+				<h5 class="card-title" th:text="@{${gallery.title} + ' - ' + ${gallery.memberName}}"></h5>
+				<p class="card-text"><small class="text-muted" th:text="${#temporals.format(gallery.createdDateTime, 'yyyy-MM-dd HH:mm')}"></small></p>
+				<div class="ckeditor_contents">
+					<p class="card-text" th:utext="${gallery.contents}"></p>
+				</div>
+				<div th:if="${not #lists.isEmpty( fileList )}">
+					<strong>첨부파일 : </strong> 
+					<div th:each="row, status : ${fileList}" class="card-text">
+						<img th:src = "@{'/gallery/display?id=' + ${row.id}}" width="80"/>
+						<a th:href="@{'/gallery/download/' + ${row.id}}" th:text="${row.origFileName}"></a>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="row mt-3">
+			<div class="col-auto mr-auto"></div>
+			<div class="col-auto">
+				<button id="btnEdit" class="btn btn-info">수정</button>
+				<button id="btnDelete" class="btn btn-danger">삭제</button>
+				<a class="btn btn-light" th:href="@{'/gallery/list'}" role="butEdit">목록</a>
+			</div>
+		</div>
+	</div>
+<script src="/js/jquery-3.6.0.min.js"></script>
+<script src="/js/bootstrap.min.js"></script>
+<script type="text/javascript" th:inline="javascript">
+/*<![CDATA[*/
+$(function() {
+	$("#btnEdit").on("click", function() {
+		location.href = "/gallery/edit/" + [[${gallery.id}]];
+	});
+	
+	$("#btnDelete").on("click", function() {
+		deleteGallery();
+	});
+});
+	
+function deleteGallery() {
+	
+	if (!confirm("삭제하시겠습니까?")) {
+		return;
+	}
+	
+	$.ajax({
+		type : "POST",
+		url : "/gallery/delete",	
+		data : {"galleryId" : [[${gallery.id}]]},
+		dataType : "json",
+	})
+	.done(function(result) {
+		if (result.response == "OK") {
+			alert("삭제되었습니다.");
+			location.href = "/gallery/list";
+		} else {
+			alert("삭제에 실패하였습니다. 관리자에게 문의해주세요.");
+		}
+	});
+}
+/*]]>*/
+</script>
+</body>
+</html>

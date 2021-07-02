@@ -1,0 +1,30 @@
+package com.example.demo.gallery.domain;
+
+import java.time.LocalDateTime;
+
+import com.example.demo.gallery.entity.Gallery;
+
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+public class GalleryDto {
+
+	@Getter
+	@NoArgsConstructor
+	public static class Response {
+	    private Long id;
+	    private String memberName;
+	    private String title;
+	    private String contents;
+	    private LocalDateTime createdDateTime;
+	    
+
+	    public Response(Gallery entity) {
+	        this.id = entity.getId();
+	        this.memberName = entity.getMemberName();
+	        this.title = entity.getTitle();
+	        this.contents = entity.getContents();
+	        this.createdDateTime = entity.getCreatedDateTime();
+	    }
+	}	
+}
