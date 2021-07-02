@@ -345,9 +345,7 @@ public class FileUtilities {
 
 ## Result
 
-[!34]사진
-
----
+## ![Result](https://raw.githubusercontent.com/jihunparkme/blog/main/img/CKEditor.jpg 'Result')
 
 ## Reference
 
@@ -357,4 +355,4 @@ public class FileUtilities {
 
 ## Project Code
 
-> [Github]()
+> [Github](https://github.com/jihunparkme/blog/tree/main/projects/Using_CKEditor/demo)
