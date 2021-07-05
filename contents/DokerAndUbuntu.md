@@ -53,6 +53,8 @@
 
 # ubuntu & SSH
 
+- SSH root 접속 Example
+
 - Update ubuntu : `# apt-get update`
 
 - Install SSH : `# apt-get install net-tools vim ssh`
@@ -75,6 +77,15 @@
   - 열린 PORT 확인 : `netstat -nap`
   - LISTEN 중인 PORT : `netstat -nap | grep LISTEN`
   - 특정 PORT : `netstat -nap | grep 22`
+
+```Shell
+## docker run -it -p [HOST PORT]:[CONTAINER PORT] --name [container name] ubuntu /bin/bash
+
+docker run -it -p 9922:22 --name network_test ubuntu /bin/bash
+
+## ssh -p [HOST PORT] id@IP
+ssh -p 9922 root@127.0.0.1
+```
 
 ## Reference
 
