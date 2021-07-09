@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<title>리뷰 작성</title>
+<link rel='stylesheet' href='/css/bootstrap.min.css'>
+<style>
+.review_area {
+    margin: 0;
+    padding: 0;
+    width: 70%;
+    margin-left: auto;
+	margin-right: auto;
+	text-align: center;
+}
+</style>
+</head>
+<body>
+<div class="review_area">
+	<form id="form" onsubmit="return false">
+		<div class="card mb-2">
+			<div class="card-header bg-light">
+		        <i class="fa fa-comment fa"></i>Review
+			</div>
+			<div class="card-body">
+				<ul class="list-group list-group-flush">
+				    <li class="list-group-item">
+						<div class="form-inline mb-2">
+							<label for="reviewId"><i class="fa fa-user-circle-o" aria-hidden="true"></i></label>
+							<input type="text" class="form-control ml-2" placeholder="작성자" name="name">
+							
+							<label for="reviewPassword" class="ml-2"><i class="fa fa-unlock-alt fa-2x"></i></label>
+							<input type="password" class="form-control ml-2" placeholder="비밀번호" name="password">
+							
+							<input class="ml-3" type="checkbox" value="secret" name="secret" />
+							<label for="secret" class="ml-2 mr-2">비밀글</label>
+						</div>
+						<textarea class="form-control" name="contents" placeholder="리뷰를 입력해 주세요" rows="3"></textarea>
+						<button type="button" id="btnWrite" class="btn btn-dark mt-3">작성</button>
+				    </li>
+				</ul>
+			</div>
+		</div>
+	</form>
+
+	<div class="my-3 p-3 bg-white rounded shadow-sm" style="padding-top: 10px">
+		<h6 class="border-bottom pb-2 mb-0">Review list</h6>
+		<div id="reviewList"></div>
+	</div>
+</div>
+<script src="/js/jquery-3.6.0.min.js"></script>
+<script src="/js/bootstrap.min.js"></script>
+<script src="/js/jquery.serializeObject.min.js"></script>
+<script type="text/javascript" th:inline="javascript">
+/*<![CDATA[*/
+$(function() {
+	
+	listReview();
+	
+	$("#btnWrite").on("click", function() {
+		saveReview();
+	});
+});
+
+function saveReview() {
+	
+	var formData = $("#form").serializeObject(true);
+
+	if (!confirm("저장하시겠습니까?")) {
+		return;
+	}
+	
+	formData.secret = false;
+	
+	if ($("input:checkbox[name=secret]").is(":checked")) {
+		formData.secret = true;
+	}
+	
+	// 이름, 비밀번호, 내용을 입력해주세요.
+	
+	console.log(formData);
+
+	$.ajax({
+		type : "POST",
+		url : "/reviews",
+		data : formData,
+		dataType:"json",
+	})
+	.done(function(result) {
+		if (result.response == "OK") {
+			alert("저장되었습니다.");
+			listReview();
+		}
+	});
+}
+
+function listReview() {
+	
+	$.ajax({
+		type : "GET",
+		url : "/reviews/list",
+		dataType:"json",
+	})
+	.done(function(result) {
+		
+		$("#reviewList").empty();
+		
+		if (result.totalElements < 1) {
+			htmls = "등록된 리뷰가 없습니다."
+		}
+		
+		var htmls = "";
+		$(result.content).each(function(){
+			htmls += '<div class="media text-muted pt-3" id="review' + this.id + '">';
+			htmls += '	<div class="media-body pb-3 mb-0 small lh-125 border-bottom horder-gray">';
+			htmls += '		<div class="row ml-1">';
+			htmls += '			<strong class="text-gray-dark">' + this.name + '</strong>';
+			htmls += '			<span class="ml-3">' + new Date(this.createdDateTime).toLocaleString() + '</span>';
+			htmls += '		</div>';
+			htmls += '		<div class="row mt-3"></div>';
+			htmls += '		<div id="contents' + this.id + '">';
+			htmls += '			<div class="row ml-1">' + this.contents + '</div>';
+			htmls += '			<div class="float-right">';
+			htmls += '				<a href="javascript:void(0)" onclick="editReview(' + this.id + ')" style="padding-right:5px">수정</a>';
+			htmls += '				<a href="javascript:void(0)" onclick="deleteReview(' + this.id + ')" >삭제</a>';
+			htmls += '			</div>';
+			htmls += '		</div>';
+			htmls += '		<div style="display: none" id="newContents' + this.id + '">';
+			htmls += '		<div class="row ml-1"><textarea class="form-control" name="contents"rows="3">' + this.contents + '</textarea></div>';
+			htmls += '			<div class="float-right">';
+			htmls += '				<a href="javascript:void(0)" onclick="editReview(' + this.id + ')" style="padding-right:5px">수정</a>';
+			htmls += '				<a href="javascript:void(0)" onclick="deleteReview(' + this.id + ')" >삭제</a>';
+			htmls += '			</div>';
+			htmls += '		</div>';
+			htmls += '	</div>';
+			htmls += '</div>';
+		})
+		
+		$("#reviewList").html(htmls);
+	});
+}
+
+function editReview(reviewId) {
+
+	// 작성자 이름, 비밀번호 확인
+	$("#newContents" + reviewId).css("display", "block");
+	$("#contents" + reviewId).css("display", "none");
+}
+
+function deleteReview(reviewId) {
+	
+	if (!confirm("삭제하시겠습니까?")) {
+		return;
+	}
+	
+	// 작성자 이름, 비밀번호 확인
+	
+	// 관리자일 경우 바로 삭제
+	
+	$.ajax({
+		type : "DELETE",
+		url : "/reviews",
+		data : {"reviewId" : reviewId},
+		dataType:"json",
+	})
+	.done(function(result) {
+		if (result.response == "OK") {
+			alert("삭제되었습니다.");
+			listReview();
+		}
+	});
+}
+/*]]>*/
+</script>
+</body>
+</html>
