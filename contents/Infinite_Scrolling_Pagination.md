@@ -152,6 +152,8 @@ Infinite Scrolling 구현에 참고할 수 있는 정말 좋은 자료가 있다
 
 # Apply
 
+Demo 코드를 활용해서 적용해보자 !
+
 ## View
 
 **infiniteScrolling.html**
@@ -391,6 +393,8 @@ public interface GalleryRepository extends JpaRepository<Gallery, Long>, Gallery
 > <https://wbluke.tistory.com/18>
 >
 > <https://www.sitepoint.com/jquery-infinite-scrolling-demos/>
+>
+> [thumbnail](https://wpnewsify.com/tutorials/add-infinite-scrolling/)
 
 # Project Code
 
