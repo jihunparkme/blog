@@ -1,5 +1,7 @@
 # Text preprocessing
 
+COMMIT
+
 유원준님의 "[딥 러닝을 이용한 자연어 처리 입문](https://wikidocs.net/book/2155)" 책을 (제가 보기 편하게) 간략히 정리한 글입니다.
 
 # Table Of Contents
@@ -23,28 +25,36 @@
 ```shell
 pip install nltk
 ```
+
 - `Do`, `n't`
+
 ```python
-from nltk.tokenize import word_tokenize  
+from nltk.tokenize import word_tokenize
 
 print(word_tokenize("Don't be fooled by the dark sounding name, Mr. Jone's Orphanage is as cheery as cheery goes for a pastry shop."))
-# ['Do', "n't", 'be', 'fooled', 'by', 'the', 'dark', 'sounding', 'name', ',', 'Mr.', 'Jone', "'s", 'Orphanage', 'is', 'as', 'cheery', 'as', 'cheery', 'goes', 'for', 'a', 'pastry', 'shop', '.'] 
+# ['Do', "n't", 'be', 'fooled', 'by', 'the', 'dark', 'sounding', 'name', ',', 'Mr.', 'Jone', "'s", 'Orphanage', 'is', 'as', 'cheery', 'as', 'cheery', 'goes', 'for', 'a', 'pastry', 'shop', '.']
 ```
+
 - `Don`, `'`, `t`
+
 ```python
-from nltk.tokenize import WordPunctTokenizer  
+from nltk.tokenize import WordPunctTokenizer
 
 print(WordPunctTokenizer().tokenize("Don't be fooled by the dark sounding name, Mr. Jone's Orphanage is as cheery as cheery goes for a pastry shop."))
-# ['Don', "'", 't', 'be', 'fooled', 'by', 'the', 'dark', 'sounding', 'name', ',', 'Mr', '.', 'Jone', "'", 's', 'Orphanage', 'is', 'as', 'cheery', 'as', 'cheery', 'goes', 'for', 'a', 'pastry', 'shop', '.'] 
+# ['Don', "'", 't', 'be', 'fooled', 'by', 'the', 'dark', 'sounding', 'name', ',', 'Mr', '.', 'Jone', "'", 's', 'Orphanage', 'is', 'as', 'cheery', 'as', 'cheery', 'goes', 'for', 'a', 'pastry', 'shop', '.']
 ```
+
 - `don't`
+
 ```python
 from tensorflow.keras.preprocessing.text import text_to_word_sequence
 
 print(text_to_word_sequence("Don't be fooled by the dark sounding name, Mr. Jone's Orphanage is as cheery as cheery goes for a pastry shop."))
 # ["don't", 'be', 'fooled', 'by', 'the', 'dark', 'sounding', 'name', 'mr', "jone's", 'orphanage', 'is', 'as', 'cheery', 'as', 'cheery', 'goes', 'for', 'a', 'pastry', 'shop']
 ```
+
 - `does`, `n't`
+
 ```python
 from nltk.tokenize import TreebankWordTokenizer
 tokenizer=TreebankWordTokenizer()
@@ -91,7 +101,7 @@ print(kss.split_sentences(text))
 
 - 조사( '그가', '그에게', '그를'...), 형태소(뜻을 가진 가장 작은 말의 단위) 분리 필요
 - 형태소
-  - **자립 형태소** : 접사, 어미, 조사와 상관없이 자립하여 사용할 수 있는 형태소. 그 자체로 단어. 체언(명사, 대명사, 수사), 수식언(관형사, 부사), 감탄사 등 /  ex. 에디, 딥러닝책
+  - **자립 형태소** : 접사, 어미, 조사와 상관없이 자립하여 사용할 수 있는 형태소. 그 자체로 단어. 체언(명사, 대명사, 수사), 수식언(관형사, 부사), 감탄사 등 / ex. 에디, 딥러닝책
     **의존 형태소** : 다른 형태소와 결합하여 사용되는 형태소. 접사, 어미, 조사, 어간 / ex. -가, -을, 읽-, -었, -다
 
 **잘 지켜지지 않는 띄어쓰기**
@@ -120,7 +130,7 @@ pos_tag(x)
 
 **kor.**
 
-- KoNLPy :  Okt(Open Korea Text), 메캅(Mecab), 코모란(Komoran), 한나눔(Hannanum), 꼬꼬마(Kkma)
+- KoNLPy : Okt(Open Korea Text), 메캅(Mecab), 코모란(Komoran), 한나눔(Hannanum), 꼬꼬마(Kkma)
 - [한국어 형태소 분석기 성능 비교](https://iostream.tistory.com/144)
 - [KoNLPy 형태소](https://cceeddcc.tistory.com/8)
 - [Komoran 품사 정보](https://docs.komoran.kr/firststep/postypes.html)
@@ -129,7 +139,9 @@ pos_tag(x)
 ```shell
 pip insatll KoNLPy
 ```
+
 - Okt
+
 ```python
 from konlpy.tag import Okt
 okt=Okt()
@@ -147,17 +159,17 @@ print(okt.nouns("열심히 코딩한 당신, 연휴에는 여행을 가봐요"))
 - Kkma
 
 ```python
-from konlpy.tag import Kkma  
-kkma=Kkma()  
+from konlpy.tag import Kkma
+kkma=Kkma()
 
 print(kkma.morphs("열심히 코딩한 당신, 연휴에는 여행을 가봐요"))
-# ['열심히', '코딩', '하', 'ㄴ', '당신', ',', '연휴', '에', '는', '여행', '을', '가보', '아요']  
+# ['열심히', '코딩', '하', 'ㄴ', '당신', ',', '연휴', '에', '는', '여행', '을', '가보', '아요']
 
-print(kkma.pos("열심히 코딩한 당신, 연휴에는 여행을 가봐요"))  
-# [('열심히','MAG'), ('코딩', 'NNG'), ('하', 'XSV'), ('ㄴ', 'ETD'), ('당신', 'NP'), (',', 'SP'), ('연휴', 'NNG'), ('에', 'JKM'), ('는', 'JX'), ('여행', 'NNG'), ('을', 'JKO'), ('가보', 'VV'), ('아요', 'EFN')]  
+print(kkma.pos("열심히 코딩한 당신, 연휴에는 여행을 가봐요"))
+# [('열심히','MAG'), ('코딩', 'NNG'), ('하', 'XSV'), ('ㄴ', 'ETD'), ('당신', 'NP'), (',', 'SP'), ('연휴', 'NNG'), ('에', 'JKM'), ('는', 'JX'), ('여행', 'NNG'), ('을', 'JKO'), ('가보', 'VV'), ('아요', 'EFN')]
 
-print(kkma.nouns("열심히 코딩한 당신, 연휴에는 여행을 가봐요"))  
-# ['코딩', '당신', '연휴', '여행']  
+print(kkma.nouns("열심히 코딩한 당신, 연휴에는 여행을 가봐요"))
+# ['코딩', '당신', '연휴', '여행']
 ```
 
 # Cleaning and Normalization
@@ -240,7 +252,7 @@ print([l.stem(w) for w in words])
 용언에 해당되는 '동사'와 '형용사'는 어간(stem)과 어미(ending)의 결합으로 구성
 
 - **활용(conjugation)** : 용언의 어간(stem)이 어미(ending)를 가지는 일
-  - **어간(stem)** : 용언(동사, 형용사)을 활용할 때, 원칙적으로 모양이 변하지 않는 부분 / ex.  긋다, 긋고, 그어서, 그어라
+  - **어간(stem)** : 용언(동사, 형용사)을 활용할 때, 원칙적으로 모양이 변하지 않는 부분 / ex. 긋다, 긋고, 그어서, 그어라
   - **어미(ending)** : 용언의 어간 뒤에 붙어서 활용하면서 변하는 부분이며, 여러 문법적 기능을 수행
 - 규칙 활용
 - [불규칙 활용](https://namu.wiki/w/%ED%95%9C%EA%B5%AD%EC%96%B4/%EB%B6%88%EA%B7%9C%EC%B9%99%20%ED%99%9C%EC%9A%A9)
@@ -250,23 +262,23 @@ print([l.stem(w) for w in words])
 **en.**
 
 ```python
-from nltk.corpus import stopwords 
-from nltk.tokenize import word_tokenize 
+from nltk.corpus import stopwords
+from nltk.tokenize import word_tokenize
 
 example = "Family is not an important thing. It's everything."
-stop_words = set(stopwords.words('english')) 
+stop_words = set(stopwords.words('english'))
 
 word_tokens = word_tokenize(example)
 
 result = []
-for w in word_tokens: 
-    if w not in stop_words: 
-        result.append(w) 
+for w in word_tokens:
+    if w not in stop_words:
+        result.append(w)
 
-print(word_tokens) 
+print(word_tokens)
 # ['Family', 'is', 'not', 'an', 'important', 'thing', '.', 'It', "'s", 'everything', '.']
 
-print(result) 
+print(result)
 # ['Family', 'important', 'thing', '.', 'It', "'s", 'everything', '.']
 ```
 
@@ -276,8 +288,8 @@ print(result)
 - 보통 txt 파일이나 csv 파일로 불용어 정리 후 사용
 
 ```python
-from nltk.corpus import stopwords 
-from nltk.tokenize import word_tokenize 
+from nltk.corpus import stopwords
+from nltk.tokenize import word_tokenize
 
 example = "고기를 아무렇게나 구우려고 하면 안 돼. 고기라고 다 같은 게 아니거든. 예컨대 삼겹살을 구울 때는 중요한 게 있지."
 stop_words = "아무거나 아무렇게나 어찌하든지 같다 비슷하다 예컨대 이럴정도로 하면 아니거든"
@@ -286,13 +298,13 @@ stop_words = "아무거나 아무렇게나 어찌하든지 같다 비슷하다 �
 stop_words=stop_words.split(' ')
 word_tokens = word_tokenize(example)
 
-result = [] 
-for w in word_tokens: 
-    if w not in stop_words: 
-        result.append(w) 
+result = []
+for w in word_tokens:
+    if w not in stop_words:
+        result.append(w)
 # result=[word for word in word_tokens if not word in stop_words]
 
-print(word_tokens) 
+print(word_tokens)
 # ['고기를', '아무렇게나', '구우려고', '하면', '안', '돼', '.', '고기라고', '다', '같은', '게', '아니거든', '.', '예컨대', '삼겹살을', '구울', '때는', '중요한', '게', '있지', '.']
 
 print(result)
@@ -328,17 +340,17 @@ print(words)
 
 #################
 ### Counter 모듈 : 단어의 모든 빈도를 쉽게 계산
-vocab = Counter(words) 
+vocab = Counter(words)
 print(vocab)
 # Counter({'barber': 8, 'secret': 6, 'huge': 5, 'kept': 4, 'person': 3, 'word': 2, 'keeping': 2, 'good': 1, 'knew': 1, 'driving': 1, 'crazy': 1, 'went': 1, 'mountain': 1})
 
-print(vocab["barber"]) 
+print(vocab["barber"])
 # 8
 
 #################
 ### 등장 빈도수가 높은 상위 N개의 단어만 저장
 vocab_size = 5
-vocab = vocab.most_common(vocab_size) 
+vocab = vocab.most_common(vocab_size)
 vocab
 # [('barber', 8), ('secret', 6), ('huge', 5), ('kept', 4), ('person', 3)]
 
@@ -370,7 +382,7 @@ print(vocab["barber"])  # 8
 #################
 ### 등장 빈도수가 높은 상위 N개의 단어만 저장
 vocab_size = 5
-vocab = vocab.most_common(vocab_size) 
+vocab = vocab.most_common(vocab_size)
 vocab
 
 #################
@@ -443,7 +455,7 @@ print(one_hot)
 - x, y 분리
   - `zip function`, `dataframe`, `Numpy`
 - 테스트 데이터 분리
-  - ​	`from sklearn.model_selection import train_test_split`
+  - ​ `from sklearn.model_selection import train_test_split`
 
 https://wikidocs.net/33274
 
@@ -495,8 +507,6 @@ word_extractor = WordExtractor()
 word_extractor.train(corpus)
 word_score_table = word_extractor.extract() # 전체 코퍼스에 대해 단어 점수표를 계산
 ```
-
-
 
 # source
 
