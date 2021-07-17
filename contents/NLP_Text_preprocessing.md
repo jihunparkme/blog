@@ -1,7 +1,5 @@
 # Text preprocessing
 
-COMMIT
-
 유원준님의 "[딥 러닝을 이용한 자연어 처리 입문](https://wikidocs.net/book/2155)" 책을 (제가 보기 편하게) 간략히 정리한 글입니다.
 
 # Table Of Contents
