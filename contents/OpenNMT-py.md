@@ -75,3 +75,94 @@ onmt_translate -model toy-ende/run/model_step_1000.pt -src toy-ende/src-test.txt
 > <https://github.com/OpenNMT/OpenNMT-py>
 >
 > <https://github.com/Parkchanjun/OpenNMT-Colab-Tutorial>
+
+
+
+# opennmt 번역모델
+
+- Opennmt 사용을 위해 NVIDUA-GPU Driver 필요
+  - NVIDUA-GPU Driver 확인 
+    - `nvidia-smi`
+  - Docker container 에서 생성 시 gpu 사용 옵션 필요
+    - `--gpus` : host gpu 사용 옵션
+    - `-v` : 공유폴더 사용 옵션
+    - ex) `docker run -itd -p 9922:22 --name opennmt_test --gpus all -v [host directory]:[container directory] nmt:opennmt-v2.0 /bin/bash`
+
+```python
+# 1. 도커 올리기
+docker run -itd -p 9922:22 --name opennmt_test_gpu --gpus all -v /opt/data/nmt-model:/opt/nmt-model nmt:opennmt-v2.0 /bin/bash
+            
+2. ssh 설치 및 외부 접속
+service ssh start
+
+3. 파일 확인
+cat xxx | wc -l # 라인 수
+cat xxx | more # 파일 확인 (https://webdir.tistory.com/142)
+
+4. OpenNMT-py 설치
+https://github.com/OpenNMT/OpenNMT-py
+
+5. yml 파일 작성
+step, valid step, 모델 save 시점에 대한 개념
+전체 데이터 학습 1회(epoch)와 step 의 차이
+
+train_step : 100000 # 1회 학습 시 10000 step 필요, 통상 10회 내지 대규모에서는 40회 정도 (epoch 기준)
+valid_step : 10000
+save_checkpoint : 6500 # 상황에 따라 다르지만 보통 train_step 에 맞춤
+ 
+7. 적용
+# vocab 생성
+onmt_build_vocab -config train.yaml
+# train
+onmt_train -config train.yaml
+#translate check
+onmt_translate -model toy-ende/run/model_step_1000.pt -src toy-ende/src-test.txt -output toy-ende/pred_1000.txt -gpu 0 -verbose
+
+8. 실행 전 config 설정
+8-1. /available_models/example.conf.json
+{
+    "models_root": "/opt/nmt-model/train/ip/oa/ko/v1.0/model", # model root path
+    "models": [
+        {
+            "id": 0,
+            "model": "incr_step_30000.pt", # 사용 model
+            "timeout": 600,	# 특정 시간 이상 사용하지 않을 시
+            "on_timeout": "to_cpu",  # cpu 로 전환
+            "opt": {
+                "gpu": 0,
+                "beam_size": 5
+            },
+            "tokenizer": {
+                "type": "sentencepiece",
+                "model": "spm.model"  # model
+            }
+        }
+    ]
+}
+
+8-2 실행 ('onmt/bin/server.py 에서 url 확인 및 필요 시 수정')
+python server.py --ip 0.0.0.0 --port 22 --url_root / --config ./available_models/example.conf.json
+
+'API Request'
+POST http://{IP}:{PORT}/translate
+'BODY'
+[
+    {
+        "id" : 0,
+        "src" : "스왑제공자들에 대한 통지 사본"
+    }
+]
+
+8-3 결과 확인
+[
+    [
+        {
+            "n_best": 1,
+            "pred_score": -4.463624000549316,
+            "src": "스왑제공자들에 대한 통지 사본",
+            "tgt": " ⁇  ⁇  of ⁇  ⁇ "
+        }
+    ]
+]
+```
+
