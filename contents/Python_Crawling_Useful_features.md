@@ -15,7 +15,7 @@ result_df = pd.DataFrame(data=data)
 for idx, row in tqdm(file_df.iterrows()):
     # do something
 	result_df = result_df.append({'id': _id, 'title': title, 'link' : link}, ignore_index=True)
-    
+
 result_file_name = 'result_file'
 result_df.to_excel('C:\\Users\\cristoval\\Desktop\\data\\{0}.xlsx'.format(result_file_name), index=False)
 ```
@@ -101,8 +101,8 @@ for idx, row in tqdm(file_df.iterrows()):
         # Click on a specific element
         element_btn = driver.find_element_by_id('id-name')
         element_btn.click()
-        
-        # Get data by element 
+
+        # Get data by element
         element_box = driver.find_element_by_class_name('tit_post')
         link = element_box.find_element_by_tag_name('a').get_attribute('href')
         title = element_box.find_element_by_tag_name('a').text
@@ -123,6 +123,47 @@ result_file_name = 'result'
 result_df.to_excel('C:\\Users\\cristoval\\Desktop\\data\\{0}.xlsx'.format(result_file_name), index=False)
 ```
 
+## Useful Function
+
+```python
+import requests
+
+
+'''
+import json
+import requests
+
+json_data : data = {'language': "ko", "data": {"name": 'Cristoval', "age": 20}} # dictionary
+json_data = json.dumps(data) # convert dictionary to json
+url : url
+'''
+def Post_api(json_data, url):
+return requests.post(url, data=json_data)
+
+
+
+def List_to_text_file(file_path, file_name, list):
+with open(file_path + file_name, "w", encoding='utf-8') as output:
+for row in list:
+try:
+output.write(str(row) + '\n')
+except:
+print("except :: " + str(row))
+continue
+
+
+'''
+import pandas as pd
+
+result_df : columns = {'ko': [], 'en': [], 'result': []}
+result_df = pd.DataFrame(data=columns)
+# Roop
+result_df = result_df.append({'ko': ko_str, 'en': en_str, 'result' : result_str}, ignore_index=True)
+'''
+def DataFrame_to_Excel(result_df, file_path, export_file_name) :
+result_df.to_excel(file_path + '{0}.xlsx'.format(export_file_name), index=False)
+```
+
 **Reference**
 
 > [Selenium with Python](https://selenium-python.readthedocs.io/)
@@ -130,5 +171,3 @@ result_df.to_excel('C:\\Users\\cristoval\\Desktop\\data\\{0}.xlsx'.format(result
 > [tqdm](https://tqdm.github.io/)
 >
 > [셀레니움 웹 크롤링 봇 탐지 우회](https://pythondocs.net/selenium/%EC%85%80%EB%A0%88%EB%8B%88%EC%9B%80-%EC%9B%B9-%ED%81%AC%EB%A1%A4%EB%A7%81-%EB%B4%87-%ED%83%90%EC%A7%80-%EC%9A%B0%ED%9A%8C/)
-
-
