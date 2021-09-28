@@ -3,6 +3,14 @@
 영한님의 [모든 개발자를 위한 HTTP 웹 기본 지식](https://www.inflearn.com/course/http-%EC%9B%B9-%EB%84%A4%ED%8A%B8%EC%9B%8C%ED%81%AC#) 강의
 HTTP Web Network 강의 노트
 
+**Blog Note**
+
+- [HTTP Web Network. Basic](https://jihunparkme.github.io/Http-Web-Network_basic/)
+
+- [HTTP Web Network. Method](https://jihunparkme.github.io/Http-Web-Network_method/)
+
+- [HTTP Web Network. Header](https://jihunparkme.github.io/Http-Web-Network_header/)
+
 # Table Of Contents
 
 - [인터넷 네트워크](#인터넷-네트워크)
