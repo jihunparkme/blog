@@ -70,7 +70,7 @@ pageEncoding="UTF-8"%> <!DOCTYPE html>
 
 ---
 
-## Link
+## href
 
 - JSP
 
@@ -86,7 +86,7 @@ pageEncoding="UTF-8"%> <!DOCTYPE html>
 
 ---
 
-## Script
+## script
 
 - JSP
 
@@ -101,6 +101,98 @@ pageEncoding="UTF-8"%> <!DOCTYPE html>
   type="text/javascript"
   th:src="@{/vendor/bootstrap/js/bootstrap.bundle.min.js}"
 ></script>
+```
+
+## onclick
+
+- JSP
+
+```html
+<button onclick="location.href='addForm.html'" type="button">등록</button>
+```
+
+- Thymeleaf
+
+```html
+<button th:onclick="|location.href='@{/basic/items/add}'|" type="button">
+  등록
+</button>
+```
+
+- th:href="@{/basic/items/{itemId}(itemId=${item.id})}"
+
+- th:href="@{/basic/items/{itemId}(itemId=${item.id},
+  query='test')}"
+
+  - http://localhost:8080/basic/items/1?query=test
+
+- th:href="@{|/basic/items/${item.id}|}"
+
+## for
+
+- JSP
+
+```html
+<c:forEach items="${items}" var="item">
+  <tr>
+    <td>
+      <a href="/basic/items/" + ${itemId}> <c:out value="${item.id}" /></a>
+    </td>
+    <td><a href="/basic/items/" + ${itemId}"> <c:out value="${item.itemName}" /></a></td>
+    <td>${item.price}</td>
+    <td>${item.quantity}</td>
+  </tr>
+</c:forEach>
+```
+
+- Thymeleaf
+
+```html
+<tr th:each="item : ${items}">
+  <td>
+    <a
+      th:href="@{/basic/items/{itemId} (itemId=${item.id})}"
+      th:text="${item.id}"
+      >회원id</a
+    >
+  </td>
+  <td>
+    <a th:href="@{|/basic/items/${item.id}|}" th:text="${item.itemName}"
+      >상품명</a
+    >
+  </td>
+  <td th:text="${item.price}">10000</td>
+  <td th:text="${item.quantity}">10</td>
+</tr>
+```
+
+## input value
+
+- JSP
+
+```html
+<input
+  type="text"
+  id="itemId"
+  name="itemId"
+  class="form-control"
+  value="1"
+  readonly
+/>
+```
+
+- Thymeleaf
+
+```html
+<input
+  type="text"
+  id="itemId"
+  name="itemId"
+  class="form-control"
+  value="1"
+  th:value="${item.id}"
+  readonly
+/>
 ```
 
 ## ing
