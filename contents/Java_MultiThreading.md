@@ -64,12 +64,12 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class ttt {
+public class MultiThreading {
 
 	public static void main(String[] args) throws IOException {
 
 		long start = System.currentTimeMillis();
-		int threadCount = 10;
+		int threadCount = 5;
 
 		AtomicInteger alreadyIndexed = new AtomicInteger();
 		LinkedBlockingQueue<String> queue = new LinkedBlockingQueue<String>(threadCount);
@@ -80,17 +80,16 @@ public class ttt {
 			@Override
 			public void run() {
 				try {
-					for (int i = 1; i <= 10; i++) {
-						queue.put("work " + i); // Queue에 요소 삽입 (Queue가 꽉 찼을 경우 대기)
-						System.out.println("Producer >> " + Thread.currentThread().getName() + " take: " + i + ", remain: " + queue.size() +  "work ");
+					for (int i = 1; i <= 10; i++) { // 작업 리스트
+						queue.put("work " + i); // Queue에 작업 목록 삽입 (Queue가 꽉 찼을 경우 대기)
 
 						// do something
+						System.out.println("Producer >> " + Thread.currentThread().getName() + " take: " + i + ", remain: " + queue.size());
 						Thread.sleep(1000);
-
 					}
 				} catch (InterruptedException e) {
 					e.printStackTrace();
-				} finally {
+				} finally { // 모든 작업 리스트가 Queue에 삽입
 					try {
 						while (await.getCount() > 1) {
 							queue.put("empty"); // 각 Thread에 모든 작업이 끝났다는 표식을 남기자. (인터럽트 여부 혹은 종료 메시지를 보내는 방법도 존재)
@@ -99,7 +98,8 @@ public class ttt {
 					} catch (InterruptedException e) {
 						e.printStackTrace();
 					}
-					await.countDown();
+
+					await.countDown(); // Letch Count를 감소시키고 Count가 0에 도달하면 대기 중인 모든 스레드를 해제
 				}
 			}
 		});
@@ -114,10 +114,12 @@ public class ttt {
 							if ("empty".equals(buffer)) { // 모든 작업이 끝났다는 표식이 있다면 해당 Thread 종료
 								break;
 							}
-							System.out.println("Consumer >> " + Thread.currentThread().getName() + " take: " + buffer + ", remain: " + queue.size());
+							System.out.println("Consumer Start >> " + Thread.currentThread().getName() + " take: " + buffer + ", remain: " + queue.size());
+
 							// do something
 							Thread.sleep(10000);
-							System.out.println("Consumer >> " + Thread.currentThread().getName() + "  take: " + buffer + " EEEEEEEnd");
+
+							System.out.println("Consumer End >> " + Thread.currentThread().getName() + "  take: " + buffer);
 						}
 					} catch (Exception e) {
 						e.printStackTrace();
