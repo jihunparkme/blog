@@ -144,5 +144,3 @@ public class MultiThreading {
 	}
 }
 ```
-
-commit
