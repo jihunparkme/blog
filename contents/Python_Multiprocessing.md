@@ -59,6 +59,8 @@ if __name__ == '__main__':
 
 ## Sample Code
 
+### Base
+
 ```python
 import pandas as pd
 from tqdm import tqdm
@@ -72,12 +74,10 @@ def doWork(file_name):
     file = file.read().strip()
     file_soup = BeautifulSoup(file, 'html5lib')
 
-    global result_df
     columns = {'id': [], 'title': [], 'text': []}
     tmp_df = pd.DataFrame(data=columns)
 
     for doc in file_soup.find_all('doc'):
-        result_df = result_df.append({'id': doc['id'], 'title': doc['title'], 'text': doc.text}, ignore_index=True)
         tmp_df = tmp_df.append({'id': doc['id'], 'title': doc['title'], 'text': doc.text}, ignore_index=True)
 
     # 각 작업에 해당하는 결과물
@@ -97,8 +97,6 @@ def getWorkList():
     return work_list
 
 dir_path = 'C:\\Users\\jihun.park\\Desktop\\data\\'
-columns = {'id': [], 'title': [], 'text': []}
-result_df = pd.DataFrame(data=columns)
 
 if __name__ == '__main__':
 
@@ -106,7 +104,60 @@ if __name__ == '__main__':
     pool.map(doWork, getWorkList())
     pool.close()
     pool.join()
+```
 
-    # 최종 결과물
-    result_df.to_excel(dir_path + '{0}'.format('final.xlsx'), index=False)
+### Return Type
+
+- multiprocessing 에서는 global 사용이 불가하여 multiprocessing.Manager()를 통해 변수 공유를 할 수 있음
+- [multiprocessing.Manager()](https://docs.python.org/3/library/multiprocessing.html#multiprocessing.sharedctypes.multiprocessing.Manager)
+
+```python
+import pandas as pd
+import multiprocessing
+
+def doWork(w_list):
+    list_a = []
+    list_b = []
+    list_c = []
+
+    for work in w_list:
+        list_a.append('a_' + work)
+        list_b.append('b_' + work)
+        list_c.append('c_' + work)
+
+    return list_a, list_b, list_c
+
+
+work_list = []
+for i in range(0, 10):
+    w_list = []
+    for w in range(0, 5):
+        w_list.append('work_' + str(i) + '_' + str(w))
+
+    work_list.append(w_list)
+
+if __name__ == '__main__':
+
+    list_fst = []
+    list_scd = []
+    list_thd = []
+
+    # 멀티 쓰레딩 Pool 사용
+    pool = multiprocessing.Pool(processes=6)  # 현재 시스템에서 사용 할 프로세스 개수
+    results_async = [pool.apply_async(doWork, [i]) for i in work_list]
+    results = [r.get() for r in results_async]
+
+    for idx in range(0, len(results)):
+        list_fst.append(results[idx][0])
+        list_scd.append(results[idx][1])
+        list_thd.append(results[idx][2])
+
+    data = {
+        'a': list_fst,
+        'b': list_scd,
+        'c': list_thd
+    }
+
+    result_df = pd.DataFrame(data)
+    result_df.to_excel('C:\\Cristoval\\data\\{0}'.format('test.xlsx'), index=False)
 ```
