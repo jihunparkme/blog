@@ -36,7 +36,7 @@ def get_page_source(driver):
 
 ## Get Result Data
 
-- `etfItemTable` 안에 담기 모든 종목 정보를 list 에 담아두자.
+- `etfItemTable` 안에 담긴 모든 종목 정보를 list 에 담아주자.
 
 ```python
 def get_result_data(page_source):
@@ -104,13 +104,14 @@ def print_favorite_item(favorite_item_code_list, result_df):
 ```console
       종목코드                  종목명      현재가    전일비     등락률      NAV
 31  360200      KINDEX 미국S&P500   13,890  ▼ 120  -0.86%      N/A
+17  305720         KODEX 2차전지산업   23,115  ▼ 395  -1.68%   23,087
 
 ...
 ```
 
 ## Make Data to Excel
 
-- list 에 담긴 종목 정모들을 excel 로 추출해보자.
+- list 에 담긴 종목 정보들을 excel 로 추출해보자.
 
 ```python
 def make_data_to_excel(root_path, file_name, result_df):
@@ -226,10 +227,10 @@ def run():
 
     close_driver(driver)
 
-    favorite_item_code_list = ['214980', '161510', '102780', '305720', '360200', '367380', '251350']
+    favorite_item_code_list = ['360200', '305720']
     print_favorite_item(favorite_item_code_list, result_df)
 
-    make_data_to_excel('C:\\Users\\qkrwl\\Desktop\\', 'etf_result', result_df)
+    make_data_to_excel('C:\\Users\\Cristoval\\Desktop\\', 'etf_result', result_df)
 
 if __name__ == '__main__':
     run()
