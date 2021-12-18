@@ -62,7 +62,9 @@ IP 주소(172.217.161.78)를 외우고 다니기는 힘들기 때문에 쉽게 �
 9. `Local DNS Server` 는 Hostname 에 대한 IP 주소(172.217.161.78) 응답
 10. Local DNS Server 는 Hostname에 대한 IP 주소를 캐싱하고 IP 주소 정보로 HTTP 요청
 
-<center><img src="https://raw.githubusercontent.com/jihunparkme/blog/main/img/http/3.png" width="100%"></center>
+- 참고 이미지
+
+<img src="https://raw.githubusercontent.com/jihunparkme/blog/main/img/http/3.png" width="80%">
 
 **Reference**
 
@@ -78,15 +80,21 @@ IP 주소(172.217.161.78)를 외우고 다니기는 힘들기 때문에 쉽게 �
 
 - `google.com`로 요청했지만, 실제로는 DNS 서버를 통해 알아낸 IP주소 `172.217.161.78` 와 입력한 URL 정보가 함께 요청으로 전달된다.
 - URL 정보와 전달받은 IP 주소는 HTTP Protocol을 사용하여 `HTTP Request Message` 생성
-- HTTP 요청 Message 는 TCP Protocol 을 사용하여 인터넷을 거쳐 해당 IP 주소의 컴퓨터 Web Server 로 전송
-  - 컴퓨터 네트워크에서 데이터는 패킷이라는 작은 단위로 전달
 
-<center><img src="https://raw.githubusercontent.com/jihunparkme/blog/main/img/http/4.png" width="80%"></center>
+  - HTTP Request Message
+
+    <img src="https://raw.githubusercontent.com/jihunparkme/blog/main/img/http/4.png" width="70%">
+
+- HTTP 요청 Message 는 `TCP Protocol` 을 사용하여 인터넷을 거쳐 해당 IP 주소의 컴퓨터 Web Server 로 전송
+
+  <img src="https://raw.githubusercontent.com/jihunparkme/blog/main/img/http/6.jpg" width="70%">
+
+- 컴퓨터 네트워크에서 데이터는 패킷이라는 작은 단위로 전달
 
 ### Internet
 
 - 인터넷은 내 컴퓨터로 시작해 Router, Modem, ISP1(Internet Service Provider), ... , ISP2, Modem, Router 를 거쳐 해당 IP 주소의 컴퓨터 Web Server 로 도착하게 된다.
-  - [Router](https://ko.wikipedia.org/wiki/%EB%9D%BC%EC%9A%B0%ED%84%B0) : 컴퓨터 네트워크 간에 데이터 패킷을 전송하는 네트워크 장치
+  - [Router](https://ko.wikipedia.org/wiki/%EB%9D%BC%EC%9A%B0%ED%84%B0)(공유기) : 컴퓨터 네트워크 간에 데이터 패킷을 전송하는 네트워크 장치
   - [Model](https://ko.wikipedia.org/wiki/%EB%AA%A8%EB%8E%80) : 디지털 정보 전달을 위해 신호를 변조하여 송신하고 수신측에서 원래의 신호로 복구하기 위해 복조하는 장치
   - [ISP](https://namu.wiki/w/ISP) : 개인이나 기업체에게 인터넷 접속 서비스, 웹사이트 구축 및 웹호스팅 서비스 등을 제공하는 인터넷 서비스 제공 업체
 - Web Server 로 도착한 HTTP 요청 Message 는 HTTP Protocol을 사용하여 URL 정보로 변환
@@ -99,17 +107,22 @@ IP 주소(172.217.161.78)를 외우고 다니기는 힘들기 때문에 쉽게 �
 
 [웹의 동작 원리](http://tcpschool.com/webbasic/works)
 
+[TCP, UDP의 공통점 차이점, 특징](https://shjz.tistory.com/98)
+
 ---
 
 ## Web Server
 
-목적지에 들어가기 전 Server 에 도착했다.
+목적지에 들어가기 전 목적 IP 컴퓨터의 Web Server 에 도착했다.
 
-Web Server 는 요청 URL 정보를 확인하고, 필요한 요청이 여기서 처리되면 돌아가도 된다. 여기서 처리할 수 없는 요청이라면 WAS 로 이동해야 한다. 이왕 온거 계속 가보자!
+Web Server 는 요청 URL 정보를 확인하고, 필요한 요청이 여기서 처리되면 돌려보낸다.
+여기서 처리할 수 없는 요청이라면 WAS 로 이동해야 한다.
+
+우리는 여행을 더 즐겨야 하니 WAS 로 보내달라고 해보자!
 
 **동작**
 
-- Web Server는 HTTP 요청을 받고 바로 컨텐츠를 응답하거나, WAS 에 요청을 전달
+- Web Server는 `HTTP 요청을 받고` 바로 `컨텐츠를 응답하거나, WAS 에 요청을 전달`
 - WAS 에 요청이 전달되고, WAS에서 처리된 요청이 있다면 해당 컨텐츠를 응답
 
 **기능**
@@ -126,26 +139,28 @@ ex) Apache Server, Nginx, IIS 등
 
 ## WAS
 
-Web Server 에서 처리할 수 없는 요청이 있어서 WAS 로 왔다. (사실은 여행을 더 하고 싶어서..)
+Web Server 에서 처리할 수 없는 요청이 있어서 WAS 로 왔다. (사실 우리는 여행✈을 더 즐겨야 한다...!)
 
-여기서 목적지까지 이동하기 위해 요청에 맞는 doGet(), doPost() 라는 자동차 혹은 기차를 이용해야 한다.
+여기서 목적지까지 이동하기 위해 요청에 맞는 doGet(), doPost() 라는 자동차🚕 혹은 기차🚝를 이용해야 한다.
 
 **동작**
 
-- Web Server 로부터 받은 요청과 관련된 Servlet 을 메모리에 로딩
-- `web.xml` 을 참조하여 해당 Servlet 에 대한 Thread 생성 (Thread Pool 활용)
-- HttpServletRequest와 HttpServletResponse 객체를 생성하여 생성된 Servlet에 전달
-  - Thread는 Servlet의 service() 호출
-  - service() 는 요청에 맞는 doGet() or doPost() 호출
-- doGet() or doPost() 는 인자에 맞게 생성된 적절한 동적 컨텐츠를 Response 객체에 담아 WAS에 전달
-- WAS는 Response 객체를 HttpResponse 형태로 바꾸어 Web Server에 전달
-- 생성된 Thread를 종료하고, HttpServletRequest와 HttpServletResponse 객체를 제거
+- Web Server 로부터 받은 요청과 관련된 `Servlet 을 메모리에 로딩`
+- `web.xml` 을 참조하여 해당 Servlet 에 대한 `Thread 생성` (Thread Pool 활용)
+- `HttpServletRequest, HttpServletResponse` 객체를 생성하여 생성된 `Servlet에 전달`
+  - Thread는 Servlet의 `service()` 호출
+  - service() 는 요청에 맞는 `doGet()` or `doPost()` 호출
+- `doGet()` or `doPost()` 는 인자에 맞게 생성된 적절한 동적 컨텐츠를 `Response 객체`에 담아 `WAS에 전달`
+- WAS는 `Response 객체`를 `HttpResponse` 형태로 바꾸어 `Web Server에 전달`
+- 생성된 `Thread를 종료`하고, `HttpServletRequest, HttpServletResponse 객체 제거`
+
+<center><img src="https://raw.githubusercontent.com/jihunparkme/blog/main/img/http/7.png"></center>
 
 **기능**
 
 - WAS(Web Application Server) 는 Web Server와는 다르게 DB조회 등 다양한 로직 처리를 요구하는 동적인 리소스를 제공
-  - HTTP를 통해 Application 수행
   - aka. Web Container, Servlet Container
+  - HTTP를 통해 Application 수행
   - JSP, Servlet 구동 환경 제공
 
 ex) Tomcat, JBoss, Jeus, Web Sphere 등
