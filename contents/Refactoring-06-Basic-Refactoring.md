@@ -937,11 +937,52 @@ manager = aPerson.department.manager;
 2. 위임 메서드를 호출하는 코드를 Getter 로 수정
 3. 위임 메서드 삭제
 
+## 알고리즘 교체하기
+
+`더 간명한 방법을 찾으면 복잡한 기존 코드를 간명한 방식으로 고치자.`
+
+`알고리즘 교체를 위해 반드시 메서드를 가능한 잘게 나누자.`
+
+**개요**
+
+Before
+
+```javascript
+function foundPerson(people) {
+    for (let i = 0; i < people.length; i++) {
+        if (people[i] === 'Don') {
+            return 'Don';
+        }
+        if (people[i] === 'John') {
+            return 'John';
+        }
+        if (people[i] === 'Kent') {
+            return 'Kent';
+        }
+    }
+
+    return "";
+}
+```
+
+After
+
+```javascript
+function foundPerson(people) {
+    const candidates = ['Don', 'John', 'Kent'];
+    return people.find((p) => candidates.includes(p) || "");
+}
+```
+
+**절차**
+
+1. 교체할 코드를 하나의 함수에 모으기
+2. 이 함수의 동작 검증 테스트 만들기
+3. 대체 알고리즘 준비
+4. 정적 검사 수행
+5. 기존 알고리즘과 새 알고리즘의 결과를 비교하는 테스트 수행
+   - if 결과가 같다면 리팩터링 종료
+   - else 기존 알고리즘을 참고해서 새 알고리즘 테스트 및 디버깅
+
 ## 72L
-
-
-
-
-
-
 
