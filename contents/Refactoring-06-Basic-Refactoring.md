@@ -846,5 +846,65 @@ class Person {
 3. 소스 클래스의 메서드와 필드를 모두 타깃 클래스로 옮기기 (이동마다 테스트)
 4. 소스 클래스를 삭제
 
-## 69L
+## 위임 숨기기
 
+`캡슐화는 모듈들이 시스템의 다른 부분에 대해 알아야 할 내용을 줄여준다.`
+
+`인터페이스와의 의존성을 없애려면 서버 자체에 위임 메서드를 만들어서 위임 객체의 존재를 숨기자.`
+
+반대 리팩터링 : 중개자 제거하기
+
+**개요**
+
+Before
+
+```javascript
+manager = aPerson.department.manager;
+```
+
+After
+
+```javascript
+manager = aPerson.manager;
+
+class Person {
+  get manager() { return this.department.manager; }
+}
+```
+
+**절차**
+
+1. 위임 객체의 각 메서드에 해당하는 위임 메서드를 서버에 생성
+2. 클라이언트가 서버를 호출하도록 수정
+3. 서버로부터 위임 객체를 얻는 접근자 제거
+4. 테스트
+
+**example**
+
+```javascript
+manager = aPerson.manager;
+```
+
+```javascript
+class Person {
+    constructor(name) { 
+        this._name = name;
+    }
+    get name() { return this._name; }
+    get manager() { return this._department.manager; } // 부서 클래스를 숨기고 위임 메서드 생성
+    set department(arg) { this._department = arg; }
+}
+```
+
+```javascript
+class Department {
+    get chargeCode() { return this._chargeCode; }
+    set chargeCode(arg) { this._chargeCode = arg; }
+    get manager() { return this._manager; }
+    set manager(arg) { this._manager = arg; }
+}
+```
+
+
+
+## 69L
