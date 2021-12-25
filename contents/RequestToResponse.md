@@ -1,4 +1,4 @@
-# [HTTP Spring 통신 흐름 과정] HTTP Request 부터 HTTP Response 까지의 여정
+# HTTP Request 부터 HTTP Response 까지의 여정
 
 요즘 여행 가는 것도 힘든데.. HTTP 타고 여행이나 가보자!
 
@@ -228,6 +228,8 @@ public interface HandlerInterceptor {
 입구를 통과했으니 조금만 더 가면 목적지에 도착하겠다!
 
 Handler 를 Controller 라고 생각하자.
+
+<center><img src="https://raw.githubusercontent.com/jihunparkme/blog/main/img/SpringMVC.jpg" width="100%"></center>
 
 ### HandlerMapping
 
