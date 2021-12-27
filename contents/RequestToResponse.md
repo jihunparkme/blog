@@ -154,7 +154,7 @@ Web Server 에서 처리할 수 없는 요청이 있어서 WAS 로 왔다. (사�
 - WAS는 `Response 객체`를 `HttpResponse` 형태로 바꾸어 `Web Server에 전달`
 - 생성된 `Thread를 종료`하고, `HttpServletRequest, HttpServletResponse 객체 제거`
 
-<center><img src="https://raw.githubusercontent.com/jihunparkme/blog/main/img/http/7.png"></center>
+<center><img src="https://raw.githubusercontent.com/jihunparkme/blog/main/img/was.jpg" width="100%"></center>
 
 **기능**
 
