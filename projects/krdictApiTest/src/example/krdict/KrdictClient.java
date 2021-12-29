@@ -7,7 +7,7 @@ import java.net.URL;
 
 public class KrdictClient {
 
-    private static final String KEY = "92FAC02C710BED25F78AA77973C420EB";
+    private static final String KEY = "";
     private static final String apiURL = "https://krdict.korean.go.kr/api/search";
 
     public static void main(String[] args) {
