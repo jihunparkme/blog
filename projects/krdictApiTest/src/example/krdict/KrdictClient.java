@@ -40,8 +40,6 @@ public class KrdictClient {
 
             ResponseEntity responseEntity = responseParsing(response.toString());
             System.out.println("responseEntity = " + responseEntity);
-            //https://krdict.korean.go.kr/api/search?key=012A1EDE631d838316C58FFD480AC286&q=나무&advanced=y&method=exact&translated=y&trans_lang=1
-            //responseEntity = ResponseEntity(word=나무, pos=명사, senseList=[Sense(definition=단단한 줄기에 가지와 잎이 달린, 여러 해 동안 자라는 식물., enWord=tree, enDefinition=A plant with a hard stem, branches and leaves.), Sense(definition=집이나 가구 등을 만드는 데 사용하는 재목., enWord=wood, enDefinition=The material used to build a house or to make furniture.), Sense(definition=불을 때기 위해 베어 놓은 나무의 줄기나 가지., enWord=timber; log, enDefinition=The trunk or branches of a tree cut to be used as firewood.)])
 
         } catch (Exception e) {
             System.out.println(e);
@@ -50,7 +48,9 @@ public class KrdictClient {
 
     private static StringBuffer getResponse(URL url) throws IOException {
 
-        // refer : https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/net/HttpURLConnection.html
+        /*
+         * refer : https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/net/HttpURLConnection.html
+         */
         HttpURLConnection con = (HttpURLConnection) url.openConnection();
         con.setUseCaches(false);
         con.setDoInput(true);
