@@ -2,9 +2,9 @@
 
 요즘 여행 가는 것도 힘든데.. HTTP 타고 여행이나 가보자!
 
-먼저 `HTTP` 는 `인터넷에서 데이터를 주고받을 수 있는 프로토콜`을 의미한다.
+먼저 `HTTP` 는 `인터넷에서 데이터를 주고 받을 수 있는 프로토콜`을 의미한다.
 
-웹 브라우저에 URL 을 입력한 후 결과 페이지가 보이기까지 어떠한 코스들을 거치는지 구경해 보자.
+웹 브라우저에 URL 을 입력한 후 결과 페이지가 보이기까지 어떠한 코스들을 거치는지 구경해 보자. 🌏👀
 
 자리가 얼마 남지 않았다는데.. 빨리 탑승해 보자 !!
 
@@ -18,7 +18,7 @@
 
 우리가 갈 목적지의 주소는 `google.com` 이다.
 
-웹 브라우저에 google.com 을 입력해 보자.
+웹 브라우저에 google.com 을 입력해 보자. ⌨
 
 <img src="https://raw.githubusercontent.com/jihunparkme/blog/main/img/http/2.jpg">
 
@@ -43,7 +43,7 @@ Ping google.com [172.217.161.78] 32바이트 데이터 사용:
 
 Google 의 실제 IP는 `172.217.161.78` 이다. (IP 주소로도 접속해 보자.)
 
-- 이 IP 주소는 국적과 지역에 따라 다 다르게 나타날 것이다.
+- 이 IP 주소는 국적과 지역에 따라 다르게 나타날 수 있다.
 
 IP 주소(172.217.161.78)를 외우고 다니기는 힘들기 때문에 쉽게 기억할 수 있는 Domain Name을 사용하는 것이다.
 
@@ -55,18 +55,20 @@ IP 주소(172.217.161.78)를 외우고 다니기는 힘들기 때문에 쉽게 �
 2. `Local DNS`에게 Hostname(google.com)에 대한 IP 주소 요청
 3. Local DNS 에 IP 주소가 없다면 다른 DNS Name Server(Root DNS) 정보를 응답
 4. `Root DNS` 서버에게 Hostname 에 대한 IP 주소를 요청
-5. Root DNS 서버는 `.com` 도메인을 관리하는 TLD(Top-Level Domain) Name Serever 정보 응답
+5. Root DNS 서버는 <i>.com</i> 도메인을 관리하는 TLD(Top-Level Domain) Name Serever 정보 응답
 6. `TLD` 에게 Hostname 에 대한 IP 주소를 요청
-7. TLD 는 Hostname 을 관리하는 DNS Server 정보 응답
+7. TLD 는 Hostname 을 관리하는 `DNS Server` 정보 응답
 8. google.com 도메인을 관리하는 `DNS Server`에게 Hostname에 대한 IP 주소를 요청
-9. `Local DNS Server` 는 Hostname 에 대한 IP 주소(172.217.161.78) 응답
-10. Local DNS Server 는 Hostname에 대한 IP 주소를 캐싱하고 IP 주소 정보로 HTTP 요청
+9. `DNS Server` 는 Hostname 에 대한 IP 주소(172.217.161.78) 응답
+10. `Local DNS Server` 는 응답으로 받은 Hostname에 대한 IP 주소를 캐싱하고 IP 주소 정보로 HTTP 요청
 
 - 참고 이미지
 
 <img src="https://raw.githubusercontent.com/jihunparkme/blog/main/img/http/3.png" width="80%">
 
 **Reference**
+
+[웹의 동작 원리](http://tcpschool.com/webbasic/works)
 
 [Internet과 작동 원리 (HTTP, Browser, DNS, Domain, Hosting](https://data-make.tistory.com/665)
 
@@ -105,8 +107,6 @@ IP 주소(172.217.161.78)를 외우고 다니기는 힘들기 때문에 쉽게 �
 
 [HTTP 개요](https://developer.mozilla.org/ko/docs/Web/HTTP/Overview)
 
-[웹의 동작 원리](http://tcpschool.com/webbasic/works)
-
 [TCP, UDP의 공통점 차이점, 특징](https://shjz.tistory.com/98)
 
 ---
@@ -123,17 +123,17 @@ Web Server 는 요청 URL 정보를 확인하고, 필요한 요청이 여기서 
 **동작**
 
 - Web Server는 `HTTP 요청을 받고` 바로 `컨텐츠를 응답하거나, WAS 에 요청을 전달`
-- WAS 에 요청이 전달되고, WAS에서 처리된 요청이 있다면 해당 컨텐츠를 응답
+- WAS 에 요청이 전달되고, WAS에서 처리된 요청이 있다면 해당 `컨텐츠를 응답`
 
 **기능**
 
-- HTTP 요청이 들어오면 요청을 서비스하는 담당
+- HTTP 요청이 들어오면 `요청을 서비스`하는 담당
   - 정적 컨텐츠
     - WAS를 거치지 않고 바로 컨텐츠 제공
   - 동적 컨텐츠
     - 동적 컨텐츠 제공을 위해 WAS 에 요청 전달
 
-ex) Apache Server, Nginx, IIS 등
+<i>ex) Apache Server, Nginx, IIS 등</i>
 
 ---
 
@@ -158,7 +158,7 @@ Web Server 에서 처리할 수 없는 요청이 있어서 WAS 로 왔다. (사�
 
 **기능**
 
-- WAS(Web Application Server) 는 Web Server와는 다르게 DB조회 등 다양한 로직 처리를 요구하는 동적인 리소스를 제공
+- WAS(Web Application Server) 는 Web Server와는 다르게 DB조회 등 다양한 로직 처리를 요구하는 `동적인 리소스를 제공`
   - aka. Web Container, Servlet Container
   - HTTP를 통해 Application 수행
   - JSP, Servlet 구동 환경 제공
@@ -176,7 +176,7 @@ ex) Tomcat, JBoss, Jeus, Web Sphere 등
 목적지까지 이동하는 길에 여러 인증 절차가 필요하다. 여권을 미리 준비해두자!
 
 - Servlet 이 지원하는 수문장
-- 사용자 인증이나 로깅 등과 같은 웹 공통 관심사를 처리
+- 사용자 인증이나 로깅 등과 같은 `웹 공통 관심사를 처리`
 
 ```java
 public interface Filter {
@@ -197,7 +197,7 @@ public interface Filter {
 
 하지만 경로가 너무 많아서 길을 찾기가 어렵다.. 여기서 목적지까지 가는 길을 안내 받아보자.
 
-- `doGet() or doPost() (WAS 에서 요청에 맞게 호출된 메서드)`를 통해 전달된 요청을 확인해서 적합한 Controller 에 위임해주는 Front Controller
+- `doGet() or doPost()`(WAS 에서 요청에 맞게 호출된 메서드)를 통해 전달된 요청을 확인해서 적합한 Controller 에 위임해주는 `Front Controller`
 
 ---
 
@@ -207,7 +207,7 @@ public interface Filter {
 
 목적지에 입장을 하기 위해 예매한 표를 보여주자.
 
-- Servlet Filter 와 동일하게 웹 공통 관심사를 처리
+- Servlet Filter 와 동일하게 `웹 공통 관심사를 처리`
 - Spring MVC 구조에 특화된 필터 기능 제공
 
 ```java
@@ -270,11 +270,40 @@ https://jihunparkme.github.io/Spring-MVC-Part1-MVC/
 
 ---
 
+## Servlet 예외 처리 흐름
+
+**Controller 에서 예외 발생 시**
+
+<i>Spring Boot 를 사용하면 오류 페이지 화면만 BasicErrorController 가 제공하는 룰과 우선순위에 따라서 등록하면 된다.</i>
+
+<i>아래 흐름은 참고만 해보자.</i>
+
+<center><img src="https://raw.githubusercontent.com/jihunparkme/blog/main/img/exception.jpg" width="100%"></center>
+
+1\. WAS(/error-ex, dispatchType=REQUEST) -> 필터 -> 서블릿 -> 인터셉터 -> 컨트롤러
+
+- 컨트롤러에서 예외발생
+
+2\. 컨트롤러 -> 인터셉터 -> 서블릿 -> 필터 -> WAS
+
+- WAS 에서 오류 페이지 확인
+
+3\. WAS(/error-page/500, dispatchType=ERROR) -> ~~필터(x)~~ -> 서블릿 -> ~~인터셉터(x)~~ ->
+컨트롤러(/error-page/500) -> View
+
+- 필터, 인터셉터에서 필요 시 중복 호출 제거
+
+---
+
 ## HTTP Response
 
-이제 여행을 마치고 돌아갈 시간이다.
+다행히 오류 없이 안전하게 여행을 마치고 돌아갈 시간이다.
 
-왔던 길과 반대로 Spring Interceptor, Dispatcher Servlet, Servlet Filter, WAS, Web Server 을 거쳐 돌아가면 된다.
+왔던 길과 반대로
+
+Spring Interceptor -> Dispatcher Servlet -> Servlet Filter -> WAS -> Web Server
+
+을 거쳐 돌아가면 된다.
 
 ...
 
