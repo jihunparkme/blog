@@ -101,7 +101,7 @@ IP 주소(172.217.161.78)를 외우고 다니기는 힘들기 때문에 쉽게 �
   - [ISP](https://namu.wiki/w/ISP) : 개인이나 기업체에게 인터넷 접속 서비스, 웹사이트 구축 및 웹호스팅 서비스 등을 제공하는 인터넷 서비스 제공 업체
 - Web Server 로 도착한 HTTP 요청 Message 는 HTTP Protocol을 사용하여 URL 정보로 변환
 
-<center><img src="https://raw.githubusercontent.com/jihunparkme/blog/main/img/http/5.png" height="1000"></center>
+<center><img src="https://raw.githubusercontent.com/jihunparkme/blog/main/img/http/5.jpg"></center>
 
 **Reference**
 
