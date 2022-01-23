@@ -1,4 +1,4 @@
-# Project
+# Leather-Homepage
 
 신입 백엔드 개발자로 일한 지 어느덧 1년이 지났다. 👨‍💻
 
@@ -51,6 +51,67 @@ AWS 배포 부분은 이동욱님의 [스프링 부트와 AWS로 혼자 구현�
 ## build.gradle
 
 프로젝트 설정 부분은 항상 작성하라는 대로만 작성하고 무심코 지나갔었는데, 이번 기회에 살펴보게 되어 다행이다.
+
+**Kotlin Spring**
+
+- aka. Kotlin dsl
+
+```gradle
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
+plugins {
+	val kotlinVersion = "1.5.10"
+	id("org.springframework.boot") version "2.6.2"
+	id("io.spring.dependency-management") version "1.0.11.RELEASE" //> spring boot 의존성 관리 플러그인
+	kotlin("jvm") version kotlinVersion //> jvm(bytecode)으로 컴파일
+	kotlin("plugin.spring") version kotlinVersion //> 클래스를 open으로 기본 설정
+	kotlin("plugin.jpa") version kotlinVersion
+}
+
+group = "com"
+version = "0.0.1-SNAPSHOT"
+java.sourceCompatibility = JavaVersion.VERSION_11
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
+	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+	implementation("org.springframework.boot:spring-boot-starter-web")
+	implementation("com.fasterxml.jackson.module:jackson-module-kotlin") //> 매개변수가 없는 생성자가 없더라도 직렬화와 역직렬화를 지원
+	implementation("org.jetbrains.kotlin:kotlin-reflect")
+	implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8") //> 코틀린 필수 기능 제공
+	testImplementation("org.springframework.boot:spring-boot-starter-test")
+}
+
+allOpen{ //지연로딩을 위해 추가 (kotlin final class 와 관련)
+	annotation("javax.persistence.Entity")
+	annotation("javax.persistence.MappedSuperclass")
+	annotation("javax.persistence.Embeddable")
+}
+
+tasks.withType<KotlinCompile> {
+	kotlinOptions {
+		freeCompilerArgs = listOf("-Xjsr305=strict")
+		jvmTarget = "11"
+	}
+}
+
+tasks.withType<Test> {
+	useJUnitPlatform()
+}
+
+```
+
+`kotlin("plugin.spring")`
+
+- 코틀린의 클래스는 기본적으로 final 이므로 상속이 불가능
+- 하지만, Spring AOP 는 cglib 를 사용할 때 상속을 통해 proxy 패턴을 사용
+- 해당 플러그인을 통해 클래스를 open 으로 기본 설정
+
+**Java Spring**
 
 ```gradle
 plugins { //> 기존 gradle buildscript, apply plugin 을 간편화
@@ -111,4 +172,58 @@ test {
 - `runtimeOnly` : 런타임 단계에서만 필요한 종속성 (ex. h2)
 - `annotationProcessor` : annotation 이 선언된 클래스의 경우 annotationProcessor 처리가 필요한 종속성 (ex. lombok)
 
+> [Kotlin Gradle](https://kotlinlang.org/docs/gradle.html#targeting-the-jvm)
+>
 > [The Java Library Plugin](https://docs.gradle.org/current/userguide/java_library_plugin.html#sec:java_library_configurations_graph)
+
+> [[kotlin + Spring] 코틀린 환경에서 Spring Boot 사용하기](https://sabarada.tistory.com/180)
+
+## Test Code
+
+```java
+@RunWith(SpringRunner.class)
+@WebMvcTest(controllers = HelloController.class,
+        excludeFilters = {
+        @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = SecurityConfig.class)
+        }
+)
+public class HelloControllerTest {
+
+    @Autowired
+    private MockMvc mvc;
+
+    @WithMockUser(roles="USER")
+    @Test
+    public void hello가_리턴된다() throws Exception {
+        String hello = "hello";
+
+        mvc.perform(get("/hello"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(hello));
+    }
+
+	@WithMockUser(roles="USER")
+    @Test
+    public void helloDto가_리턴된다() throws Exception {
+        String name = "hello";
+        int amount = 1000;
+
+        mvc.perform(
+                    get("/hello/dto")
+                            .param("name", name)
+                            .param("amount", String.valueOf(amount)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name", is(name)))
+                .andExpect(jsonPath("$.amount", is(amount)));
+    }
+}
+```
+
+- `@RunWith(SpringRunner.class)` : 스프링 실행자(SpringRunner)를 실행
+  - SpringBootTest 와 Junit 사이의 연결자 역할
+- `@WebMvcTest` : Spring MVC 에 집중할 수 있는 어노테이션
+  - @Controller, @ControllerAdvice 등을 사용할 수 있지만, @Service, @Component, @Repository 등은 사용할 수 없음
+- `@Autowired` : Spring 이 관리하는 Bean 주입
+- `private MockMvc mvc` Web API 테스트 시 사용
+- `.param` : 요청 파라미터
+- `jsonPath` : JSON 응답값을 필드별로 검증 ($ 기준으로 필드명 명시)
