@@ -227,3 +227,16 @@ public class HelloControllerTest {
 - `private MockMvc mvc` Web API 테스트 시 사용
 - `.param` : 요청 파라미터
 - `jsonPath` : JSON 응답값을 필드별로 검증 ($ 기준으로 필드명 명시)
+
+## Controller
+
+`Bean 주입 시 생성자로 주입받자.`
+
+- @RequiredArgsConstructor
+- 클래스의 의존성 관계가 변경될 때마다 생성자를 수정해야하는 번거로움을 해결
+
+## Entity & Dto
+
+`Entity 클래스와 Controller 에서 사용할 Dto 는 분리해서 사용하자.`
+
+- Entity 클래스는 DB와 맞닿은 핵심 클래스이고 수많은 서비스 클래스나 비즈니스 로직들에 사용되므로 잦은 변경이 일어나지 않도록 하자.
