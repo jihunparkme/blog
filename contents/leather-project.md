@@ -48,6 +48,11 @@ AWS 배포 부분은 이동욱님의 [스프링 부트와 AWS로 혼자 구현�
   - [MySQL 데이터 백업](https://server-talk.tistory.com/30)
   - 댓글, 후기, 문의하기 요청이 들어오면 관리자에게 자동 메일 발송
 
+/
+
+디렉터리 구조는 도메인형으로 가고자 한다.
+[패키지 구조 가이드](https://cheese10yun.github.io/spring-guide-directory/)
+
 ## build.gradle
 
 프로젝트 설정 부분은 항상 작성하라는 대로만 작성하고 무심코 지나갔었는데, 이번 기회에 살펴보게 되어 다행이다.
@@ -222,11 +227,13 @@ public class HelloControllerTest {
 - `@RunWith(SpringRunner.class)` : 스프링 실행자(SpringRunner)를 실행
   - SpringBootTest 와 Junit 사이의 연결자 역할
 - `@WebMvcTest` : Spring MVC 에 집중할 수 있는 어노테이션
-  - @Controller, @ControllerAdvice 등을 사용할 수 있지만, @Service, @Component, @Repository 등은 사용할 수 없음
+  - @Controller, @ControllerAdvice 등을 사용할 수 있지만, @Service, @Component, @Repository 등은 사용할 수 없음 (JPA 기능이 동작하지 않음)
 - `@Autowired` : Spring 이 관리하는 Bean 주입
 - `private MockMvc mvc` Web API 테스트 시 사용
 - `.param` : 요청 파라미터
 - `jsonPath` : JSON 응답값을 필드별로 검증 ($ 기준으로 필드명 명시)
+
+> [Spring Boot API TDD Start](https://data-make.tistory.com/717)
 
 ## Controller
 
@@ -240,3 +247,35 @@ public class HelloControllerTest {
 `Entity 클래스와 Controller 에서 사용할 Dto 는 분리해서 사용하자.`
 
 - Entity 클래스는 DB와 맞닿은 핵심 클래스이고 수많은 서비스 클래스나 비즈니스 로직들에 사용되므로 잦은 변경이 일어나지 않도록 하자.
+
+## JPA Auditing
+
+`생성/수정시간 자동화`
+
+```java
+@Getter
+@MappedSuperclass
+@EntityListeners(AuditingEntityListener.class)
+public class BaseTimeEntity {
+
+    @CreatedDate
+    private LocalDateTime createDate;
+
+    @LastModifiedDate
+    private LocalDateTime updateDateTime;
+
+}
+```
+
+- `@MappedSuperclass` : Entity 클래스들이 해당 클래스를 상속할 경우 필드들도 컬럼으로 인식하도록 설정
+
+- `@EntityListeners(AuditingEntityListener.class)` : 해당 클래스에 Auditing 기능 포함
+
+- `@CreatedDate` : Entity 생성 후 저장 시간 자동 저장
+
+- `@LastModifiedDate` : Entity 변경 후 저장 시간 자동 저장
+
+---
+
+- API response 틀 만들기
+- TEST 코드 변경
