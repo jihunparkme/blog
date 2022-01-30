@@ -2,8 +2,6 @@
 
 오랜만에 Mybatis 설정을 할 일이 생겼는데, 기억이 가물가물해서.. 정리를 해보았다.
 
-
-
 ## Dependency
 
 먼저 Mybatis 와 mssql-jdbc 관련 종속성을 추가해 주자.
@@ -65,7 +63,7 @@ Mybatis 관련 설정이 필요하다.
   "http://mybatis.org/dtd/mybatis-3-config.dtd">
 <configuration>
     <typeAliases>
-        <typeAlias type="com.aaron.example.query.dto.Result" alias="result" />    
+        <typeAlias type="com.aaron.example.query.dto.Result" alias="result" />
     </typeAliases>
 
     <mappers>
@@ -147,14 +145,14 @@ public class QueryResultController {
     @Autowired
     private QueryResultImpl queryResultService;
 
-    @GetMapping(value = "/list") 
+    @GetMapping(value = "/list")
     public ResponseEntity<BasicResponse> list(
         @RequestParam(value = "beginDate", required = true) String beginDate,
         @RequestParam(value = "toDate", required = true) String toDate) throws Exception {
 
         ObjectMapper mapper = new ObjectMapper();
         List<Map<String, Object>> mapperList = queryResultService.getQueryResultMapper().findResultList(beginDate, toDate);
-        List<Result> result = mapperList.stream().map(o -> 
+        List<Result> result = mapperList.stream().map(o ->
                                                       mapper.convertValue(o, Result.class))
             									.collect(Collectors.toList());
 
@@ -179,9 +177,6 @@ public class QueryResultController {
 @Service
 public class QueryResultImpl {
 	@Autowired
-	private QueryResultMapper queryResultMapper; 
+	private QueryResultMapper queryResultMapper;
 }
 ```
-
-
-
