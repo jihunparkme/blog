@@ -1,6 +1,8 @@
 # SpringBoot & Mybatis & MS-SQL
 
-오랜만에 Mybatis 설정을 할 일이 생겼는데, 기억이 가물가물해서.. 정리를 해보았다.
+오랜만에 Spring Mybatis 설정을 할 일이 생겼는데, 기억이 가물가물해서.. 정리를 해보았다.
+
+하지만, 가급적 메서드 기반으로 쿼리를 생성해주는 Querydsl 을 사용하는 것으로..
 
 ## Dependency
 
