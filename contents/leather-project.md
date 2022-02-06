@@ -24,7 +24,7 @@ AWS 배포 부분은 이동욱님의 [스프링 부트와 AWS로 혼자 구현�
 
 기술 스택은 현재 사용 중인 혹은 배워보고 싶은 기술들을 택했다.
 
-- `Back-End` : Kotlin, Spring Boot, Spring MVC, Spring Security
+- `Back-End` : Kotlin, Java, Spring Boot, Spring MVC, Spring Security
 - `Front-End` : Thymeleaf, JavaScript, jQuery, Bootstrap
 - `Data` : Spring Data JPA, JPA, QueryDSL
 - `Test` : Mockito, Spock
@@ -242,6 +242,12 @@ public class HelloControllerTest {
 - @RequiredArgsConstructor
 - 클래스의 의존성 관계가 변경될 때마다 생성자를 수정해야하는 번거로움을 해결
 
+`@ModelAttribute vs @RequestBody`
+
+- @ModelAttribute : 요청 파라미터의 이름으로 바인딩 객체의 프로퍼티를 찾고, 해당 프로퍼티의 setter를 호출해서 객체로 바인딩
+
+- @RequestBody : JSON 요청을 HttpMessageConverter 를 거쳐 객체로 바인딩
+
 ## Entity & Dto
 
 `Entity 클래스와 Controller 에서 사용할 Dto 는 분리해서 사용하자.`
@@ -275,7 +281,74 @@ public class BaseTimeEntity {
 
 - `@LastModifiedDate` : Entity 변경 후 저장 시간 자동 저장
 
----
+## Template
 
-- API response 틀 만들기
-- TEST 코드 변경
+- template js 코드에서 자주 사용되는 .ajax 임시 틀
+
+```js
+	var data = {
+		title: $('#title').val(),
+		contents: $('#contents').val(),
+	};
+
+	$.ajax({
+		type: 'POST',
+		url: "/notice/" + [[${notice.id}]],
+		dataType: 'json',
+		contentType: 'application/json; charset=utf-8',
+		data: JSON.stringify(data)
+	}).done(function() {
+		alert('수정되었습니다.');
+		window.location.href = '/';
+	}).fail(function (error) {
+		alert(JSON.stringify(error));
+	});
+```
+
+## Login
+
+구글 사용자 인증 정보 API (OAuth 2.0 Client ID)
+
+- <https://console.cloud.google.com/>
+
+**SecurityConfig**
+
+```java
+@RequiredArgsConstructor
+@EnableWebSecurity //Spring Security 설정 활성화
+public class SecurityConfig extends WebSecurityConfigurerAdapter {
+
+    private final CustomOauth2UserService customOauth2UserService;
+
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+        http
+				//h2-console 사용을 위한 해당 옵션 disable 처리
+                .csrf().disable()
+                .headers().frameOptions().disable()
+                .and()
+					//URL별 권한 관리 설정을 위한 옵션 시작
+                    .authorizeRequests()
+					//권한 관리 대상
+                    .antMatchers("/", "/css/**", "/img/**", "/js/**", "/vendor/**", "/h2-console/**").permitAll() //전체 열람 권한
+                    .antMatchers("**/add", "**/edit").hasRole(Role.ADMIN.name()) // 특정 권한 사용자에게만 열람 권한
+                    .antMatchers(HttpMethod.POST, "/notice/**").hasRole(Role.ADMIN.name())
+                    .antMatchers(HttpMethod.PUT, "/notice/**").hasRole(Role.ADMIN.name())
+                    .antMatchers(HttpMethod.DELETE, "/notice/**").hasRole(Role.ADMIN.name())
+					//설정값 이외 나머지 경로
+                    .anyRequest().authenticated() //인증된 사용자에게만 열람 권한
+                .and()
+					//로그아웃 기능 설정
+                    .logout()
+						//로그아웃 성공 시 이동 주소
+                        .logoutSuccessUrl("/")
+                .and()
+					//OAuth2 기능 설정
+                    .oauth2Login()
+						//로그인 성공 이후 사용자 정보 설정
+                        .userInfoEndpoint()
+							//로그인 성공 후 로직 처리 구현체
+                            .userService(customOauth2UserService);
+    }
+}
+```
