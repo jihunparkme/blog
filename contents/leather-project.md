@@ -352,3 +352,24 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     }
 }
 ```
+
+## Spring Boot Config
+
+여기서 저어어엉말 삽질을 많이 했다.
+Spring Boot 2.4 부터 Config 관련 변화가 있었던 사실을 몰랐고, Config file 을 test, dev, prod 이런 식으로 나누어서 세팅을 한 적은 처음이었기 때문이다.
+
+크게 당했던 부분은 아래와 같은 변화였다.
+
+1. include 는 특정 profile 이 적용된 곳에서는 사용할 수 없다
+
+2. `spring.profiles` -> `spring.config.activate.on-profile`
+
+3. `spring.profiles.include` -> `spring.profiles.group`
+
+4. `spring.config.activate.on-profile` 속성이 있는 문서에서 group 사용 불가
+
+이렇게 삽질만 하다간 지구의 핵까지 도달할 것 같아서 Documentation 을 천천히 읽어 보았다.
+
+내용은 물론 [여기에](https://data-make.tistory.com/722) 잘 정리해 두었다. 
+
+나는 프로필을 파일별로 분리해 두는게 편해서 방법 2를 택했다.
