@@ -105,6 +105,9 @@ Spring Boot 는 Controller에 @ResponseBody 선언 시 Object 를 JSON 형태로
 - [jackson의 직렬화 방식](https://www.baeldung.com/jackson-field-serializable-deserializable-or-not)
   - 기본적으로 public 필드만 직렬화를 시도
   - private 필드를 직렬화하기 위해 getter 선언
+    - 아래 Exception 이 발생한다면 getter 선언이 되어있는지 확인해 보자.
+      - `No serializer found for class`
+      - `no properties discovered to create BeanSerializer` 
 
 ## Solution
 
@@ -118,6 +121,69 @@ Spring Boot 는 Controller에 @ResponseBody 선언 시 Object 를 JSON 형태로
 - 역시나 객체지향 설계에 있어서 역할과 책임은 중요한 요소인 것 같다.
 
 [스프링 부트와 AWS로 혼자 구현하는 웹 서비스 참고]
+
+```java
+public class ProductDto {
+
+    @Getter
+    @NoArgsConstructor
+    public static class Response {
+        private Long id;
+        private ProductCategoryDto productCategory;
+        private String name;
+        private String contents;
+        private Long hits;
+        private BooleanFormatType deleteYn;
+        private Long userId;
+        private LocalDateTime deletedDateTime;
+        private List<ProductUploadFileDto> productUploadFiles = new ArrayList<>();
+
+        public Response(Product entity) {
+            this.id = entity.getId();
+            this.productCategory = new ProductCategoryDto(entity.getProductCategory());
+            this.name = entity.getName();
+            this.contents = entity.getContents();
+            this.hits = entity.getHits();
+            this.deleteYn = entity.getDeleteYn();
+            this.userId = entity.getUserId();
+            this.deletedDateTime = entity.getDeletedDateTime();
+            this.productUploadFiles = entity.getProductUploadFiles().stream()
+                                            .map(productUploadFile -> new ProductUploadFileDto(productUploadFile))
+                                            .collect(Collectors.toList());
+        }
+    }
+
+    @Getter
+    public static class ProductCategoryDto {
+        private Long id;
+        private String title;
+        private Integer orderNo;
+        private String categoryUseYn;
+
+        public ProductCategoryDto(ProductCategory entity) {
+            this.id = entity.getId();
+            this.title = entity.getTitle();
+            this.orderNo = entity.getOrderNo();
+            this.categoryUseYn = entity.getCategoryUseYn();
+        }
+    }
+
+    @Getter
+    public static class ProductUploadFileDto {
+        private Long id;
+        private String uploadFileName;
+        private String storeFileName;
+        private BooleanFormatType thumbnailYn;
+
+        public ProductUploadFileDto(ProductUploadFile entity) {
+            this.id = entity.getId();
+            this.uploadFileName = entity.getUploadFileName();
+            this.storeFileName = entity.getStoreFileName();
+            this.thumbnailYn = entity.getThumbnailYn();
+        }
+    }
+}
+```
 
 ### 2. @JsonManagedReference & @JsonBackReference
 
