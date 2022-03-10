@@ -15,6 +15,7 @@
 **기존 프로젝트 사용**
 
 - 기존 Eclipse 에서 사용하던 프로젝트를 그래도 사용할 경우, IntellJ 빌드 과정에서 Eclipse 에서 생성된 클래스 파일과 충돌이 발생할 수 있다.
+
 - /target 디렉토리를 삭제한 후 진행해도 되지만 부수적인 오류를 만나기 싫다면.. 가급적 깔끔하게 새로 클론을 받자.
 
 **Cloning a Repository**
@@ -49,14 +50,19 @@
 <center><img src="https://raw.githubusercontent.com/jihunparkme/blog/main/img/IntelliJ-setting/img4.png" width="100%"></center>
 
 - Java Path 환경 변수 설정이 되어 있다면 SDK 목록에 설정된 java version 이 나타난다.
+
 - 나타나지 않는다면 Java Path 환경 변수 설정이 제대로 되어 있는지 확인해 보자.
 
 ## java.lang.OutOfMemoryError
 
 프로젝트 규모가 커서 Java heap space 가 부족할 경우, `java.lang.OutOfMemoryError: Java heap space` 에러가 발생할 수 있다.
+
 .
+
 이 경우 `File - Setting - Build,Execution,Deployment - Compiler` 에 가서 `Shared build process heap size` 를 2000~3000으로 넉넉하게 설정해주자.
+
 .
+
 참고로, Java heap size 설정 후 SSL 관련 에러 발생 시 `Java\jre\lib\security\java.security` 파일에서 SSL 세팅이 필요하다. (이 부분은 별도로 검색해 보자!)
 
 <center><img src="https://raw.githubusercontent.com/jihunparkme/blog/main/img/IntelliJ-setting/img5.png" width="100%"></center>
@@ -64,18 +70,20 @@
 ## Lombok
 
 Lombok 사용 시 `Enable annotation processing` 설정이 필요하다.
+
 .
+
 빌드를 할 경우 IntellJ 에서 해당 프로젝트가 Lombok 을 사용하는 것을 인식해서 아래와 같은 팝업이 뜨면서, "Enable annotation processing 할래?" 라고 물어볼 때 설정을 해도 되지만,
 
 <center><img src="https://raw.githubusercontent.com/jihunparkme/blog/main/img/IntelliJ-setting/img6.png" width="60%"></center>
 
-설정 `File - Setting - Build,Execution,Deployment - Compiler` 에서 할 수도 있다.
+설정 `File - Setting - Build,Execution,Deployment - Compiler` 에서 미리 설정할 수도 있다.
 
 <center><img src="https://raw.githubusercontent.com/jihunparkme/blog/main/img/IntelliJ-setting/img7.png" width="100%"></center>
  
 ## Tomcat Server 생성
 
-IntelliJ IDE 우측 상단 Interface 를 활용하거나 `Run - Edit Configurations` 로 서버 설정을 할 수 있다.
+IntelliJ IDE 우측 상단 Interface 를 활용하거나 `Run - Edit Configurations` 에서 서버 관련 설정을 할 수 있다.
   
 <center><img src="https://raw.githubusercontent.com/jihunparkme/blog/main/img/IntelliJ-setting/img8.png" width="100%"></center>
 
@@ -121,3 +129,28 @@ Qclass 인식을 못 하거나 그밖에 소스 폴더가 자동으로 포함되
 
 로그에 `Artifact ProjectName:war exploded: Artifact is deployed successfully` 를 발견했다면, 성공이다 ! 😎
 
+---
+
+\+ 2022.3.12
+
+사무실에서 IntelliJ 프로젝트 설정 및 간단한 사용 방법을 개발팀 팀원들에게 발표하게 되었다. 총 이틀에 걸쳐서 발표하였고, 첫날은 여덟 분, 둘째 날은 열한 분이 들어주셨다.
+
+.
+
+나도 intelliJ를 제대로 사용해본 지는 얼마 되지 않았고, 부족한 부분도 많았지만 모두 끝까지 들어주셔서 정말 감사했다. 발표자료는 회사 프로젝트 정보가 포함되어 있어 공개는 할 수 없지만, 포스팅 내용에 대부분의 내용을 다뤘다.
+
+.
+
+회사에서 무언가를 설명하는 발표는 처음인 만큼 서툴렀던 부분이 몇몇 있었지만, 향후에도 발표할 기회가 생기면 적극적으로 참여해보고, 기술 관련 발표도 해보고 싶다.
+
+.
+
+많이 떨기도 하였고.. 부끄럽기도 했지만 정말 좋은 경험이었다. 😆
+
+<center><img src="https://raw.githubusercontent.com/jihunparkme/blog/main/img/IntelliJ-setting/img12.png" width="100%"></center>
+
+추가로 IntelliJ KeyMap 링크와 공식 문서도 첨부하였다.
+
+[IntelliJ KeyMap](https://resources.jetbrains.com/storage/products/intellij-idea/docs/IntelliJIDEA_ReferenceCard.pdf)
+
+[IntelliJ Documentation](https://www.jetbrains.com/help/idea/getting-started.html)
