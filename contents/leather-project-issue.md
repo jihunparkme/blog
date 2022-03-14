@@ -46,6 +46,18 @@ List<Owner> findAllEntityGraph();
 
 [JPA N+1 문제 및 해결방안](https://jojoldu.tistory.com/165)
 
+## JPA 순환 참조
+
+[[JPA] JSON 직렬화 순환 참조 해결하기](https://data-make.tistory.com/727)
+
+## JPA 양방향 관계 Entity 저장하기
+
+[[JPA] 양방향 관계 Entity 저장하기](https://data-make.tistory.com/730)
+
+## Spring Boot queryDSL 적용
+
+
+
 # Spring
 
 ## 외부 경로에 있는 리소스 접근하기
