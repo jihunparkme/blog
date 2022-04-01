@@ -159,15 +159,33 @@ Repository의 save() 호출이 너무 많다.
 
 ## Solution
 
+Product.java
+
+```java
+public class Product extends BaseTimeEntity {
+    //..
+    @Builder.Default
+    @OneToMany(mappedBy = "product", cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    private Set<ProductUploadFile> productUploadFiles = new LinkedHashSet<>();
+
+    public void addProductUploadFiles(ProductUploadFile productUploadFile) {
+        productUploadFiles.add(productUploadFile);
+        productUploadFile.setProduct(this);
+    }
+}
+```
+
+ProductService.java
+
 ```java
 @Transactional
-public Long save(ProductDto.Request form, SessionUser user) throws IOException {
+public Long save(ProductDto.SaveRequest form, SessionUser user) throws IOException {
 
     ProductCategory category = categoryRepository.findById(form.getProductCategory()).get();
-
+    
     /**
-     * 1. 상품 엔티티 생성
-     */
+    * 1. 상품 엔티티 생성
+    */
     Product product = Product.builder()
             .productCategory(category)
             .name(form.getName())
@@ -177,11 +195,8 @@ public Long save(ProductDto.Request form, SessionUser user) throws IOException {
             .userId(user.getId())
             .build();
 
-
-    List<ProductUploadFile> productUploadFiles = new ArrayList<>();
-
     /** 
-     * 2. 썸네일 첨부파일 엔티티 생성(상품 엔티티 세팅)
+     * 2. 썸네일 첨부파일 엔티티 생성
      */
     MultipartFile formThumbnailFile = form.getThumbnailFile();
     UploadFile uploadFile = fileUtilities.storeFile(formThumbnailFile, PathConst.PRODUCT);
@@ -191,10 +206,10 @@ public Long save(ProductDto.Request form, SessionUser user) throws IOException {
             .storeFileName(uploadFile.getStoreFileName())
             .thumbnailYn(BooleanFormatType.Y)
             .build();
-    productUploadFiles.add(productThumbnailFile);
+    product.addProductUploadFiles(productThumbnailFile);
 
     /** 
-     * 3. 기타 첨부파일 엔티티 생성(상품 엔티티 세팅)
+     * 3. 기타 첨부파일 엔티티 생성
      */
     List<MultipartFile> formUploadFiles = form.getProductUploadFiles();
     if (formUploadFiles != null && !formUploadFiles.isEmpty()) {
@@ -208,23 +223,21 @@ public Long save(ProductDto.Request form, SessionUser user) throws IOException {
                             .thumbnailYn(BooleanFormatType.N)
                             .build();
 
-                    productUploadFiles.add(puf);
+                    product.addProductUploadFiles(productThumbnailFile);
                     return null;
                 });
     }
 
     /**
-     * 4. 상품 엔티티 저장(첨부파일 엔티티 세팅)
+     * 4. 상품 엔티티 저장
      */
-    product.setProductUploadFiles(new HashSet<>(productUploadFiles));
-
     return productRepository.save(product).getId();
 }
 ```
 
 기존 방법과 차이점이 느껴진다면 👏🏻👏🏻👏🏻~!!
 
-기존에는 엔티티를 생성하자마자 바로 저장을 해버렸다.
+기존에는 첨부파일 엔티티를 생성하자마자 바로 save() 호출을 했었다.
 
 하지만, 우리는 JPA를 사용 중이지 않은가!!
 
@@ -232,13 +245,13 @@ Repository의 save() 호출이 많았었지만 이제 단 한 번만 호출하�
 
 .
 
-(1) `상품 엔티티`를 생성만 해두고,
+(1) `상품 엔티티` 생성
 
-(2, 3) `첨부파일 엔티티`에 생성된 `상품 엔티티`를 세팅(Set)해주자.
+(2, 3) `첨부파일 엔티티`에 생성된 `상품 엔티티`를 세팅(Set)
 
-(4) 마지막으로 `상품 엔티티가 세팅된 첨부파일 리스트`를 `상품 엔티티`에 세팅해주자.
+그리고, 상품 엔티티 productUploadFiles 필드에도 첨부파일 엔티티를 add() 하여 양쪽에 모두 값을 설정해주자.
 
-이렇게 상품과 첨부파일 엔티티를 양방향으로 세팅해주고, 
+(4) 상품과 첨부파일 엔티티를 양방향으로 세팅해주고, 
 
 마지막에 상품 엔티티만 레파지토리에 저장해주면 외래키로 매핑된 첨부파일 엔티티는 자동으로 저장된다.
 
