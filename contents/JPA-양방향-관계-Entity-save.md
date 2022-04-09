@@ -40,7 +40,7 @@ public class Product extends BaseTimeEntity {
 
     //...
 
-    @OneToMany(mappedBy = "product", cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
     private Set<ProductUploadFile> productUploadFiles = new LinkedHashSet<>();
 
     //...
@@ -161,11 +161,13 @@ Repository의 save() 호출이 너무 많다.
 
 Product.java
 
+- CascadeType 은 ALL(`PERSIST, REMOVE, MERGE, REFRESH, DETACH`)로 설정
+
 ```java
 public class Product extends BaseTimeEntity {
     //..
     @Builder.Default
-    @OneToMany(mappedBy = "product", cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
     private Set<ProductUploadFile> productUploadFiles = new LinkedHashSet<>();
 
     public void addProductUploadFiles(ProductUploadFile productUploadFile) {
@@ -201,7 +203,6 @@ public Long save(ProductDto.SaveRequest form, SessionUser user) throws IOExcepti
     MultipartFile formThumbnailFile = form.getThumbnailFile();
     UploadFile uploadFile = fileUtilities.storeFile(formThumbnailFile, PathConst.PRODUCT);
     ProductUploadFile productThumbnailFile = ProductUploadFile.builder()
-            .product(product)
             .uploadFileName(uploadFile.getUploadFileName())
             .storeFileName(uploadFile.getStoreFileName())
             .thumbnailYn(BooleanFormatType.Y)
@@ -217,7 +218,6 @@ public Long save(ProductDto.SaveRequest form, SessionUser user) throws IOExcepti
         uploadFiles.stream()
                 .map(up -> {
                     ProductUploadFile puf = ProductUploadFile.builder()
-                            .product(product)
                             .uploadFileName(up.getUploadFileName())
                             .storeFileName(up.getStoreFileName())
                             .thumbnailYn(BooleanFormatType.N)
@@ -245,15 +245,18 @@ Repository의 save() 호출이 많았었지만 이제 단 한 번만 호출하�
 
 .
 
+(0) @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
+
+- OneToMany 필드(productUploadFiles)의 cascade 타입을 `PERSIST` 상태로 설정
+- 영속성 전이를 통해 연관된 엔티티도 함께 영속 상태로 만들기
+
 (1) `상품 엔티티` 생성
 
-(2, 3) `첨부파일 엔티티`에 생성된 `상품 엔티티`를 세팅(Set)
+(2, 3) `첨부파일 엔티티` 생성
 
-그리고, 상품 엔티티 productUploadFiles 필드에도 첨부파일 엔티티를 add() 하여 양쪽에 모두 값을 설정해주자.
+- 연관관계 편의 메서드 addProductUploadFiles()를 통해 첨부파일, 상품 엔티티 양쪽에 모두 연관 엔티티 세팅
 
-(4) 상품과 첨부파일 엔티티를 양방향으로 세팅해주고, 
-
-마지막에 상품 엔티티만 레파지토리에 저장해주면 외래키로 매핑된 첨부파일 엔티티는 자동으로 저장된다.
+(4) 상품 엔티티만 레파지토리에 저장해주면 외래키로 매핑된 첨부파일 엔티티는 자동으로 저장
 
 .
 
