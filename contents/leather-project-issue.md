@@ -46,6 +46,8 @@ List<Owner> findAllEntityGraph();
 
 [JPA N+1 문제 및 해결방안](https://jojoldu.tistory.com/165)
 
+fetch join 을 사용하거나, 페이징 시에는 BatchSize 설정
+
 ## JPA 순환 참조
 
 [[JPA] JSON 직렬화 순환 참조 해결하기](https://data-make.tistory.com/727)
