@@ -108,7 +108,7 @@ void characterTest() {
 
 ## Class
 
-- 클래스 타입은 모통 필드, 클래스 타입, 애노테이션 등을 확인할 때 사용
+- 클래스 타입은 보통 필드, 클래스 타입, 애노테이션 등을 확인할 때 사용
   - isInterface() : 특정 클래스가 인터페이스인지 확인
   - isAssignableFrom() : 특정 클래스가 다른 클래스에 할당 가능한지 확인
   - 그밖에 다양한 메서드는 [AbstractClassAssert](https://joel-costigliola.github.io/assertj/core-8/api/org/assertj/core/api/AbstractClassAssert.html)를 참고해보자.
