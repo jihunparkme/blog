@@ -2,139 +2,216 @@
 
 [Google Java Style Guide](https://google.github.io/styleguide/javaguide.html) 를 읽어보면서 참고할만한 내용만 간략하게 정리해 보았다. 
 
-.
-
 [캠퍼스 핵데이 Java 코딩 컨벤션](https://naver.github.io/hackday-conventions-java/) 도 참고해보면 좋을 듯 하다.
 
 .
 
-## Source File Basics
+## Source File
 
-- 소스 파일은 UTF-8로 인코딩하기
-- 탭 문자를 들여쓰기에 사용하지 않기
-
-## Source File Structure
-
-- wildcard imports 사용하지 않기
-- import statements 줄바꿈하지 않기
-- static imports, non-static imports를 분리하여 작성하기
-- 중첩 클래스에 static import 사용하지 않기
+- 모든 소스 파일은 UTF-8로 인코딩하기
+- Unix는 새줄 문자를 LF(Line Feed, 0x0A)로 사용하는데,  Windows 형식인 CRLF가 섞이지 않도록 하기
+- 파일의 마지막은 새줄 문자 LF로 끝내기
 
 ## Formatting
 
-**중괄호**
+### 선언
 
-- if, else, for, do, while 문의 내용이 비어있거나 한 줄이더라도 중괄호를 사용하기
-- 줄 바꿈은 아래의 경우 적용
-  - 여는 괄호 후
-  - 본문을 종료하는 닫는 괄호 전 (괄호 두 쉼표, 세미클론 등이 있을 경우 제외)
+**타입**
+
+- `지역 변수`는 범위를 최소화하기 위해 처음 `사용된 점에 가깝게 선언`하기
+- 모든 변수(필드/로컬) 선언은 하나의 변수만 선언하기 (for 루프 헤드 제외)
+
+    ```java
+    int a;
+    int b;
+    ```
+
+- 배열은 블록과 유사한 형식으로 지정
+
+    ```java
+    int[] numbers = 
+    new int[] {           new int[] {
+      0, 1, 2, 3            0,
+    }                       1,
+                            2,
+    new int[] {             3,
+      0, 1,               }
+      2, 3
+    }                     new int[]
+                              {0, 1, 2, 3}
+
+    ```
+
+- switch
+  - 계속해서 다음 case로 넘어갈 경우 comment 남기기
+
+    ```java
+    switch (input) {
+        case 1:
+        case 2:
+            prepareOneOrTwo();
+            // fall through
+        case 3:
+            handleOneTwoOrThree();
+            break;
+        default:
+            handleLargeNumber(input);
+    }
+    ```
+
+- 소스 파일에는 탑레벨 클래스를 한 개만 담기
+
+  ```java
+  public class TopLevel {
+      class SuvLevel {
+      }
+  }
+  ```
+
+- 제한자 선언 순서
+
+  ```text
+  public -> protected -> private -> abstract -> static -> final -> transient -> volatile -> synchronized -> native -> strictfp
+  ```
+
+**Import**
+
+- wildcard imports 사용하지 않기 (static import 예외)
+- package, import 선언문 중간에 줄바꿈하지 않기
+- static imports, non-static imports를 줄 바꿈으로 분리/구분하여 작성하기
+- import 선언 순서
+  - \1. static imports
+  - \2. `java.`
+  - \3. `javax.`
+  - \4. `org.`
+  - \5. `net.`
+  - \6. 8~10을 제외한 `com.*`
+  - \7. 1~6, 8~10을 제외한 패키지에 있는 클래스
+  - \8. `com.nhncorp.`
+  - \9. `com.navercorp.`
+  - \10. `com.naver.`
+
+### 중괄호
+
+- if, else, for, do, while 문이 한 줄이더라도 중괄호를 사용하기
+
+  - `빈 블록은 간결`하게 작성하기 (if/else, try/catch/finally 제외)
+
+    ```java
+    void doNothing() {}
+    ```
+
+- K&R Style (Kernighan and Ritchie style)
 
 ```java
 return () -> {
-  while (condition()) {
-    method();
-  }
+    while (condition()) {
+        method();
+    }
 };
 
 return new MyClass() {
-  @Override public void method() {
-    if (condition()) {
-      try {
-        something();
-      } catch (ProblemException e) {
-        recover();
-      }
-    } else if (otherCondition()) {
-      somethingElse();
-    } else {
-      lastThing();
+    @Override public void method() {
+        if (condition()) {
+            try {
+                something();
+            } catch (ProblemException e) {
+                recover();
+            }
+        } else if (otherCondition()) {
+            somethingElse();
+        } else {
+            lastThing();
+        }
+        {
+            int x = foo();
+            frob(x);
+        }
     }
-    {
-      int x = foo();
-      frob(x);
-    }
-  }
 };
 ```
 
-- `빈 블록은 간결`하게 작성하기
-  - 단, if/else, try/catch/finally 제외
+### 들여쓰기
 
-```java
-void doNothing() {}
-```
+- 탭을 사용하여 들여쓰기하기 (1 Tab = 4 Space)
+- 새로운 블록이 열릴 때마다 한 단계 더 들여쓰기
 
-**들여쓰기**
+### 줄 바꿈
 
-- 새로운 블록이 열릴 때마다 `들여쓰기 두 칸씩` 증가
-
-**한 줄에는 하나의 명령문**
-
-- 각 문장 뒤에는 줄 바꿈
-
-**열 제한**
-
+- 연속된 라인에서 줄 바꿈이 일어날 경우 들여쓰기 사용하기
+  - 병렬 요소로 시작하는 경우에만 동일한 들여쓰기 수준을 사용하기
 - 아래를 제외하고 `열 길이가 100을 넘지 않도록` 하기
   - 긴 URL 또는 JSNI 메서드 참조
   - 패키지와 import
   - shell에 복사하여 붙일 수 있는 주석의 명령줄
   - 드물지만.. 매우 긴 식별자
+- 줄 바꾸기 위치
+  - `@Annotaion` 선언 후
+  - 세미클론(`;`) 후
+  - 메서드 사이
+  - `extends` 선언 후
+  - `implements` 선언 후
+  - `throws` 선언 후
+  - 시작 소괄호(`(`) 선언 후
+  - 콤마(`,`) 후
+  - `.` 전
+  - 연산자 전
+    - `+`, `-`, `*`, `/`, `%`
+    - `==`, `!=`, `>=`, `>`,`⇐`, `<`, `&&`, `||`
+    - `&`, `|`, `^`, `>>>`, `>>`, `<<`, `?`
+    - `instanceof`
 
-**줄 바꿈**
+### 공백
 
-- 연속된 라인에서 줄 바꿈이 일어날 경우, 들여쓰기는 `최소 +4 공백`
-  - 병렬 요소로 시작하는 경우에만 동일한 들여쓰기 수준을 사용하기
+- 대괄호 뒤에 다른 선언이 올 경우 공백 삽입
 
-**타입 구조**
+  ```java
+  int[] numbers = new int[] {0, 1, 2, 3};
+  ```
 
-- 모든 변수(필드/로컬) 선언은 하나의 변수만 선언하기
-  - for 루프 헤드는 제외
+- 괄호 시작 전, 종료 후에 공백 삽입
 
-```java
-int a;
-int b;
-```
+  - 생성자, 메서드 선언, 호출, 어노테이션 뒤는 예외
 
-- `지역 변수`는 범위를 최소화하기 위해 처음 `사용된 점에 가깝게 선언`하기
-- 배열은 블록과 유사한 형식으로 지정
+  ```java
+  public void test(String str) {
+      if ("test".equals(str)) {
+          ...
+      } else {
+          ...
+      }
+  }
+  
+  public TestClass() {}
+  
+  @Cached("local")
+  public String testMethod(String str) {
+      assertNotNull(str);
+      ...
+  }
+  ```
 
-```java
-new int[] {           new int[] {
-  0, 1, 2, 3            0,
-}                       1,
-                        2,
-new int[] {             3,
-  0, 1,               }
-  2, 3
-}                     new int[]
-                          {0, 1, 2, 3}
-
-```
-
-- switch
-  - 계속해서 다음 case로 넘어갈 경우 fall through comment 남기기
-
-```java
-switch (input) {
-  case 1:
-  case 2:
-    prepareOneOrTwo();
-    // fall through
-  case 3:
-    handleOneTwoOrThree();
-    break;
-  default:
-    handleLargeNumber(input);
-}
-```
-
-**네이밍**
+### 네이밍
 
 - 특수 접두사/접미사 사용하지 않기
+
 - 패키지 이름은 소문자와 숫자만 사용하기
-- 클래스 이름은 UpperCamelCase로 작성하기 (명사/명사구)
-- 메소드 이름은 lowerCamelCase로 작성하기 (동사/동사구)
-- 상수 이름은 단일 밑줄로 다음 단어와 구분하기 `UPPER_SNAKE_CASE`
+
+- 클래스/인터페이스 이름은 UpperCamelCase로 작성하기
+
+  - 클래스 이름은 명사, 인터페이스 이름은 명사/형용사
+
+- 메소드 이름은 lowerCamelCase로 작성하기 (동사/전치사)
+
+- 상수 이름은 대문자와 언더스코어로 작성하기 `UPPER_SNAKE_CASE`
+
+- 상수가 아닌 필드 이름은 lowerCamelCase로 작성하기 (명사/명사구)
+
+- 매개변수/지역변수 이름은 lowerCamelCase로 작성하기
+
+  - 매개변수를 공용 메서드에서 한 문자 이름으로 사용하지 않기 (짧은 범위의 임시 변수는 예외)
+
+  - 지역변수를 상수 스타일로 지정하지 않기
 
 ```java
 static final int NUMBER = 5;
@@ -143,12 +220,6 @@ static final Map<String, Integer> AGES = ImmutableMap.of("Ed", 35, "Ann", 32);
 static final Joiner COMMA_JOINER = Joiner.on(',');
 static final SomeMutableType[] EMPTY_ARRAY = {};
 ```
-
-- 상수가 아닌 필드 이름은 lowerCamelCase로 작성하기 (명사/명사구)
-- 매개변수 이름은 lowerCamelCase로 작성하기
-  - 공용 메서드에서 한 문자 이름 피하기
-- 지역 변수 이름은 lowerCamelCase로 작성하기
-  - 지역 변수를 상수 스타일로 지정하지 않기
 
 # Clean Code
 
