@@ -80,16 +80,16 @@
 - package, import 선언문 중간에 줄바꿈하지 않기
 - static imports, non-static imports를 줄 바꿈으로 분리/구분하여 작성하기
 - import 선언 순서
-  - \1. static imports
-  - \2. `java.`
-  - \3. `javax.`
-  - \4. `org.`
-  - \5. `net.`
-  - \6. 8~10을 제외한 `com.*`
-  - \7. 1~6, 8~10을 제외한 패키지에 있는 클래스
-  - \8. `com.nhncorp.`
-  - \9. `com.navercorp.`
-  - \10. `com.naver.`
+  - 1. static imports
+  - 2. `java.`
+  - 3. `javax.`
+  - 4. `org.`
+  - 5. `net.`
+  - 6. 8~10을 제외한 `com.*`
+  - 7. 1-6, 8-10을 제외한 패키지에 있는 클래스
+  - 8. `com.nhncorp.`
+  - 9. `com.navercorp.`
+  - 10. `com.naver.`
 
 ### 중괄호
 
