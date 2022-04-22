@@ -4,9 +4,7 @@
 
 .
 
-[Oracle Code Conventions](https://www.oracle.com/java/technologies/javase/codeconventions-introduction.html) 도 참고해보면 좋을 듯 하다.
-
-다만... 1999-04-20에 작성된 글로 잘 걸러서 보아야할 듯 하다. 😨
+[캠퍼스 핵데이 Java 코딩 컨벤션](https://naver.github.io/hackday-conventions-java/) 도 참고해보면 좋을 듯 하다.
 
 .
 
@@ -305,3 +303,4 @@ Map, List 같은 경계 인터페이스를 이용할 때는 이를 이용하는 
 - 소프트웨어 설계는 `분할`만 잘해도 품질이 크게 높아진다
 - 적절한 장소를 만들어 `코드만 분리`해도 설계가 좋아진다.
 - `관심사를 분리`하면 코드를 이해하고 유지보수하기 훨씬 더 쉬워진다.
+
