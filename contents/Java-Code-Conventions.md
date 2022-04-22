@@ -1,16 +1,30 @@
 # Java Code Conventions
 
-[Google Java Style Guide](https://google.github.io/styleguide/javaguide.html) 를 읽어보면서 참고할만한 내용만 간략하게 정리해 보았다. 
+코드를 작성하면서 대부분 이런 고민을 해보았을 것이다.
 
-[캠퍼스 핵데이 Java 코딩 컨벤션](https://naver.github.io/hackday-conventions-java/) 도 참고해보면 좋을 듯 하다.
+"여기를 띄어 써야 깔끔할까?", "여기는 줄 바꿈을 해야 깔끔할까?" 등등.. 
+
+맞춤법이 틀린 것 처럼 코드가 찝찝하게 느껴진 적이 있지 않은가!!
 
 .
+
+그렇다면.. 코우드 컨붼션(Code Conventions)이 필요한 때이다. ✏✏✏
+
+.
+
+[Google Java Style Guide](https://google.github.io/styleguide/javaguide.html) 를 읽어보면서 참고할만한 내용만 간략하게 정리해 보았다. 
+
+[캠퍼스 핵데이 Java 코딩 컨벤션](https://naver.github.io/hackday-conventions-java/) 도 참고해보면 좋을 듯하다.
+
+.
+
+추가로 Code Convention에 참고가 될만한 Clean Code 내용들을 간략하게 남겨보았다.
 
 ## Source File
 
 - 모든 소스 파일은 UTF-8로 인코딩하기
-- Unix는 새줄 문자를 LF(Line Feed, 0x0A)로 사용하는데,  Windows 형식인 CRLF가 섞이지 않도록 하기
-- 파일의 마지막은 새줄 문자 LF로 끝내기
+- Unix는 새 줄 문자를 LF(Line Feed, 0x0A)로 사용하는데,  Windows 형식인 CRLF가 섞이지 않도록 하기
+- 파일의 마지막은 새 줄 문자 LF로 끝내기
 
 ## Formatting
 
@@ -21,43 +35,43 @@
 - `지역 변수`는 범위를 최소화하기 위해 처음 `사용된 점에 가깝게 선언`하기
 - 모든 변수(필드/로컬) 선언은 하나의 변수만 선언하기 (for 루프 헤드 제외)
 
-    ```java
-    int a;
-    int b;
-    ```
+  ```java
+  int a;
+  int b;
+  ```
 
 - 배열은 블록과 유사한 형식으로 지정
 
-    ```java
-    int[] numbers = 
-    new int[] {           new int[] {
-      0, 1, 2, 3            0,
-    }                       1,
-                            2,
-    new int[] {             3,
-      0, 1,               }
-      2, 3
-    }                     new int[]
-                              {0, 1, 2, 3}
+  ```java
+  int[] numbers = 
+  new int[] {           new int[] {
+    0, 1, 2, 3            0,
+  }                       1,
+                          2,
+  new int[] {             3,
+    0, 1,               }
+    2, 3
+  }                     new int[]
+                            {0, 1, 2, 3}
 
-    ```
+  ```
 
 - switch
   - 계속해서 다음 case로 넘어갈 경우 comment 남기기
 
-    ```java
-    switch (input) {
-        case 1:
-        case 2:
-            prepareOneOrTwo();
-            // fall through
-        case 3:
-            handleOneTwoOrThree();
-            break;
-        default:
-            handleLargeNumber(input);
-    }
-    ```
+  ```java
+  switch (input) {
+      case 1:
+      case 2:
+          prepareOneOrTwo();
+          // fall through
+      case 3:
+          handleOneTwoOrThree();
+          break;
+      default:
+          handleLargeNumber(input);
+  }
+  ```
 
 - 소스 파일에는 탑레벨 클래스를 한 개만 담기
 
@@ -71,25 +85,31 @@
 - 제한자 선언 순서
 
   ```text
-  public -> protected -> private -> abstract -> static -> final -> transient -> volatile -> synchronized -> native -> strictfp
+  public 
+  -> protected 
+  -> private 
+  -> abstract 
+  -> static 
+  -> final 
+  -> transient 
+  -> volatile 
+  -> synchronized 
+  -> native 
+  -> strictfp
   ```
 
 **Import**
 
 - wildcard imports 사용하지 않기 (static import 예외)
-- package, import 선언문 중간에 줄바꿈하지 않기
+- package, import 선언문 중간에 줄 바꿈 하지 않기
 - static imports, non-static imports를 줄 바꿈으로 분리/구분하여 작성하기
 - import 선언 순서
-  - 1. static imports
-  - 2. `java.`
-  - 3. `javax.`
-  - 4. `org.`
-  - 5. `net.`
-  - 6. h~j 을 제외한 `com.*`
-  - 7. a-f, h-j을 제외한 패키지에 있는 클래스
-  - 8. `com.nhncorp.`
-  - 9. `com.navercorp.`
-  - 10. `com.naver.`
+  1. static imports
+  2. `java.`
+  3. `javax.`
+  4. `org.`
+  5. `net.`
+  6. `com.*`
 
 ### 중괄호
 
@@ -97,9 +117,9 @@
 
   - `빈 블록은 간결`하게 작성하기 (if/else, try/catch/finally 제외)
 
-    ```java
-    void doNothing() {}
-    ```
+  ```java
+  void doNothing() {}
+  ```
 
 - K&R Style (Kernighan and Ritchie style)
 
@@ -131,10 +151,10 @@ return new MyClass() {
 };
 ```
 
-### 들여쓰기
+### 들여 쓰기
 
-- 탭을 사용하여 들여쓰기하기 (1 Tab = 4 Space)
-- 새로운 블록이 열릴 때마다 한 단계 더 들여쓰기
+- 탭을 사용하여 들여 쓰기하기 (1 Tab = 4 Space)
+- 새로운 블록이 열릴 때마다 한 단계 더 들여 쓰기
 
 ### 줄 바꿈
 
@@ -225,7 +245,7 @@ static final SomeMutableType[] EMPTY_ARRAY = {};
 
 Google Java Style Guide에서 참고할만한 내용이 약간 아쉬워서 [Clean Code](http://www.yes24.com/Product/Goods/11681152) 내용을 추가하였다.
 
-책을 읽은지 어느덧 1년이 지나기도 했고, 초심을 잃고 내 방처럼 코드를 정리하고 있진 않았는지 돌아보는 마음으로..🙄
+책을 읽은 지 어느덧 1년이 지나기도 했고, 초심을 잃고 내 방처럼 코드를 정리하고 있진 않았는지 돌아보는 마음으로..🙄
 
 다들 빗자루 들고 슥삭슥삭할 준비를!🧹
 
@@ -234,13 +254,13 @@ Google Java Style Guide에서 참고할만한 내용이 약간 아쉬워서 [Cle
 변수, 함수, 클래스 이름을 `의미 있고`, `발음하기 쉽고`, `검색하기 쉽게` 지어주자.
 
 - 존재 이유, 수행 기능, 사용 방법이 이름에서 드러나도록!
-- 주석이 필요하다면 의도를 분명히 드러내지 못 한 것!
+- 주석이 필요하다면 의도를 분명히 드러내지 못한 것!
 
 ## [함수](https://data-make.tistory.com/633)
 
 함수는 `짧고`, `한 가지 작업만 수행하고`, `서술적 이름`으로 만들자.
 
-- 함수는 한 가지를 해야 한다. 그 한 가지를 잘 해야 한다. 그 한 가지만을 해야 한다.
+- 함수는 한 가지를 해야 한다. 그 한 가지를 잘해야 한다. 그 한 가지만을 해야 한다.
 - 함수 이름만으로 어떤 로직이 수행되는지 이해할 수 있어야 한다.
 - 이상적인 인수 개수는 0 -> 1 -> 2개..
 
@@ -262,7 +282,7 @@ Google Java Style Guide에서 참고할만한 내용이 약간 아쉬워서 [Cle
 
 ## [객체와 자료구조](https://data-make.tistory.com/636)
 
-자료를 세세하게 공개하기 보다는 추상적인 개념으로 표현해보자.
+자료를 세세하게 공개하기보다는 추상적인 개념으로 표현해보자.
 
 - 객체 
   - 동작을 공개하고 자료를 숨김
@@ -279,7 +299,7 @@ Google Java Style Guide에서 참고할만한 내용이 약간 아쉬워서 [Cle
 
 - 오류 코드보다 예외를 사용하자.
 - try-catch-finally 문으로 시작하자.
-- 예외에 의미를 제공하자 (ex.실패한 연산 이름과 실패 유형).
+- 예외에 의미를 제공하자 (ex. 실패한 연산 이름과 실패 유형).
 - NULL을 반환하거나 전달하지 말자.
 
 ## [경계(외부 API)](https://data-make.tistory.com/638)
@@ -307,7 +327,7 @@ Map, List 같은 경계 인터페이스를 이용할 때는 이를 이용하는 
 
 실제 코드를 작성하기 전에 단위 테스트를 작성하는 습관을 들여보자.
 
-**테스트는 유연성, 유지보수성, 재사용성을 재공한다**
+**테스트는 유연성, 유지보수성, 재사용성을 제공한다**
 
 - `실패하는 단위 테스트를 작성할 때까지` 실제 코드를 작성하지 않는다.
 - 컴파일은 실패하지 않으면서 `실행이 실패하는 정도로만 단위 테스트를 작성`한다.
@@ -373,5 +393,5 @@ Map, List 같은 경계 인터페이스를 이용할 때는 이를 이용하는 
 
 - 소프트웨어 설계는 `분할`만 잘해도 품질이 크게 높아진다
 - 적절한 장소를 만들어 `코드만 분리`해도 설계가 좋아진다.
-- `관심사를 분리`하면 코드를 이해하고 유지보수하기 훨씬 더 쉬워진다.
+- `관심사를 분리`하면 코드를 이해하고 유지 보수하기 훨씬 더 쉬워진다.
 
