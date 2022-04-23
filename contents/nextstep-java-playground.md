@@ -16,7 +16,7 @@ NEXTSTEP [자바 플레이그라운드 with TDD, 클린코드](https://edu.nexts
 - 일급 컬렉션을 사용하자.
 - getter/setter/프로퍼티를 사용하지 말자.
 
-# 단위 테스트
+## 단위 테스트
 
 [JUnit](https://junit.org/junit5/)는 프로덕션 코드를 편리하게 테스트할 수 있도록 도와준다.
 
@@ -36,6 +36,35 @@ NEXTSTEP [자바 플레이그라운드 with TDD, 클린코드](https://edu.nexts
 > [JUnit 5 Parameterized](https://www.baeldung.com/parameterized-tests-junit-5)
 > 
 > [Introduction to AssertJ](https://www.baeldung.com/introduction-to-assertj)
+
+## TDD
+
+TDD(`Test-Driven Development`)와 단위 테스트는 다르다.
+- 단위 테스트는 프로덕션 코드를 작성하고 만들 수 있지만
+- TDD는 프로덕션 코드 작성 전에 테스트 코드를 만들어야 한다.
+  - TDD = TFD(Test First Development) + Refactoring
+- TDD는 아래와 같은 장점을 제공한다
+  - 디버깅 시간 단축
+  - 동작하는 문서 역할
+  - 변화에 대한 두려움 감소
+
+**TDD Cycle**
+
+  1. Test fails
+  2. Test passes
+  3. Refactor (production + test)
+  4. Repeat..
+
+**TDD 원칙**
+
+- 실패하는 단위 테스트를 작성할 때까지 프로덕션 코드를 작성하지 않기
+- 컴파일은 실패하지 않으면서 실행이 실패하는 정도로만 단위 테스트 작성하기
+- 현재 실패하는 테스트를 통과할 정도로만 실제 코드 작성하기
+
+**TDD Tip**
+
+- 테스트하기 쉬운 코드를 만들기 위해 도메인 기반으로 테스트를 할 수 있도록 객체 설계를 분리하자.
+- 테스트 코드를 작성하면서 Class, Method를 만들어 나가자.
 
 # Reference
 
@@ -98,6 +127,6 @@ Closes #392
 Breaks foo.bar api, foo.baz should be used instead
 ```
 
-## Google Java Style Guide
+## Java Code Conventions
 
-[Google Java Style Guide](https://google.github.io/styleguide/javaguide.html#s4.6-whitespace)
+[Java Code Conventions](https://data-make.tistory.com/734)
