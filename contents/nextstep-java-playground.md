@@ -50,17 +50,16 @@ TDD(`Test-Driven Development`)와 단위 테스트는 다르다.
 
 **TDD Cycle**
 
-  1. Test fails
-     - 실패하는 테스트 코드 작성
-      
+  1. `Test fails`
+     - 실패하는 테스트 코드를 먼저 작성하기
       <center><img src="https://raw.githubusercontent.com/jihunparkme/blog/main/img/next-step/fail-test-code.png" width="80%"></center>
 
-  2. Test passes
+  2. `Test passes`
      - Compile Error 해결을 위한 Class, Method 생성
      - 테스트 성공을 위한 Method 세부 로직 구현
-  3. Refactor (production + test)
+  3. `Refactor` (production + test)
      - 테스트 코드가 성공했다면 Refactoring & Test
-  4. Repeat..
+  4. `Repeat`
 
 **TDD 원칙**
 
