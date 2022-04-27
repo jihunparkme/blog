@@ -76,6 +76,126 @@ TDD(`Test-Driven Development`)와 단위 테스트는 다르다.
 - 객체 필드를 사용해서 상태 확인을 하지 말고, `객체에게 메시지를 보내서 상태`를 확인하도록 하자.
 - public method를 통해 대부분이 테스트가 가능하므로, 모든 private method를 테스트하지 않아도 된다.
 
+**Java Tip**
+
+- `고정된 값은 상수`로 표현하기
+
+```java
+/*
+ * Before
+ */
+public class BallNumber {
+    //...
+    public BallNumber(int no) {
+        if (no < 0 || no > 9) {
+        }
+        //...
+    }
+}
+
+/*
+ * After
+ */
+public class BallNumber {
+    public static final int MIN_NO = 0;
+    public static final int MAX_NO = 9;
+    //...
+    public BallNumber(int no) {
+        if (no < MIN_NO || no > MAX_NO) {
+            throw new IllegalArgumentException("볼 숫자는 1부터 9사이로 입력해야 합니다.");
+        }
+        this.no = no;
+    }
+}
+```
+
+- 객체 필드를 사용해서 상태 확인을 하지 말고, 객체지향스럽게 `객체에게 메시지를 보내서 상태를 확인`하기
+
+```java
+/*
+ * Before
+ */ 
+if (result == BallStatus.STRIKE) {
+}
+
+/*
+ * After
+ */
+public enum BallStatus {
+    NOTHING, BALL, STRIKE;
+    //...
+    public boolean isStrike() {
+        return this == BallStatus.STRIKE;
+    }
+}
+
+if (result.isStrike()) {
+}
+```
+
+- 메서드 추출을 통해 역할을 명확하게 하기
+  - 메서드는 `짧고`, `한 가지 작업만 수행하고`, `서술적 이름`으로 만들자.
+
+```java
+/* 
+ * Before
+ */
+private List<Ball> makeBalls(List<Integer> balls) {
+
+    if (balls.size() < BALL_SIZE || balls.size() > BALL_SIZE) {
+        throw new IllegalArgumentException("숫자는 세자리로 입력해야 합니다.");
+    }
+
+    Set<Integer> set = new HashSet<>();
+    for (Integer ball : balls) {
+        set.add(ball);
+    }
+
+    if (set.size() != BALL_SIZE) {
+        throw new IllegalArgumentException("중복되지 않는 숫자를 입력해야 합니다.");
+    }
+
+    List<Ball> result = new ArrayList<>();
+    for (int i = 0; i < BALL_SIZE; i++) {
+        result.add(new Ball(i + 1, new BallNumber(balls.get(i))));
+    }
+
+    return result;
+}
+
+/* 
+ * After
+ */
+private List<Ball> makeBalls(List<Integer> balls) {
+    checkBallSize(balls);
+    checkBallDuplication(balls);
+
+    List<Ball> result = new ArrayList<>();
+    for (int i = 0; i < BALL_SIZE; i++) {
+        result.add(new Ball(i + 1, new BallNumber(balls.get(i))));
+    }
+
+    return result;
+}
+
+private void checkBallDuplication(List<Integer> balls) {
+    Set<Integer> set = new HashSet<>();
+    for (Integer ball : balls) {
+        set.add(ball);
+    }
+
+    if (set.size() != BALL_SIZE) {
+        throw new IllegalArgumentException("중복되지 않는 숫자를 입력해야 합니다.");
+    }
+}
+
+private void checkBallSize(List<Integer> balls) {
+    if (balls.size() < BALL_SIZE || balls.size() > BALL_SIZE) {
+        throw new IllegalArgumentException("숫자는 세자리로 입력해야 합니다.");
+    }
+}
+```
+
 # Reference
 
 ## Commit Message Conventions
