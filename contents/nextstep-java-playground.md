@@ -2,6 +2,8 @@
 
 NEXTSTEP [자바 플레이그라운드 with TDD, 클린코드](https://edu.nextstep.camp/c/9WPRB0ys/)에서 새롭게 배운 내용들 기록
 
+**Part01. `단위테스트`, `TDD`**
+
 ## 시작
 
 [소트웍스 앤솔러지](http://www.yes24.com/Product/Goods/3290339)에서 말하는 객체 지향 프로그래믕을 잘하기 위한 9가지 원칙
@@ -26,8 +28,6 @@ NEXTSTEP [자바 플레이그라운드 with TDD, 클린코드](https://edu.nexts
   - Assertions 클래스의 static assert method를 활용해 테스트 결과 검증
 
 자세한 내용은 [테스트 코드 작성의 기본기](https://data-make.tistory.com/733)를 참고하자.
-
-✅ [Guide to JUnit 5 Parameterized Tests](https://www.baeldung.com/parameterized-tests-junit-5)는 테스트 코드가 어느정도 익숙해지면 분석해야지.
 
 > Reference
 >
@@ -75,13 +75,85 @@ TDD(`Test-Driven Development`)와 단위 테스트는 다르다.
 - TDD가 어렵다면 문제를 작은 단위로 쪼개서 구현해보기
 - 객체 필드를 사용해서 상태 확인을 하지 말고, `객체에게 메시지를 보내서 상태`를 확인하도록 하자.
 - public method를 통해 대부분이 테스트가 가능하므로, 모든 private method를 테스트하지 않아도 된다.
+- 테스트 값은 가능한 경계값을 사용하자.
+
+**테스트 가능한 코드 만들기**
+
+TDD는 테스트하기 힘든 코드를 테스트 가능한 구조로 만드는 것이 중요!
+
+- 레거시 코드를 리펙터링하려면, `기존 메서드 시그니처를 변경하지 않고 테스트 가능한 코드로` 만들어 보자.
+  - 그렇게 테스트 코드를 만든 상태에서 점진적으로 리펙터링을 수행하자.
+    ```java
+    public class Car {
+        public void move() {
+            if (getRandomNo() >= FORWARD_NUM) {
+            }
+        }
+
+        // private to protected to be testable
+        protected int getRandomNo() {
+            Random random = new Random();
+            return random.nextInt(MAX_BOUND);
+        }
+    }
+
+    // Test Code
+    Car car = new Car("aaron") {
+        @Override
+        protected int getRandomNo() {
+           return 3;
+        }
+    }
+    ```
+  - 이후 안정화가 되면 `테스트하기 어려운 코드를 분리`하자.
+    ```java
+    public void move(int randomNo) { // use parameter
+        if (randomNo >= FORWARD_NUM) {
+        }
+     }
+    ```
+- 테스트를 위해 인터페이스로 분리하여 의존성을 주입시켜줄 수도 있다.
+  - 수정이 자주 발생하는 로직은 인터페이스로 추상화시켜보자.
+
+  ```java
+  @FunctionalInterface
+  public interface MovingStrategy {
+      boolean movable();
+  }
+
+  public class RandomMovingStrategy implements MovingStrategy {
+      //...
+      @Override
+      public boolean movable() {
+          return getRandomNo() >= FORWARD_NUM;
+      }
+
+      protected int getRandomNo() {
+          Random random = new Random();
+          return random.nextInt(MAX_BOUND);
+      }
+  }
+
+  public class Car {
+      //...
+      public void move(MovingStrategy movingStrategy) { // Dependency Injection
+        if (movingStrategy.moveable()) {
+        }
+      }
+  }
+
+  // Test Code
+  car.move(() -> true);
+  ``` 
+
+## ETC
 
 **Java Tip**
 
 - `고정된 값은 상수`로 표현하기
 
 ```java
-/*
+/**********
  * Before
  */
 public class BallNumber {
@@ -93,7 +165,7 @@ public class BallNumber {
     }
 }
 
-/*
+/**********
  * After
  */
 public class BallNumber {
@@ -112,13 +184,13 @@ public class BallNumber {
 - 객체 필드를 사용해서 상태 확인을 하지 말고, 객체지향스럽게 `객체에게 메시지를 보내서 상태를 확인`하기
 
 ```java
-/*
+/**********
  * Before
  */ 
 if (result == BallStatus.STRIKE) {
 }
 
-/*
+/**********
  * After
  */
 public enum BallStatus {
@@ -133,11 +205,11 @@ if (result.isStrike()) {
 }
 ```
 
-- 메서드 추출을 통해 역할을 명확하게 하기
+- 메서드 추출을 통해 역할을 명확하게 구분하기
   - 메서드는 `짧고`, `한 가지 작업만 수행하고`, `서술적 이름`으로 만들자.
 
 ```java
-/* 
+/**********
  * Before
  */
 private List<Ball> makeBalls(List<Integer> balls) {
@@ -163,7 +235,7 @@ private List<Ball> makeBalls(List<Integer> balls) {
     return result;
 }
 
-/* 
+/**********
  * After
  */
 private List<Ball> makeBalls(List<Integer> balls) {
@@ -195,8 +267,6 @@ private void checkBallSize(List<Integer> balls) {
     }
 }
 ```
-
-# Reference
 
 ## Commit Message Conventions
 
