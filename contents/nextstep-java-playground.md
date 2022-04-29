@@ -75,12 +75,14 @@ TDD(`Test-Driven Development`)와 단위 테스트는 다르다.
 - TDD가 어렵다면 문제를 작은 단위로 쪼개서 구현해보기
 - 객체 필드를 사용해서 상태 확인을 하지 말고, `객체에게 메시지를 보내서 상태`를 확인하도록 하자.
 - public method를 통해 대부분이 테스트가 가능하므로, 모든 private method를 테스트하지 않아도 된다.
-- 테스트 값은 가능한 경계값을 사용하자.
+- 테스트 값은 가능한 `경계값을 사용`하자.
+- 도메인 테스트를 할 때 getter 메서드를 사용해서 값을 비교하지 말고 `객체 자체를 비교`해보자.
 
 **테스트 가능한 코드 만들기**
 
 TDD는 테스트하기 힘든 코드를 테스트 가능한 구조로 만드는 것이 중요!
 
+- 메서드와 클래스를 계속 쪼개보자.
 - 레거시 코드를 리펙터링하려면, `기존 메서드 시그니처를 변경하지 않고 테스트 가능한 코드로` 만들어 보자.
   - 그렇게 테스트 코드를 만든 상태에서 점진적으로 리펙터링을 수행하자.
     ```java
@@ -145,6 +147,80 @@ TDD는 테스트하기 힘든 코드를 테스트 가능한 구조로 만드는 
   // Test Code
   car.move(() -> true);
   ``` 
+
+## 원시값과 문자열 포장
+
+원시값을 포장한 객체(하나의 원시값을 가지는 객체)
+
+- 클래스를 작게 만들면서 단일 책임 원칙을 잘 지킬 수 있게 된다.
+- 값에 대한 범위를 객체가 책임지면서 안전하게 값을 작성할 수게 된다.
+- 외부에 의해서 값이 변경될 수 없는 불변 객체(Value Object)로 만들어 보자.
+  - 변경이 사이드 이펙트를 발생시키지 않고, 한 지점에 국한되어 변경을 가할 수 있어야 잘 설계된 객체지향이라고 할 수 있다.
+
+```java
+/*
+ * 불변 객체 : 객체의 값을 변경하지 않고 새로운 인스턴스를 반환
+ * 단점은 GC가 많이 발생하여 성능 저하 이슈가 발생할 가능성이 있다.
+ */
+public Position move() {
+    return new Position(position + 1);
+}
+
+/*
+ * 가변 객체 : 객체의 값을 변경하여 자기 자신을 반환
+ */
+public Position move() {
+    position = position + 1;
+    return this; 
+}
+```
+
+.
+
+원시값 포장하기
+
+**Before**
+
+```java
+public Class Car {
+    private final String name;
+    private int position = 0;
+    //...
+}
+```
+
+**After**
+
+```java
+public class Name {
+    private final String name;
+
+    public Name(String name) {
+        this.name = name;
+    }
+    //..
+}
+
+public class Position {
+    private final int position;
+
+    public Position(int position) {
+        this.position = position;
+    }
+    //..
+}
+
+public Class Car {
+    private final Name name;
+    private Position position;
+    //...
+}
+```
+
+
+
+
+
 
 ## ETC
 
