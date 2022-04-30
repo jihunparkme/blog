@@ -169,7 +169,7 @@ car.move(() -> true);
 원시값을 포장한 객체(하나의 원시값을 가진 객체)
 
 - 클래스를 작게 만들면서 단일 책임 원칙을 잘 지킬 수 있게 된다.
-- 값에 대한 범위를 객체가 책임지면서 안전하게 값을 작성할 수게 된다.
+- 값에 대한 범위를 객체가 책임지면서 안전하게 값을 사용할 수 있게 된다.
 - 외부에 의해서 값이 변경될 수 없는 불변 객체(Value Object)로 만들어 보자.
   - 변경이 사이드 이펙트를 발생시키지 않고, 한 지점에 국한되어 변경을 가할 수 있어야 잘 설계된 객체지향이라고 할 수 있다.
 
@@ -218,7 +218,7 @@ public class Name {
 }
 
 public class Position {
-    private final int position;
+    private int position;
 
     public Position(int position) {
         this.position = position;
@@ -250,7 +250,7 @@ public class Cars {
 
 ## JAVA
 
-- `고정된 값은 상수`로 표현하기
+`고정된 값은 상수`로 표현하기
 
 ```java
 /**********
@@ -281,7 +281,9 @@ public class BallNumber {
 }
 ```
 
-- 객체 필드를 사용해서 상태 확인을 하지 말고, 객체지향스럽게 `객체에게 메시지를 보내서 상태를 확인`하기
+.
+
+객체 필드를 사용해서 상태 확인을 하지 말고, 객체지향스럽게 `객체에게 메시지를 보내서 상태를 확인`하기
 
 ```java
 /**********
@@ -305,8 +307,10 @@ if (result.isStrike()) {
 }
 ```
 
-- 메서드 추출을 통해 역할을 명확하게 구분하기
-  - 메서드는 `짧고`, `한 가지 작업만 수행하고`, `서술적 이름`으로 만들자.
+.
+
+메서드 추출을 통해 역할을 명확하게 구분하기
+- 메서드는 `짧고`, `한 가지 작업만 수행하고`, `서술적 이름`으로 만들자.
 
 ```java
 /**********
@@ -380,12 +384,12 @@ private void checkBallSize(List<Integer> balls) {
 **New Line**
 
 - New Line은 문맥을 분리하는 부분에 사용
-- 해당 메서드가 몇 가지 일을 하고 있는지 파악이 쉬움
+- 해당 메서드가 몇 가지 일을 하고 있는지 파악이 쉬워짐
 
 **Naming**
 
 -  변수가 표현하고 있는 것을 완벽하고 정확하게, 구체적이게 설명하자.
--  Total, Sub, Average, .. 등의 한정자를 사용해야 한다면, 이름의 끝에 위치시키자.
+-  Total, Sub, Average,.. 등의 한정자를 사용해야 한다면, 이름의 끝에 위치시키자.
 -  유명한 오픈소스 코드를 많이 읽고 좋은 이름을 짓기 위한 연습을 해보자.
 - [효과적인 이름 짓기](https://remotty.github.io/blog/2014/03/01/hyogwajeogin-ireumjisgi/), [CODE COMPLETE](http://www.yes24.com/Product/goods/1480040)
 
