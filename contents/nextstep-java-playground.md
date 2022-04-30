@@ -1,22 +1,26 @@
 # Java PlayGround
 
-NEXTSTEP [자바 플레이그라운드 with TDD, 클린코드](https://edu.nextstep.camp/c/9WPRB0ys/)에서 새롭게 배운 내용들 기록
+NEXTSTEP [자바 플레이그라운드 with TDD, 클린 코드](https://edu.nextstep.camp/c/9WPRB0ys/)에서 새롭게 배우고 깨닫게 된 내용들을 기록한 글입니다.
+
+.
 
 **Part01. `단위테스트`, `TDD`**
 
-## 시작
+.
 
-[소트웍스 앤솔러지](http://www.yes24.com/Product/Goods/3290339)에서 말하는 객체 지향 프로그래믕을 잘하기 위한 9가지 원칙
+**시작**
 
-- 한 메서드에서 오직 한 단계의 들여쓰기만 허용하자
-- else 예약어를 사용하지 말자.
-- 모든 원시 값과 문자열을 포장하자.
-- 한 줄에 점을 하나만 찍자.
-- 축약과 같이 줄여 사용하지 말자.
-- 모든 엔티티를 작게 유지하자.
-- 3개 이상의 인스턴스 변수를 가진 클래스를 쓰지 말자.
-- 일급 컬렉션을 사용하자.
-- getter/setter/프로퍼티를 사용하지 말자.
+[소트웍스 앤솔러지](http://www.yes24.com/Product/Goods/3290339)에서 말하는 객체 지향 프로그래밍을 잘하기 위한 9가지 원칙
+
+- **한 메서드에서 오직 한 단계의 들여쓰기만 허용하자**
+- **else 예약어를 사용하지 말자.**
+- **모든 원시 값과 문자열을 포장하자.**
+- **한 줄에 점을 하나만 찍자.**
+- **축약과 같이 줄여 사용하지 말자.**
+- **모든 엔티티를 작게 유지하자.**
+- **3개 이상의 인스턴스 변수를 가진 클래스를 쓰지 말자.**
+- **일급 컬렉션을 사용하자.**
+- **getter/setter/프로퍼티를 사용하지 말자.**
 
 ## 단위 테스트
 
@@ -28,6 +32,8 @@ NEXTSTEP [자바 플레이그라운드 with TDD, 클린코드](https://edu.nexts
   - Assertions 클래스의 static assert method를 활용해 테스트 결과 검증
 
 자세한 내용은 [테스트 코드 작성의 기본기](https://data-make.tistory.com/733)를 참고하자.
+
+파라미터를 활용한 테스트는 [JUnit 5 Parameterized Tests](https://data-make.tistory.com/737)를 참고해보자.
 
 > Reference
 >
@@ -41,7 +47,7 @@ NEXTSTEP [자바 플레이그라운드 with TDD, 클린코드](https://edu.nexts
 
 TDD(`Test-Driven Development`)와 단위 테스트는 다르다.
 - 단위 테스트는 프로덕션 코드를 작성하고 만들 수 있지만
-- TDD는 프로덕션 코드 작성 전에 테스트 코드를 만들어야 한다.
+- TDD는 `프로덕션 코드 작성 전에 테스트 코드를 만들어`야 한다.
   - TDD = TFD(Test First Development) + Refactoring
 - TDD는 아래와 같은 장점을 제공한다
   - 디버깅 시간 단축
@@ -53,16 +59,15 @@ TDD(`Test-Driven Development`)와 단위 테스트는 다르다.
 **TDD Cycle**
 
   1. `Test fails`
-     - 실패하는 테스트 코드를 먼저 작성하기
+     - 실패하는 테스트 코드를 먼저 작성하자.
       ![Result](https://raw.githubusercontent.com/jihunparkme/blog/main/img/next-step/fail-test-code.png)
-
-
   2. `Test passes`
-     - Compile Error 해결을 위한 Class, Method 생성
-     - 테스트 성공을 위한 Method 세부 로직 구현
+     - Compile Error 해결을 위한 Class, Method를 먼저 생성하자.
   3. `Refactor` (production + test)
-     - 테스트 코드가 성공했다면 Refactoring & Test
+     - 테스트 코드가 성공했다면 세부 로직을 구현하고 
+     - 점진적으로 Refactoring을 수행하며 Test를 진행
   4. `Repeat`
+     - 위 과정을 반복하면서 멋진 프로덕션 코드를 만들어가자.
 
 .
 
@@ -79,7 +84,7 @@ TDD(`Test-Driven Development`)와 단위 테스트는 다르다.
 - 테스트하기 쉬운 코드를 만들기 위해 `도메인 기반으로 테스트`를 할 수 있도록 `객체 설계를 분리`하자.
 - 테스트 코드를 작성하면서 Class, Method를 만들어 나가자.
 - 하나의 테스트 케이스를 완성한 후 커밋을 하는 것이 명확하다.
-- TDD가 어렵다면 문제를 작은 단위로 쪼개서 구현해보기
+- TDD가 어렵다면 문제를 작은 단위로 쪼개서 구현해보자.
 - 객체 필드를 사용해서 상태 확인을 하지 말고, `객체에게 메시지를 보내서 상태`를 확인하도록 하자.
 - public method를 통해 대부분이 테스트가 가능하므로, 모든 private method를 테스트하지 않아도 된다.
 - 테스트 값은 가능한 `경계값을 사용`하자.
@@ -89,73 +94,75 @@ TDD(`Test-Driven Development`)와 단위 테스트는 다르다.
 
 **테스트 가능한 코드 만들기**
 
-TDD는 테스트하기 힘든 코드를 테스트 가능한 구조로 만드는 것이 중요!
+TDD는 테스트하기 힘든 코드를 테스트 가능한 구조로 만드는 것이 중요하다!
 
-- 메서드와 클래스를 계속 쪼개보자.
+- 메서드와 클래스를 계속 분리해 보자.
 - 레거시 코드를 리펙터링하려면, `기존 메서드 시그니처를 변경하지 않고 테스트 가능한 코드로` 만들어 보자.
   - 그렇게 테스트 코드를 만든 상태에서 점진적으로 리펙터링을 수행하자.
-    ```java
-    public class Car {
-        public void move() {
-            if (getRandomNo() >= FORWARD_NUM) {
-            }
-        }
 
-        // private to protected to be testable
-        protected int getRandomNo() {
-            Random random = new Random();
-            return random.nextInt(MAX_BOUND);
+```java
+public class Car {
+    public void move() {
+        if (getRandomNo() >= FORWARD_NUM) {
         }
     }
 
-    // Test Code
-    Car car = new Car("aaron") {
-        @Override
-        protected int getRandomNo() {
-           return 3;
-        }
+    // private to protected to be testable (기존 메서드 시그니처는 유지)
+    protected int getRandomNo() {
+        Random random = new Random();
+        return random.nextInt(MAX_BOUND);
     }
-    ```
+}
+
+// Test Code
+Car car = new Car("aaron") {
+    @Override
+    protected int getRandomNo() {
+        return 3;
+    }
+}
+```
   - 이후 안정화가 되면 `테스트하기 어려운 코드를 분리`하자.
-    ```java
-    public void move(int randomNo) { // use parameter
-        if (randomNo >= FORWARD_NUM) {
-        }
-     }
-    ```
+    - 테스트하기 어려운 Random()을 분리
+```java
+public void move(int randomNo) { // use parameter
+    if (randomNo >= FORWARD_NUM) {
+    }
+}
+```
 - 테스트를 위해 인터페이스로 분리하여 의존성을 주입시켜줄 수도 있다.
   - 수정이 자주 발생하는 로직은 인터페이스로 추상화시켜보자.
 
-  ```java
-  @FunctionalInterface
-  public interface MovingStrategy {
-      boolean movable();
-  }
+```java
+@FunctionalInterface
+public interface MovingStrategy {
+    boolean movable();
+}
 
-  public class RandomMovingStrategy implements MovingStrategy {
-      //...
-      @Override
-      public boolean movable() {
-          return getRandomNo() >= FORWARD_NUM;
-      }
+public class RandomMovingStrategy implements MovingStrategy {
+    //...
+    @Override
+    public boolean movable() {
+        return getRandomNo() >= FORWARD_NUM;
+    }
 
-      protected int getRandomNo() {
-          Random random = new Random();
-          return random.nextInt(MAX_BOUND);
-      }
-  }
+    protected int getRandomNo() {
+        Random random = new Random();
+        return random.nextInt(MAX_BOUND);
+    }
+}
 
-  public class Car {
-      //...
-      public void move(MovingStrategy movingStrategy) { // Dependency Injection
+public class Car {
+    //...
+    public void move(MovingStrategy movingStrategy) { // Dependency Injection
         if (movingStrategy.moveable()) {
         }
-      }
-  }
+    }
+}
 
-  // Test Code
-  car.move(() -> true);
-  ``` 
+// Test Code
+car.move(() -> true);
+``` 
 
 ## 원시값과 문자열 포장
 
@@ -380,7 +387,7 @@ private void checkBallSize(List<Integer> balls) {
 -  변수가 표현하고 있는 것을 완벽하고 정확하게, 구체적이게 설명하자.
 -  Total, Sub, Average, .. 등의 한정자를 사용해야 한다면, 이름의 끝에 위치시키자.
 -  유명한 오픈소스 코드를 많이 읽고 좋은 이름을 짓기 위한 연습을 해보자.
-- [효과적인 이름짓기](https://remotty.github.io/blog/2014/03/01/hyogwajeogin-ireumjisgi/), [CODE COMPLETE](http://www.yes24.com/Product/goods/1480040)
+- [효과적인 이름 짓기](https://remotty.github.io/blog/2014/03/01/hyogwajeogin-ireumjisgi/), [CODE COMPLETE](http://www.yes24.com/Product/goods/1480040)
 
 **도메인 객체**
 
@@ -392,11 +399,11 @@ private void checkBallSize(List<Integer> balls) {
 - 객체 인스턴스 변수의 접근 제어자는 private으로 구현하자.
 - 인스턴스 변수의 수를 최소화하자.
 - 현재 객체의 상태를 보기 위한 로그 메시지 성격이 강하다면 toString()을 통해 구현하자.
-- View에서 사용할 데이터라면 getter 메소드를 통해 데이터를 전달하자.
+- View에서 사용할 데이터라면 getter 메서드를 통해 데이터를 전달하자.
 
 **Test Code**
 
-- Fixture란 테스트를 실행하기 위해 준비해야할 것들을 의미
+- Fixture란 테스트를 실행하기 위해 준비해야 할 것들을 의미
   - 각 Test Case에서 공통으로 필요한 인스턴스 변수만 위치시키고, 나머지는 각 Test Case에 로컬 변수로 구현
   - @BeforeEach는 각 Test Case에서 중복으로 사용하는 Fixture만 초기화
 
