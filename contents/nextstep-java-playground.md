@@ -48,11 +48,14 @@ TDD(`Test-Driven Development`)와 단위 테스트는 다르다.
   - 동작하는 문서 역할
   - 변화에 대한 두려움 감소
 
+.
+
 **TDD Cycle**
 
   1. `Test fails`
      - 실패하는 테스트 코드를 먼저 작성하기
-      <center><img src="https://raw.githubusercontent.com/jihunparkme/blog/main/img/next-step/fail-test-code.png" width="80%"></center>
+      ![Result](https://raw.githubusercontent.com/jihunparkme/blog/main/img/next-step/fail-test-code.png)
+
 
   2. `Test passes`
      - Compile Error 해결을 위한 Class, Method 생성
@@ -61,11 +64,15 @@ TDD(`Test-Driven Development`)와 단위 테스트는 다르다.
      - 테스트 코드가 성공했다면 Refactoring & Test
   4. `Repeat`
 
+.
+
 **TDD 원칙**
 
 - 실패하는 단위 테스트를 작성할 때까지 프로덕션 코드를 작성하지 않기
 - 컴파일은 실패하지 않으면서 실행이 실패하는 정도로만 단위 테스트 작성하기
 - 현재 실패하는 테스트를 통과할 정도로만 실제 코드 작성하기
+
+.
 
 **TDD Tip**
 
@@ -77,6 +84,8 @@ TDD(`Test-Driven Development`)와 단위 테스트는 다르다.
 - public method를 통해 대부분이 테스트가 가능하므로, 모든 private method를 테스트하지 않아도 된다.
 - 테스트 값은 가능한 `경계값을 사용`하자.
 - 도메인 테스트를 할 때 getter 메서드를 사용해서 값을 비교하지 말고 `객체 자체를 비교`해보자.
+
+.
 
 **테스트 가능한 코드 만들기**
 
@@ -232,9 +241,7 @@ public class Cars {
 }
 ```
 
-## ETC
-
-**Java Tip**
+## JAVA
 
 - `고정된 값은 상수`로 표현하기
 
@@ -353,6 +360,45 @@ private void checkBallSize(List<Integer> balls) {
     }
 }
 ```
+
+## Code
+
+- code convention, format 잘 지키기
+
+**상수**
+
+- 상수 제대로 선언하기 (static final, 변수 이름은 대문자)
+  - 상수, 클래스 변수, 인스턴스 변수, 생성자 ... 순으로
+
+**New Line**
+
+- New Line은 문맥을 분리하는 부분에 사용
+- 해당 메서드가 몇 가지 일을 하고 있는지 파악이 쉬움
+
+**Naming**
+
+-  변수가 표현하고 있는 것을 완벽하고 정확하게, 구체적이게 설명하자.
+-  Total, Sub, Average, .. 등의 한정자를 사용해야 한다면, 이름의 끝에 위치시키자.
+-  유명한 오픈소스 코드를 많이 읽고 좋은 이름을 짓기 위한 연습을 해보자.
+- [효과적인 이름짓기](https://remotty.github.io/blog/2014/03/01/hyogwajeogin-ireumjisgi/), [CODE COMPLETE](http://www.yes24.com/Product/goods/1480040)
+
+**도메인 객체**
+
+- 객체를 객체스럽게 사용하도록 리팩터링 해보자.
+- final을 사용해서 값의 변경을 적절하게 막아보자.
+- 도메인 클래스에서 setter 보다는 생성자를 활용해서 초기화하자.
+  - 상태 데이터도 getter로 사용하지 말고, 메시지를 보내자.
+  - getter가 정말 필요하다면 마지막에 추가해보자.
+- 객체 인스턴스 변수의 접근 제어자는 private으로 구현하자.
+- 인스턴스 변수의 수를 최소화하자.
+- 현재 객체의 상태를 보기 위한 로그 메시지 성격이 강하다면 toString()을 통해 구현하자.
+- View에서 사용할 데이터라면 getter 메소드를 통해 데이터를 전달하자.
+
+**Test Code**
+
+- Fixture란 테스트를 실행하기 위해 준비해야할 것들을 의미
+  - 각 Test Case에서 공통으로 필요한 인스턴스 변수만 위치시키고, 나머지는 각 Test Case에 로컬 변수로 구현
+  - @BeforeEach는 각 Test Case에서 중복으로 사용하는 Fixture만 초기화
 
 ## Commit Message Conventions
 
