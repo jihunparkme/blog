@@ -19,6 +19,8 @@ time : `within 1 minute each`
 - **앞으로 할 일**
   - 응용에 초점을 맞추어 배운 것들을 `어디에/어떻게 적용할지` 정리
 
+.
+
 ## AAR(After Action Review)
 
 time : `Within 10~30 minutes`
@@ -27,6 +29,8 @@ time : `Within 10~30 minutes`
 - `실제 어떤 일`들이 일어났는가? (`현실`)
 - `계획`과 `실제 결과`의 `차이`는 왜 발생되었는가? (`배운점들`)
 - `지속`, `개선` 혹은 `포기할 것`들은 무엇인가, 그로 인해 `배운 것`들은 무엇인가? (`목적`)
+
+.
 
 ## KPT (Keep – Problem – Try)
 
@@ -45,6 +49,8 @@ time : `Within 60 minutes`
 
 - 앞서 이야기한 `해결할 문제들의 원인`을 파악하여 `앞으로 시도해볼 만한 사항`
   - 회고 이후 액션 아이템을 구체화하기
+
+.
 
 ## 4L (Liked, Learned, Lacked, Longed for)
 
