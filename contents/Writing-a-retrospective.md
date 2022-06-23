@@ -64,3 +64,5 @@ time : `Within 60 minutes`
 > [일의 성과를 높여주는 회고 방법 3](https://brunch.co.kr/@pletalk/61)
 >
 > [KPT-실천편](https://brunch.co.kr/@fromjayden/8)
+>
+> [11 best retrospective templates for sprint & project retrospectives](https://conceptboard.com/blog/retrospective-templates-for-better-sprint-and-agile-reviews/)
