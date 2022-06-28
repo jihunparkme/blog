@@ -473,7 +473,3 @@ Breaks foo.bar api, foo.baz should be used instead
 ## Java Code Conventions
 
 [Java Code Conventions](https://data-make.tistory.com/734)
-
-.
-
-.
