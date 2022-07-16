@@ -6,6 +6,7 @@
 
 그래도 다른 분들의 회고도 참고해보고 작성하다보면 적응이 되겠지...?!🥲
 
+
 ## 작년 숙제
 
 작년 숙제는
@@ -14,8 +15,30 @@
 
 
 
-## 결혼 준비와 이직
+## 결혼 준비와 이직 준비
 
+10월달에 결혼을 하게 되어 1월부터 조금씩 결혼 준비를 하기 시작했다. 🎉🤵🏻👰🏻‍♀️🥳 
+
+그와 동시에.. 결혼을 하고나면 이직 타이밍을 놓칠 것 같아서 어쩌다보니.. 이직 준비도 같이 하게 되었다.
+
+사실 결혼 준비와 이직 준비를 동시에 어떻게 하냐고들 많이 물어보았는데, 결혼 준비는 요즘 플래너님이 많이 도와주셔서 시간을 많이 절약할 수 있던 것 같다. 부수적으로 이것저것 알아볼게 많긴 했지만.. 이직 준비와 함께 연초부터 조금씩 스노우볼을 굴려왔던 것 같다.
+
+2022년에는 이직 스노우볼과 결혼 스노우볼로 눈사람을 만드는 해가 되지 않을까 싶다.⛄️☃️
+
+
+상반기에는 이력서 작성과 틈틈히 알고리즘 문제 풀기에 시간을 투자했다.
+
+알고리즘 공부는 코테 적응을 위해 [Codility](https://www.codility.com/) 에서 [Lessons](https://app.codility.com/programmers/lessons/1-iterations/) 를 순서대로 풀어보았는데, 문제들이 간단하지만서도 좋았던 것 같다.
+
+IT 금융 회사도 지원했었는데, 코테가 신입 코테만큼 어려웠다.. 그래서 코테 준비에 대한 압박이 컸었는데 원래는(?) 경력 코테가 그정도는 아니라곤 해서 코테보다 면접을 위한 기술 공부에 더 시간을 투자한 것 같다.
+
+이력서 작성은 Wonny 님의 [개발자 이력서 작성하기](https://wonny.space/writing/work/engineer-resume) 포스팅과 [Inflearn 강의](https://www.inflearn.com/course/%ED%95%A9%EA%B2%A9%ED%95%98%EB%8A%94-%EC%9D%B4%EB%A0%A5%EC%84%9C-%EC%9E%91%EC%84%B1-%EA%B0%80%EC%9D%B4%EB%93%9C?inst=0c1f8a54) 가 정말 많은 도움이 되었다고 생각한다.
+
+동시에 꾸준히 공부하는 습관은 소홀히 하지 않았다.
+
+
+
+2022년 6월 17일 그동안 관심이 많았던 커머스 회사에 합류하게 되엇다.
 
 ## 독서
 
@@ -37,28 +60,29 @@ Spring Security, Oauth2.0으로 구글, 네이버, 카카오 로그인 기능을
 
 ## 강의
 
-- Java PlayGround with TDD, Clean Code
+클린코드, TDD, 리팩터링, 테스트 코드 작성
+
 - Spring 로드맵 핵심 원리 고급편 남음
 - JPA 로드맵 Spring Data JPA, QueryDSL 남음
+- Java PlayGround with TDD, Clean Code
 - 이럭서 작성 강의 Wonny
+
+백명석님의 TDD 리펙터링 강의
 
 
 ## 사이드 프로젝트..?
 
 - Side Project.
 
+
+
+리팩터링
+
 ```
-TO DO
 (kubernetes, Docker, Elasticsearch, Message Queue, mongoDB)
 (Redis, Apache Kafka, RabbitMQ)
-
-Codility Lessons, 프로그래머스 2-3.5Lv, HackerRank
-leetcode, codeforce
 ​
-- jamesu jekyll 검색 페이지 추가(+다른거도 있나)
-- DeKu pagination 플러그인
 - Kotlin in Action​
-- 자바코딩 이럴 땐 이렇게
 - 테스트 주도 개발 시작하기
 - 이펙티브 자바
 - code for korea 일원!
