@@ -90,6 +90,53 @@ var vm = new Vue({
 </html>
 ```
 
+### 통신 방식
+
+- 뷰 컴포넌트는 각각 고유한 데이터 유효 범위를 갖고 있음
+- 따라서, 컴포넌트 간에 데이터를 주고 받기 위해선 따라야 할 규칙이 존재
+  - 상위에서 하위로는 데이터를 내려줌, `프롭스 속성`
+  - 하위에서 상위로는 이벤트를 올려줌, `이벤트 발생`
+
+## props
+
+- 컴포넌트 간에 데이터를 전달할 수 있는 컴포넌트 통신 방법
+- 상위 컴포넌트에서 하위 컴포넌트로 내려보내는 데이터 속성
+
+```html
+<body>
+  <div id="app">
+    <!-- <app-header v-bind:프롭스 속성 이름="상위 컴포넌트의 데이터 이름"></app-header> -->
+    <app-header v-bind:propsdata="message"></app-header>
+    <app-content v-bind:propsdata="num"></app-content>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+  <script>
+    var appHeader = {
+      template: '<h1>{{ propsdata }}</h1>',
+      props: ['propsdata']
+    }
+    var appContent = {
+      template: '<div>{{ propsdata }}</div>',
+      props: ['propsdata']
+    }
+
+    new Vue({
+      el: '#app',
+      components: {
+        'app-header': appHeader,
+        'app-content': appContent
+      },
+      data: {
+        message: 'hi',
+        num: 10
+      }
+    })
+  </script>
+</body>
+```
+
+
 ## Reference
 
 > [Vue.js 입문서](https://joshua1988.github.io/web-development/vuejs/vuejs-tutorial-for-beginner/#vuejs%EB%9E%80-%EB%AC%B4%EC%97%87%EC%9D%B8%EA%B0%80)
