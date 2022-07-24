@@ -42,10 +42,18 @@ var vm = new Vue({
 
 - 화면의 영역을 구분하여 개발할 수 있는 뷰의 기능
 - 코드의 재사용성이 올라가고 빠른 화면 제작 가능
+- `전역 컴포넌트`는 기본적으로 모든 인스턴스에 등록이 되어 있음
+- `지역 컴포넌트`는 인스턴스마다 새로 생싱이 필요
+- 다만 서비스를 구현할 때는 하나의 인스턴스에 컴포넌트를 붙여 나가는 형식으로 진행
 
 ```html
 <body>
   <div id="app">
+    <app-header></app-header>
+    <app-footer></app-footer>
+  </div>
+
+  <div id="app2">
     <app-header></app-header>
     <app-footer></app-footer>
   </div>
@@ -68,6 +76,15 @@ var vm = new Vue({
         }
       },
     });
+
+    new Vue({
+      el: '#app2',
+      components: {
+        'app-footer': {
+          template: '<footer>footer</footer>'
+        }
+      }
+    })
   </script>
 </body>
 </html>
