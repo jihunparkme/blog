@@ -50,14 +50,9 @@ var vm = new Vue({
     <app-footer></app-footer>
   </div>
 
-  <div id="app2">
-    <app-header></app-header>
-    <app-footer></app-footer>
-  </div>
-
   <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
   <script>
-    // 전역 컴포넌트
+    // 전역 컴포넌트(실무에서는 plugin 이나 library 형태로 사용)
     // Vue.component('컴포넌트 이름', 컴포넌트 내용);
     Vue.component('app-header', {
       template: '<h1>Header</h1>'
@@ -73,15 +68,6 @@ var vm = new Vue({
         }
       },
     });
-
-    new Vue({
-      el: '#app2',
-      components: {
-        'app-footer': {
-          template: '<footer>footer</footer>'
-        }
-      }
-    })
   </script>
 </body>
 </html>
