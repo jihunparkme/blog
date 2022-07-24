@@ -12,6 +12,9 @@
 
 ## Instance
 
+- 뷰 개발 시 필수로 생성이 필요한 코드
+- 인스턴스 생성 시 Vue 개발자 도구에서 Root 컴포넌트로 인식
+
 ```javascript
 var vm = new Vue({
   el: '#app',
@@ -39,6 +42,50 @@ var vm = new Vue({
 
 - 화면의 영역을 구분하여 개발할 수 있는 뷰의 기능
 - 코드의 재사용성이 올라가고 빠른 화면 제작 가능
+
+```html
+<body>
+  <div id="app">
+    <app-header></app-header>
+    <app-footer></app-footer>
+  </div>
+
+  <div id="app2">
+    <app-header></app-header>
+    <app-footer></app-footer>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+  <script>
+    // 전역 컴포넌트
+    // Vue.component('컴포넌트 이름', 컴포넌트 내용);
+    Vue.component('app-header', {
+      template: '<h1>Header</h1>'
+    });  
+
+    new Vue({
+      el: '#app',
+      // 지역 컴포넌트 등록 방식(실무에서 가장 많이 사용하는 방식)
+      components: {
+        // '컴포넌트 이름': 컴포넌트 내용,
+        'app-footer': {
+          template: '<footer>footer</footer>'
+        }
+      },
+    });
+
+    new Vue({
+      el: '#app2',
+      components: {
+        'app-footer': {
+          template: '<footer>footer</footer>'
+        }
+      }
+    })
+  </script>
+</body>
+</html>
+```
 
 ## Reference
 
