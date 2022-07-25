@@ -114,11 +114,11 @@ var vm = new Vue({
   <script>
     var appHeader = {
       template: '<h1>{{ propsdata }}</h1>',
-      props: ['propsdata']
+      props: ['propsdata'] // 하위 컴포넌트의 프롭스 속성명
     }
     var appContent = {
       template: '<div>{{ propsdata }}</div>',
-      props: ['propsdata']
+      props: ['propsdata'] // 하위 컴포넌트의 프롭스 속성명
     }
 
     new Vue({
@@ -148,6 +148,62 @@ var vm = new Vue({
   </div>
  
   ```
+
+##ㅌㅇ
+
+- 하위 컴포넌트에서 상위 컴포넌트로 통신
+
+```html
+<body>
+  <div id="app">
+    <p>{{ num }}</p>
+    <!-- <app-header v-on:하위 컴포넌트에서 발생한 이벤트 이름="상위 컴포넌트의 메서드 이름"></app-header> -->
+    <!-- (2). pass 라는 이벤트가 하위 컴포넌트에서 올라왔을 때, 컴포넌트 태그(app-header)가 받아서 logText라는 메서드를 실행 -->
+    <app-header v-on:pass="logText"></app-header>
+
+    <app-content v-on:increase="increaseNumber"></app-content>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+  <script>
+    var appHeader = {
+      template: '<button v-on:click="passEvent">click me</button>',
+      methods: {
+        passEvent: function() {
+          this.$emit('pass'); // (1). 클릭 시 상위 컴포넌트로 pass 이벤트 발생
+        }
+      }
+    }
+    var appContent = {
+      template: '<button v-on:click="addNumber">add</button>',
+      methods: {
+        addNumber: function() {
+          this.$emit('increase');
+        }
+      }
+    }
+
+    var vm = new Vue({
+      el: '#app',
+      components: {
+        'app-header': appHeader,
+        'app-content': appContent
+      },
+      methods: {
+        logText: function() { // (3). 하위 컴포넌트에서 이벤트를 전달 받고 실행
+          console.log('hi');
+        },
+        increaseNumber: function() {
+          this.num = this.num + 1;
+        }
+      },
+      data: {
+        num: 10
+      }
+    });
+  </script>
+</body>
+```
 
 ## Reference
 
