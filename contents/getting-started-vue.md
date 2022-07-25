@@ -135,7 +135,19 @@ var vm = new Vue({
   </script>
 </body>
 ```
-
+- props 속성 사용을 위해 하위 컴포넌트의 컴포넌트 내용과
+  ```javascript
+  var childComponent = {
+    props: ['프롭스 속성 명']
+  }
+  ```
+- 상위 컴포넌트의 템플릿에 각각 코드를 추가
+  ```html
+  <div id="app">
+    <child-component v-bind:프롭스 속성 명="상위 컴포넌트의 data 속성"></child-component>
+  </div>
+ 
+  ```
 
 ## Reference
 
