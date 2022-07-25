@@ -149,7 +149,7 @@ var vm = new Vue({
  
   ```
 
-##ㅌㅇ
+## Emit
 
 - 하위 컴포넌트에서 상위 컴포넌트로 통신
 
@@ -178,7 +178,7 @@ var vm = new Vue({
       template: '<button v-on:click="addNumber">add</button>',
       methods: {
         addNumber: function() {
-          this.$emit('increase');
+          this.$emit('increase'); 
         }
       }
     }
@@ -204,6 +204,59 @@ var vm = new Vue({
   </script>
 </body>
 ```
+
+## Components at the same level
+
+**같은 컴포넌트 레벨 간의 통신 방법**
+
+- 
+
+```html
+<body>
+  <div id="app">
+    <!-- <app-header v-bind:프롭스 속성 이름="상위 컴포넌트의 데이터 이름"></app-header> -->
+    <app-header v-bind:propsdata="num"></app-header>
+    <!-- (5) 상위 컴포넌트가 가지고 있는 데이터를 하위 컴포넌트로 전달 -->
+
+    <app-content v-on:pass="deliverNum"></app-content> 
+    <!-- (1) appContent의 버튼이 눌리면 passNum 메서드가 실행 -->
+    <!-- (3) pass 이벤트가 발생되면 deliverNum 메서드 실행 -->
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+  <script>
+    var appHeader = {
+      template: '<div>header</div>',
+      props: ['propsdata']
+    }
+    var appContent = {
+      template: '<div>content<button v-on:click="passNum">pass</button></div>',
+      methods: {
+        passNum: function() { // (2) 상위 컴포넌트로 pass 이벤트와 인자로 데이터 전달
+          this.$emit('pass', 10); 
+        }
+      }
+    }
+
+    new Vue({
+      el: '#app',
+      components: {
+        'app-header': appHeader,
+        'app-content': appContent
+      },
+      data: {
+        num: 0
+      },
+      methods: {
+        deliverNum: function(value) { // (4) 하위 컴포넌트로부터 받은 이벤트를 통해 메서드 실행
+          this.num = value;
+        }
+      }
+    })
+  </script>
+</body>
+```
+
 
 ## Reference
 
