@@ -420,18 +420,24 @@ new Vue({
 - v-if, v-for, v-bind, v-on, v-model ...
 
 ```html
-<div>
+<div id="app">
   Hello <span v-if="show">Vue.js</span>
-</div>
 
-<ul>
-  <li v-for="item in items">{{ item }}</li>
-</ul>
+  <ul>
+    <li v-for="item in items">{{ item }}</li>
+  </ul>
+
+  <!-- id에 인스턴스의 data-uuid를 연결 -->
+  <p v-bind:id="uuid">{{ num }}</p>
+</div>
 ```
 
 ```javascript
 new Vue({
+  el: '#app'
   data: {
+    num: 10,
+    uuid: 'abc1234'
     show: false,
     items: ['shirts', 'jeans', 'hats']
   }
