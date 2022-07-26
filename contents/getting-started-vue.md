@@ -443,7 +443,10 @@ new Vue({
   <div v-show="loading">
     Loading...
   </div>
-</div>
+
+  <input type="text" v-model="message">
+      <p>{{ message }}</p>
+  </div>
 ```
 
 ```javascript
@@ -456,6 +459,7 @@ new Vue({
     loading: false,
     show: true,
     items: ['shirts', 'jeans', 'hats']
+    message: ''
   },
   computed: {
     doubleNum: function() {
@@ -470,3 +474,5 @@ new Vue({
 > [Vue.js 입문서](https://joshua1988.github.io/web-development/vuejs/vuejs-tutorial-for-beginner/#vuejs%EB%9E%80-%EB%AC%B4%EC%97%87%EC%9D%B8%EA%B0%80)
 > 
 > [Cracking Vue.js](https://joshua1988.github.io/vue-camp/textbook.html)
+> 
+> [vuejs.org](https://vuejs.org/)
