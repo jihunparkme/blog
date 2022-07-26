@@ -281,6 +281,7 @@ npm install vue-router
       <router-link to="/login">Login</router-link>
       <router-link to="/main">Main</router-link>
     </div>
+    <!-- router-view는 router routes의 compoents를 표현 -->
     <router-view></router-view>
   </div>
 
@@ -294,14 +295,13 @@ npm install vue-router
       template: '<div>main</div>'
     }
 
-    var router = new VueRouter({  // 페이지의 라우팅 정보      
-      routes: [
-        {// 로그인 페이지 정보
+    var router = new VueRouter({
+      routes: [// 페이지의 라우팅 정보 (Array)
+        { // 로그인 페이지 정보
           path: '/login', // 페이지의 url
-          // name: 'login',
           component: LoginComponent // 해당 url에서 표시될 컴포넌트
         },
-        {// 메인 페이지 정보
+        { // 메인 페이지 정보
           path: '/main',
           component: MainComponent
         }
@@ -310,7 +310,7 @@ npm install vue-router
 
     new Vue({
       el: '#app',
-      router: router, // 인스턴스에 router 연결
+      router: router, // 인스턴스에 router 연결 (#app 안에서 router 유효)
     });
   </script>
 </body>
