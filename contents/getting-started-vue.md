@@ -276,7 +276,7 @@ var vm = new Vue({
 npm install vue-router
 ```
 
-### Using router
+### Router Example
 
 ```html
 <body>
@@ -324,6 +324,71 @@ npm install vue-router
 ```
 
 > [Vue Router](https://v3.router.vuejs.org/installation.html#direct-download-cdn)
+> [라우터 네비게이션 가드](https://joshua1988.github.io/web-development/vuejs/vue-router-navigation-guards/)
+
+## Axios
+
+[axios](https://github.com/axios/axios)
+
+- 뷰에서 권고하는 HTTP 통신 라이브러리
+- Promise 기반(JS 비동기 처리 패턴)이며 상대적으로 다른 HTTP 통신 라이브러리들에 비해 문서화가 잘되어 있고 API가 다양
+
+### Install Axios
+
+- CDN
+
+```javascript
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+```
+
+- NPM
+
+```console
+npm install axios
+```
+
+### Axios Example
+
+```html
+<body>
+  <div id="app">
+    <button v-on:click="getData">get user</button>
+    <div>
+      {{ users }}
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+  <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+  <script>
+    new Vue({
+      el: '#app',
+      data: {
+        users: []
+      },
+      methods: {
+        getData: function() { 
+          var vm = this;
+          axios.get('https://jsonplaceholder.typicode.com/users/')
+            .then(function(response) {
+              console.log(response.data);
+              vm.users = response.data;
+            })
+            .catch(function(error) {
+              console.log(error);
+            });
+        }
+      }
+    })
+  </script>
+</body>
+```
+
+> [자바스크립트 비동기 처리와 콜백 함수](https://joshua1988.github.io/web-development/javascript/javascript-asynchronous-operation/)
+> [자바스크립트 Promise 쉽게 이해하기](https://joshua1988.github.io/web-development/javascript/promise-for-beginners/)
+> [자바스크립트 async와 await](https://joshua1988.github.io/web-development/javascript/js-async-await/)
+> [{JSON} Placeholder](https://jsonplaceholder.typicode.com/)
+> [자바스크립트의 동작원리: 엔진, 런타임, 호출 스택](https://joshua1988.github.io/web-development/translation/javascript/how-js-works-inside-engine/)
 
 ## Reference
 
