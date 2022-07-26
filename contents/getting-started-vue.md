@@ -392,6 +392,52 @@ npm install axios
 > [HTTP 프로토콜 Part 1](https://joshua1988.github.io/web-development/http-part1/)
 > [Chrome DevTools](https://developer.chrome.com/docs/devtools/)
 
+## Template Syntax
+
+**뷰로 화면을 조작하는 방법**
+
+- 템플릿 문법은 크게 데이터 바인딩과 디렉티브로 나뉨
+
+**데이터 바인딩**
+
+- 뷰 인스턴스에서 정의한 속성들을 화면에 표시하는 방법
+
+```html
+<div>{{ message }}</div>
+```
+
+```javascript
+new Vue({
+  data: {
+    message: 'Hello Vue.js'
+  }
+})
+```
+
+**디렉티브**
+
+- 뷰로 화면의 요소를 더 쉽게 조작하기 위한 문법
+- v-if, v-for, v-bind, v-on, v-model ...
+
+```html
+<div>
+  Hello <span v-if="show">Vue.js</span>
+</div>
+
+<ul>
+  <li v-for="item in items">{{ item }}</li>
+</ul>
+```
+
+```javascript
+new Vue({
+  data: {
+    show: false,
+    items: ['shirts', 'jeans', 'hats']
+  }
+})
+```
+
 ## Reference
 
 > [Vue.js 입문서](https://joshua1988.github.io/web-development/vuejs/vuejs-tutorial-for-beginner/#vuejs%EB%9E%80-%EB%AC%B4%EC%97%87%EC%9D%B8%EA%B0%80)
