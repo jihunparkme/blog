@@ -261,6 +261,8 @@ var vm = new Vue({
 
 **싱글 페이지 애플리케이션을 구현할 경우 사용하는 라이브러리**
 
+### Install Vue Router
+
 - CDN
 
 ```javascript
@@ -274,14 +276,17 @@ var vm = new Vue({
 npm install vue-router
 ```
 
+### Using router
+
 ```html
 <body>
   <div id="app">
     <div>
+      <!-- <router-link>는 router compoent로 이동할 수 있는 링크를 제공 -->
       <router-link to="/login">Login</router-link>
       <router-link to="/main">Main</router-link>
     </div>
-    <!-- router-view는 router routes의 compoents를 표현 -->
+    <!-- router의 compoents를 표현 -->
     <router-view></router-view>
   </div>
 
@@ -295,7 +300,9 @@ npm install vue-router
       template: '<div>main</div>'
     }
 
+    // 라우터 인스턴스 생성
     var router = new VueRouter({
+      mode: 'history',  // URL의 해쉬 값 제거 속성
       routes: [// 페이지의 라우팅 정보 (Array)
         { // 로그인 페이지 정보
           path: '/login', // 페이지의 url
@@ -310,7 +317,7 @@ npm install vue-router
 
     new Vue({
       el: '#app',
-      router: router, // 인스턴스에 router 연결 (#app 안에서 router 유효)
+      router: router, // 인스턴스에 라우터 인스턴스를 연결 (#app 안에서 router 유효)
     });
   </script>
 </body>
