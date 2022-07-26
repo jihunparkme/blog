@@ -421,6 +421,8 @@ new Vue({
 
 ```html
 <div id="app">
+  <p>{{ doubleNum }}</p>
+
   Hello <span v-if="show">Vue.js</span>
 
   <ul>
@@ -428,7 +430,19 @@ new Vue({
   </ul>
 
   <!-- id에 인스턴스의 data-uuid를 연결 -->
-  <p v-bind:id="uuid">{{ num }}</p>
+  <p v-bind:id="uuid" v-bind:class="name">{{ num }}</p>
+
+  <!-- v-if는 DOM을 완전히 제거하고,v-show는 display: none -->
+  <div v-if="loading">
+    Loading...
+  </div>
+  <div v-else>
+    test user has been logged in
+  </div>
+
+  <div v-show="loading">
+    Loading...
+  </div>
 </div>
 ```
 
@@ -437,9 +451,16 @@ new Vue({
   el: '#app'
   data: {
     num: 10,
-    uuid: 'abc1234'
-    show: false,
+    uuid: 'aaron1234'
+    namd: 'text-navy'
+    loading: false,
+    show: true,
     items: ['shirts', 'jeans', 'hats']
+  },
+  computed: {
+    doubleNum: function() {
+      return this.num * 2;
+    }
   }
 })
 ```
