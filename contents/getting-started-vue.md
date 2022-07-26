@@ -257,6 +257,66 @@ var vm = new Vue({
 </body>
 ```
 
+## Router
+
+**싱글 페이지 애플리케이션을 구현할 경우 사용하는 라이브러리**
+
+- CDN
+
+```javascript
+<script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+<script src="https://unpkg.com/vue-router@3.5.3/dist/vue-router.js">
+```
+
+- NPM
+
+```console
+npm install vue-router
+```
+
+```html
+<body>
+  <div id="app">
+    <div>
+      <router-link to="/login">Login</router-link>
+      <router-link to="/main">Main</router-link>
+    </div>
+    <router-view></router-view>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+  <script src="https://unpkg.com/vue-router@3.5.3/dist/vue-router.js"></script>
+  <script>
+    var LoginComponent = {
+      template: '<div>login</div>'
+    }
+    var MainComponent = {
+      template: '<div>main</div>'
+    }
+
+    var router = new VueRouter({  // 페이지의 라우팅 정보      
+      routes: [
+        {// 로그인 페이지 정보
+          path: '/login', // 페이지의 url
+          // name: 'login',
+          component: LoginComponent // 해당 url에서 표시될 컴포넌트
+        },
+        {// 메인 페이지 정보
+          path: '/main',
+          component: MainComponent
+        }
+      ]
+    });
+
+    new Vue({
+      el: '#app',
+      router: router, // 인스턴스에 router 연결
+    });
+  </script>
+</body>
+```
+
+> [Vue Router](https://v3.router.vuejs.org/installation.html#direct-download-cdn)
 
 ## Reference
 
