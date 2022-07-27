@@ -444,9 +444,14 @@ new Vue({
     Loading...
   </div>
 
+  <!-- v-model은 양방향 데이터 바인딩을 지원하는 속성 -->
   <input type="text" v-model="message">
       <p>{{ message }}</p>
   </div>
+
+  <!-- v-on은 이벤트 발생 속성 -->
+  <button v-on:click="logText">click me</button>
+  <input type="text" v-on:keyup.enter="logText">
 ```
 
 ```javascript
@@ -464,6 +469,11 @@ new Vue({
   computed: {
     doubleNum: function() {
       return this.num * 2;
+    }
+  },
+  methods: {
+    logText: function() {
+      console.log('clicked');
     }
   }
 })
