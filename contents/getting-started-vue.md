@@ -573,6 +573,83 @@ methods: {
 }
 ```
 
+## Vue CLI
+
+**뷰로 빠르게 프로젝트를 구성하고 프로토타이핑을 하고 싶을 경우 사용하는 도구**
+
+```sh
+npm install -g @vue/cli
+# OR
+yarn global add @vue/cli
+```
+### Introduce
+
+**package.json 환경설정에 맞게 실행(scripts 참고)**
+
+```sh
+npm run serve # node package manager
+```
+
+- package.json
+
+```json
+// ...
+"scripts": {
+  "serve": "vue-cli-service serve",
+  "build": "vue-cli-service build",
+  "lint": "vue-cli-service lint"
+},
+// ...
+```
+
+- main.js
+
+```js
+import Vue from 'vue'
+import App from './App.vue' // .vue(single file component) 컴포넌트를 import
+// var App = { <- 와 동일한 역할
+//   template: '<div>app</div>'
+// }
+
+Vue.config.productionTip = false
+
+new Vue({
+  render: h => h(App), // import한 App이라는 component를 render
+  // components: { <- 와 동일한 역할
+  //   'app': App
+  // }
+}).$mount('#app')
+// new Vue({ <- 와 동일한 역할
+//   el: '#app',
+// })
+```
+
+### Single File Conponent
+
+- xxx.vue
+
+```html
+<template>
+  <div>header</div>
+</template>
+
+<script>
+export default {
+  // Javascript - Instance option
+  methids: {
+    addNum: function() {
+      // ...
+    }
+  }
+}
+</script>
+
+<style>
+</style>
+```
+
+> [vuejs cli](https://cli.vuejs.org/)
+
 ## Reference
 
 > [Vue.js 입문서](https://joshua1988.github.io/web-development/vuejs/vuejs-tutorial-for-beginner/#vuejs%EB%9E%80-%EB%AC%B4%EC%97%87%EC%9D%B8%EA%B0%80)
