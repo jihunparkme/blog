@@ -481,6 +481,35 @@ new Vue({
 })
 ```
 
+## Computed
+
+**특정 데이터의 변경사항을 실시간으로 처리**
+
+- 캐싱을 이용하여 데이터의 변경이 없을 경우 캐싱된 데이터 반환
+
+```html
+<body>
+  <div id="app">
+    <p v-bind:class="errorTextColor">Hello</p>
+  </div>
+  
+  <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+  <script>
+    new Vue({
+      el: '#app',
+      data: {
+        isError: false
+      },
+      computed: {
+        errorTextColor: function() {
+          return this.isError ? 'warning' : null;
+        }
+      }
+    });
+  </script>
+</body>
+```
+
 ## Watch
 
 **특정 데이터의 변화를 감지하여 자동으로 특정 로직을 수행해주는 속성**
