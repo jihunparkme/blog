@@ -516,6 +516,33 @@ new Vue({
   </script>
 </body>
 ```
+### VS Computed
+
+- watch
+  - (매번 실행되기 부담스러운) 무거운 로직에 주로 사용
+  - ex. 데이터 요청에 적합
+- computed
+  - 단순한 값 계산에 주로 사용
+  - ex. validation, 간단한 텍스트, 연산에 적합
+
+```js
+computed: {
+  doubleNum: function() {
+    return this.num * 2;
+  }
+},
+watch: {
+  num: function(newValue, oldValue) {
+    this.fetchUserByNumber(newValue);
+  }
+},
+methods: {
+  fetchUserByNumber: function(num) {
+    // console.log(num);
+    axios.get(num);
+  }
+}
+```
 
 ## Reference
 
