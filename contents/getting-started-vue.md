@@ -1,5 +1,7 @@
 # Vue
 
+Inflearn [Vue.js 시작하기 - Age of Vue.js](https://www.inflearn.com/course/age-of-vuejs/dashboard) 강의를 듣고 정리한 노트입니다.
+
 ## What is the Vue
 
 ![Result](https://github.com/jihunparkme/blog/blob/main/img/vue/view-model.png?raw=true 'Result')
@@ -478,6 +480,7 @@ new Vue({
   }
 })
 ```
+
 
 ## Reference
 
