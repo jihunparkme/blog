@@ -630,6 +630,7 @@ new Vue({
 
 ```html
 <template>
+  <!-- HTML -->
   <div>header</div>
 </template>
 
@@ -648,6 +649,61 @@ export default {
 </style>
 ```
 
+### Using Import
+
+**App.vue**
+
+```html
+<template>
+  <div>
+    <!-- <app-header v-bind:프롭스 속성 이름="상위 컴포넌트의 데이터 이름"></app-header> -->
+    <AppHeader v-bind:propsdata="str" v-on:renew="renewStr"></AppHeader> 
+  </div>
+</template>
+
+<script>
+import AppHeader from './components/AppHeader.vue'; // 1. 컴포넌트 내용을 import
+
+export default {
+  // 인스턴스 옵션 속성 or 컴포넌트 옵션 속성
+  data: function() {
+    return {
+      str: 'Header'
+    }
+  },
+  components: {
+    AppHeader, // 2. import한 컴포넌트를 연결 ('app-header': AppHeader 와 동일)
+  },
+  methods: {
+    renewStr: function() {
+      this.str = 'hi';
+    }
+  }
+}
+</script>
+```
+
+**AppHeader.vue**
+
+```html
+<template>
+  <header>
+    <h1>{{ propsdata }}</h1>
+    <button v-on:click="sendEvent">send</button>
+  </header>
+</template>
+
+<script>
+export default {
+  props: ['propsdata'],
+  methods: {
+    sendEvent: function() {
+      this.$emit('renew');
+    }
+  }
+}
+</script>
+```
 
 
 > [vuejs cli](https://cli.vuejs.org/)
