@@ -659,6 +659,7 @@ export default {
     {{ str }}
     <!-- <app-header v-bind:하위 컴포넌트에서 정의한 프롭스 속성 이름="상위 컴포넌트의 데이터 이름"></app-header> -->
     <!-- 상위 컴포넌트의 str 이라는 데이터 필드를 하위 컴포넌트의 프롭스 속성으로 내려보내는 과정 -->
+    <!-- 하위 컴포넌트로부터 renew 이벤트를 받아서 renewStr 메서드 실행 -->
     <AppHeader v-bind:propsdata="str" v-on:renew="renewStr"></AppHeader> 
     <!--
     컴포넌트 명명법 종류
@@ -707,7 +708,7 @@ export default {
   props: ['propsdata'], // 프롭스 속성 이름
   methods: {
     sendEvent: function() {
-      this.$emit('renew');
+      this.$emit('renew'); // 상위 컴포넌트로 이벤트 전달
     }
   }
 }
