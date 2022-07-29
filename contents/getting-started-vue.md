@@ -1,6 +1,12 @@
 # Vue
 
-Inflearn [Vue.js 시작하기 - Age of Vue.js](https://www.inflearn.com/course/age-of-vuejs/dashboard) 강의를 듣고 정리한 노트입니다.
+회사에서 front 업무(?)도 살짝 담당하게 되어 Vue.js를 공부하게 되었다.
+
+아주 옛날에 배웠던 것 같긴 한데.. 아무것도.. 생각이 나지 않는다... Haha.h...a...
+
+그리하여 Inflearn [Vue.js 시작하기 - Age of Vue.js](https://www.inflearn.com/course/age-of-vuejs/dashboard) 강의를 듣게 되었고, 업무를 하면서 틈틈이 참고하고자 간략하게 내용들을 정리해 보았다.
+
+아주 쉽고 빠르게 Vue.js 세계를 이해시켜주신 장기효님께 감사를.. 👏🏻👏🏻👏🏻
 
 ## What is the Vue
 
@@ -715,8 +721,58 @@ export default {
 </script>
 ```
 
-
 > [vuejs cli](https://cli.vuejs.org/)
+
+## Example
+
+사용자 입력 폼
+
+```html
+<template>
+  <!-- button의 submit 동작 시 submitForm 메서드 호출-->
+  <form v-on:submit.prevent="submitForm">
+    <div>
+      <label for="username">id: </label>
+      <input id="username" type="text" v-model="username">
+    </div>
+    <div>
+      <label for="password">pw: </label>
+      <input id="password" type="password" v-model="password">
+    </div>
+    <button type="submit">login</button>
+  </form>
+</template>
+
+<script>
+import axios from 'axios';
+
+export default {
+  data: function() {
+    return {
+      username: '',
+      password: '',
+    }
+  },
+  methods: {
+    submitForm: function() {
+      // event.preventDefault(); -> form 의 새로고침/이동 동작을 막기 위해 사용했던 것을 v-on:submit.prevent 로 해결
+      var url = 'https://jsonplaceholder.typicode.com/users';
+      var data = {
+        username: this.username,
+        password: this.password
+      }
+      axios.post(url, data)
+        .then(function(response) {
+          console.log(response);
+        })
+        .catch(function(error) {
+          console.log(error);
+        });
+    }
+  }
+}
+</script>
+```
 
 ## Reference
 
