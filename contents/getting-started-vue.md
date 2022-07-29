@@ -13,7 +13,7 @@
 ![Result](https://github.com/jihunparkme/blog/blob/main/img/vue/view-model.png?raw=true 'Result')
 
 - `View`: 눈에 보이는 화면 (화면의 요소는 HTML)
-  - HTML은 DOM을 이용해서 javascript로 조작
+  - HTML은 DOM을 이용해서 javascript로 조작 -> Reactivity
 - `DOM Listeners`: View에서 사용자 이벤트는 Vue의 DOM Listeners로 청취
 - `Modal`: Vue에서 청취한 이벤트를 통해 javascript에 있는 데이터를 변경하거나 특정 로직을 실행
   - javascript를 통해 데이터가 변경되었을 경우 `Data Bindings` 동작하여 View에 반영
@@ -581,6 +581,8 @@ methods: {
 
 ## Vue CLI
 
+command-line interface
+
 **뷰로 빠르게 프로젝트를 구성하고 프로토타이핑을 하고 싶을 경우 사용하는 도구**
 
 ```sh
@@ -781,3 +783,17 @@ export default {
 > [Cracking Vue.js](https://joshua1988.github.io/vue-camp/textbook.html)
 > 
 > [vuejs.org](https://vuejs.org/)
+
+.
+
+> [Vue.js 공식 문서](https://vuejs.org/guide/introduction.html)
+>
+> [Vue.js 스타일 가이드](https://v2.vuejs.org/v2/style-guide/?redirect=true)
+>
+> [Vue.js Cookbook](https://v2.vuejs.org/v2/cookbook/?redirect=true)
+>
+> [Vuex 공식 문서](https://v3.vuex.vuejs.org/)
+>
+> [VueRouter 공식 문서](https://v3.router.vuejs.org/)
+>
+> [Vue CLI 공식 문서](https://cli.vuejs.org/)
