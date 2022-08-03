@@ -271,3 +271,81 @@ public class Line extends AbstractFigure {
 ```
 
 > [repository](https://github.com/jihunparkme/Study-project-spring-java/tree/main/java-coordinate-playground-practice)
+
+## 함수형 프로그래밍
+
+**동시성**
+
+- 멀티 CPU의 동시성 이슈를 해결하면서 안정적인 소프트웨어를 개발하는 것이 중요
+- 데이터의 상태를 변경하는 과정에서 객체 지향 프로그래밍 방식으로 동시성 문제를 해결하는데는 한계가 존재
+  - 대용량 데이터를 처리할 때 데이터를 객체로 변환하는데 따른 부담
+
+**모듈화**
+
+- 더 유용하고, 재사용이 편리하고, 구성이 용이하고, 테스트하기 더 간편한 추상화를 제공
+- 함수형 프로그래밍을 통해 문제 접근 방법, 문제를 작은 단위로 쪼개는 방법, 설계 과정, 프로그래밍 순서에서 새로운 시각을 배울 수 있음
+- 객체지향은 객체에 대한 모델링에 많은 시간 투자가 필요
+
+**함수형 프로그래밍**
+
+- 변경 불가능한 값(immutable value) 활용하여 동시성 이슈 발생 가능성을 줄임
+- 클래스 없이 독립적으로 함수가 존재
+- 람다와 클로저 사용
+- 고계함수(higher-order function)
+  - 다른 함수를 인수로 받아들이거나 함수를 리턴하는 함수
+- 함수가 불변(immutable)인 특성을 가지므로 부수효과(side effect)가 없음
+  - 멀티 스레드 환경에서 안정적
+  
+### 람다(lambda)
+
+람다는 익명 함수의 다른 표현
+
+```java
+List<Integer> numbers = Arrays.asList(1, 2, 3, 4, 5, 6);
+
+numbers.forEach((Integer value) -> System.out.println(value));
+numbers.forEach(value -> System.out.println(value)); // Type 추론이 가능해 Type 생략 가능
+numbers.forEach(System.out::println); // :: 연산자 활용 가능
+numbers.forEach(x -> System.out.println(x));
+```
+
+### 스트림(stream)
+
+**filter**
+
+```java
+List<String> words = Arrays.asList(contents.split("[\\P{L}]+"));
+
+// using for loop
+long count = 0;
+for (String w : words) {
+  if (w.length() > 12) {
+    count++;  
+  }
+}
+
+// using stream
+long count = words.stream()
+                    .filter(w -> w.length() > 12)
+                    .count();
+```
+
+**map**
+
+```java
+List<Integer> numbers = Arrays.asList(1, 2, 3, 4, 5, 6);
+List<Integer> dobuleNumbers = numbers.stream()
+                                    .map(x -> 2 * x)
+                                    .collect(Collectors.toList());
+```
+
+**reduce**
+
+```java
+List<Integer> numbers = Arrays.asList(1, 2, 3, 4, 5, 6);
+
+public int sumAll(List<Integer> numbers) {
+    return numbers.stream()
+                    .reduce(0, (x, y) -> x + y);
+}
+```
