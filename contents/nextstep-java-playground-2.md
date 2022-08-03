@@ -163,7 +163,7 @@ if (beverage  instanceof Coffee) {
 - 소프트웨어에 변경이 발생할 경우 소스 코드에 변경을 최소화함으로써 유지보수 비용을 줄이고, 변화에 빠르게 대응하기 위해 사용
   - 추상화를 통해 변화에 빠르게 대응할 수 있지만 추상화에 따른 개발 비용이 발생
 
-## Coordinate Example
+## Coordinate Mission
 
 ### Interface
 
@@ -296,6 +296,48 @@ public class Line extends AbstractFigure {
 - 함수가 불변(immutable)인 특성을 가지므로 부수효과(side effect)가 없음
   - 멀티 스레드 환경에서 안정적
   
+**Anonymous class to Lambda**
+
+```java
+public void anomymousClass() {
+  final String hello = FUNLEE.callHello(new Hello() -> {
+    @Override
+    public String hello(String name) {
+      return "Hello, " + name;
+    }
+  });
+  
+  System.out.println(hello);
+}
+
+// Step 01. 함수 이름 제거
+public void anomymousClass() {
+  final String hello = FUNLEE.callHello((String name) -> {
+    return "Hello, " + name;
+  });
+
+  System.out.println(hello);
+}
+
+// Step 02. 파라미터 타입 제거
+public void anomymousClass() {
+  final String hello = FUNLEE.callHello(name -> {
+    return "Hello, " + name;
+  });
+
+  System.out.println(hello);
+}
+
+// Step 03: 리턴문 제거
+public void anomymousClass() {
+  final String hello = FUNLEE.callHello(name -> "Hello, " + name);
+
+  System.out.println(hello);
+}
+```
+
+> [익명 클래스에서 람다 함수로 변경](https://kmdigit.github.io/2020/03/17/from-java-anonymous-class-to-single-line-lambda/)
+
 ### 람다(lambda)
 
 람다는 익명 함수의 다른 표현
