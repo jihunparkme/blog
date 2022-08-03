@@ -162,3 +162,112 @@ if (beverage  instanceof Coffee) {
 - 구현 로직은 존재하지 않으며 메소드에 대한 `입력`, `출력`만 정의
 - 소프트웨어에 변경이 발생할 경우 소스 코드에 변경을 최소화함으로써 유지보수 비용을 줄이고, 변화에 빠르게 대응하기 위해 사용
   - 추상화를 통해 변화에 빠르게 대응할 수 있지만 추상화에 따른 개발 비용이 발생
+
+## Coordinate Example
+
+### Interface
+
+- 모든 도형에서 `비슷한 동작`을 수행하는 공통 메서드를 추상화
+
+```java
+public interface Figure {
+    boolean hasPoint(int x, int y);
+
+    double area();
+
+    String getAreaInfo();
+}
+```
+
+### Abstract Class
+
+- 모든 도형에서 `동일한 동작`을 수행하는 공통 메서드를 추상화
+- 공통적으로 가지고 있는 데이터도 포함
+
+```java
+@Getter
+@EqualsAndHashCode
+public abstract class AbstractFigure implements Figure {
+    static final String ERROR_FIGURE_NULL = "올바른 Point 값이 아닙니다.";
+    private final List<Point> points;
+
+    AbstractFigure(List<Point> points) {
+        if (points == null || points.isEmpty()) {
+            throw new IllegalArgumentException(ERROR_FIGURE_NULL);
+        }
+        this.points = points;
+    }
+
+    @Override
+    public boolean hasPoint(int x, int y) {
+        return getPoints().stream()
+                .anyMatch(point -> point.isSame(x, y));
+    }
+}
+```
+
+### FigureFactory
+
+- Map을 활용하면 if문을 사용하지 않고 객체를    구분하여 클래스를 만들 수 있다.
+- 아주.. 좋은 방법인 것 같다.
+
+```java
+public class FigureFactory {
+    private static final String ERROR_INVALID_FIGURE_CREATION = "입력된 Point 개수가 유효하지 않습니다.";
+    private static final int NUM_OF_VERTICES_OF_LINE = 2;
+    private static final int NUM_OF_VERTICES_OF_TRIANGLE = 3;
+    private static final int NUM_OF_VERTICES_OF_RECTANGLE = 4;
+    private static final Map<Integer, Function<List<Point>, Figure>> classifier = new HashMap<>();
+
+    static {
+        classifier.put(NUM_OF_VERTICES_OF_LINE, Line::new);
+        classifier.put(NUM_OF_VERTICES_OF_TRIANGLE, Triangle::new);
+        classifier.put(NUM_OF_VERTICES_OF_RECTANGLE, Rectangle::new);
+    }
+
+    public static Figure create(List<Point> points) {
+        if (points == null) {
+            throw new IllegalArgumentException(AbstractFigure.ERROR_FIGURE_NULL);
+        }
+        if (isInvalidNumberOf(points)) {
+            throw new IllegalArgumentException(ERROR_INVALID_FIGURE_CREATION);
+        }
+        return classifyFigure(points);
+    }
+
+    private static boolean isInvalidNumberOf(List<Point> points) {
+        int numOfPoints = points.size();
+        return numOfPoints < NUM_OF_VERTICES_OF_LINE || numOfPoints > NUM_OF_VERTICES_OF_RECTANGLE;
+    }
+
+    private static Figure classifyFigure(List<Point> points) {
+        return classifier.get(points.size()).apply(points);
+    }
+}
+```
+
+### Class
+
+- AbstractFigure의 implements인 Figure의 메서드를 구현
+
+```java
+public class Line extends AbstractFigure {
+    private static final String OUTPUT_AREA_OF_LINE = "두 점 사이의 거리는 ";
+
+    Line(List<Point> points) {
+        super(points);
+    }
+
+    @Override
+    public double area() {
+        return getPoints().get(0).calculateDistance(getPoints().get(1));
+    }
+
+    @Override
+    public String getAreaInfo() {
+        return OUTPUT_AREA_OF_LINE + area();
+    }
+}
+```
+
+> [repository](https://github.com/jihunparkme/Study-project-spring-java/tree/main/java-coordinate-playground-practice)
