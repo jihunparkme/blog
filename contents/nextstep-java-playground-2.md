@@ -351,6 +351,28 @@ numbers.forEach(System.out::println); // :: 연산자 활용 가능
 numbers.forEach(x -> System.out.println(x));
 ```
 
+**람다를 활용한 중복 제거**
+
+```java
+// Interface
+public interface Conditional {
+    boolean test(Integer number);
+}
+
+// Class
+public static int sumAll(List<Integer> numbers, Conditional conditional) {
+    return numbers.stream()
+            .filter(conditional::test)
+            .mapToInt(Integer::valueOf)
+            .sum();
+}
+
+// Test
+int sumAll = Lambda.sumAll(numbers, number -> true);
+int sumAllEven = Lambda.sumAll(numbers, number -> number % 2 == 0);
+int sumAllOverThree = Lambda.sumAll(numbers, number -> number > 3);
+```
+
 ### 스트림(stream)
 
 **filter**
