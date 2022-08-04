@@ -351,28 +351,6 @@ numbers.forEach(System.out::println); // :: 연산자 활용 가능
 numbers.forEach(x -> System.out.println(x));
 ```
 
-**람다를 활용한 중복 제거**
-
-```java
-// Interface
-public interface Conditional {
-    boolean test(Integer number);
-}
-
-// Class
-public static int sumAll(List<Integer> numbers, Conditional conditional) {
-    return numbers.stream()
-            .filter(conditional::test)
-            .mapToInt(Integer::valueOf)
-            .sum();
-}
-
-// Test
-int sumAll = Lambda.sumAll(numbers, number -> true);
-int sumAllEven = Lambda.sumAll(numbers, number -> number % 2 == 0);
-int sumAllOverThree = Lambda.sumAll(numbers, number -> number > 3);
-```
-
 ### 스트림(stream)
 
 **filter**
@@ -413,3 +391,107 @@ public int sumAll(List<Integer> numbers) {
                     .reduce(0, (x, y) -> x + y);
 }
 ```
+
+### Optional
+
+[Guide To Java 8 Optional](https://www.baeldung.com/java-optional)
+
+**Optional을 활용해 조건에 따른 반환**
+
+```java
+public static boolean ageIsInRange2(User user) {
+    return Optional.ofNullable(user)
+            .map(User::getAge)
+            .filter(age -> age >= 30)
+            .filter(age -> age <= 45)
+            .isPresent();
+}
+```
+
+**Optional에서 값을 반환**
+
+```java
+User getUser(String name) {
+    return users.stream()
+            .filter(user -> user.matchName(name))
+            .findAny().orElse(DEFAULT_USER);
+}
+```
+
+**Optional에서 exception 처리**
+
+```java
+static Expression of(String expression) {
+    return Arrays.stream(values())
+                .filter(v -> matchExpression(v, expression))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException(String.format("%s는 사칙연산에 해당하지 않는 표현식입니다.", expression)));
+}
+```
+
+## Functional programming Mission
+
+**익명 클래스를 람다로 전환**
+
+```java
+// Before
+Car actual = car.move(new MoveStrategy() {
+    @Override
+    public boolean isMovable() {
+        return true;
+    }
+});
+
+//=>>>>>>>>>>>>>>>>>
+
+// After
+Car actual = car.move(() -> true);
+```
+
+**람다를 활용한 중복 제거**
+
+```java
+// Interface
+public interface Conditional {
+    boolean test(Integer number);
+}
+
+// Class
+public static int sumAll(List<Integer> numbers, Conditional conditional) {
+    return numbers.stream()
+            .filter(conditional::test)
+            .mapToInt(Integer::valueOf)
+            .sum();
+}
+
+// Test
+int sumAll = Lambda.sumAll(numbers, number -> true);
+int sumAllEven = Lambda.sumAll(numbers, number -> number % 2 == 0);
+int sumAllOverThree = Lambda.sumAll(numbers, number -> number > 3);
+```
+
+**Stream 실습**
+
+```java
+public static long sumOverThreeAndDouble(List<Integer> numbers) {
+    return numbers.stream()
+            .filter(number -> number > 3)
+            .map(number -> number * 2)
+            .reduce(0, Integer::sum);
+}
+
+public static void printLongestWordTop100() throws IOException {
+        String contents = new String(Files.readAllBytes(Paths
+                .get("src/main/resources/fp/war-and-peace.txt")), StandardCharsets.UTF_8);
+        List<String> words = Arrays.asList(contents.split("[\\P{L}]+"));
+        words.stream()
+                .filter(word -> word.length() > 12) // 단어의 길이가 12자를 초과하는 단어 추출
+                .sorted(Comparator.comparing(String::length).reversed()) // 단어 길이가 긴 순서로
+                .distinct() // 중복을 허용하지 않고
+                .limit(100) // 100개의 단어를 추출
+                .collect(Collectors.toList())
+                .forEach(word -> System.out.println(word.toLowerCase()));
+    }
+```
+
+> [Repository](https://github.com/jihunparkme/Study-project-spring-java/tree/main/java-blackjack-playground)
