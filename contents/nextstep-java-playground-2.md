@@ -1,9 +1,10 @@
-[Java] 자바 플레이그라운드 with TDD, CleanCode 후기 (2)
-
 # Java PlayGround
 
+[Java] 자바 플레이그라운드 with TDD, CleanCode 후기 (2)
 
 NEXTSTEP [자바 플레이그라운드 with TDD, 클린 코드](https://edu.nextstep.camp/c/9WPRB0ys/)에서 새롭게 배우고 깨닫게 된 내용들을 기록한 글입니다.
+
+Part02. `Inheritance`, `Abstract`, `Functional programming`
 
 ## Inheritance
 
