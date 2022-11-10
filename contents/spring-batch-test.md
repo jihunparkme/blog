@@ -14,9 +14,9 @@ testImplementation("org.springframework.batch:spring-batch-test")
 
 ## 통합 테스트
 
-먼저 전체 코드는 아래와 같고,
+통합 테스트에 필요한 어노테이션들을 먼저 간략히 살펴보면, 
 
-어노테이션들을 먼저 간략히 살펴보면, 일반 스프링 테스트 코드를 작성하면서 많이 보았던 익숙한 어노테이선들도 있을 것이다.
+일반 스프링 테스트 코드를 작성하면서 많이 보았던 익숙한 어노테이선들도 있을 것이다.
 
 - `@Slf4j`
   - 로깅을 위해 선언
@@ -68,8 +68,8 @@ class CancelOrderJobConfigTest {
 
 **Class**
 
-- 프로젝트에 Job이 여러개가 있다면, Bean 충돌 예방 차원에서 테스트가 필요한 특정 Job Class만 빈으로 등록하기 위해 `@SpringBootTest`에 특정 Job Class를 선언해주자.
-- `@SpringBootTest`에 특정 Job Class만 Bean으로 등록하였으므로 `@ComponentScan`을 할용해서 "com.batch.config" 패키지에 포함된 설정에 필요한 빈들도 등록을 해주자.
+- 프로젝트에 Job이 여러 개가 있다면, Bean 충돌 예방 차원에서 테스트가 필요한 특정 Job Class만 빈으로 등록하기 위해 `@SpringBootTest`에 특정 Job Class를 선언해 주자.
+- `@SpringBootTest`에 특정 Job Class만 Bean으로 등록하였으므로 `@ComponentScan`을 활용해서 "com.batch.config" 패키지에 포함된 설정에 필요한 빈들도 등록을 해주자.
   - `@SpringBootTest`에 CancelOrderService.class가 포함된 이유는 CancelOrderJobConfig에서 해당 Service가 의존성으로 필요하지만 Bean 등록 범위에 포함이 되지 않아서 따로 등록해 주었다.
 
 **Method**
@@ -77,11 +77,10 @@ class CancelOrderJobConfigTest {
 - `JobLauncherTestUtils`은 batch Job 테스트의 핵심으로, batch Job을 테스트 환경에서 실행할 수 있도록 도와주는 클래스이다.
   - launchJob() 호출로 Job을 실행
   - Job의 결과는 JobExecution 클래스로 반환
-- `@SqlGroup`은 더미테이터 활용에 여러 `@Sql`을 사용하기 위해 선언
+- `@SqlGroup`은 더미 테이터 활용에 여러 `@Sql`을 사용하기 위해 선언
   - `@Sql`은 SQL 스크립트를 실행시키기 위해 사용
   - 테스트 메서드 실행 전/후로 두 개의 스크립트를 실행하도록 선언
   
-
 ## Reference
 
 > [Spring Batch Unit Testing](https://docs.spring.io/spring-batch/docs/current/reference/html/testing.html#testing)
