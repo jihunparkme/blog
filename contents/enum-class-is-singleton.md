@@ -63,7 +63,7 @@ message.append(pushMessage);
 pushTalk.setMessage(message.toString()); //=> 이슈의 원인
 ```
 
-![Result](https://github.com/jihunparkme/blog/blob/main/img/enum-issue.jpg?raw=true 'Result')
+![Result](https://github.com/jihunparkme/blog/blob/main/img/enum-issue.png?raw=true 'Result')
 
 - Enum Class의 message 필드를 수정하고 있는데, Enum은 `싱글톤 성질`을 가지고 있으므로 모든 스레드가 하나의 Enum 객체를 공유하다 보니 message 세팅(setMessage)과 알림 푸시(sendPushTalk()) 메서드 호출 사이에 다른 스레드에서 message 필드를 수정하면서 다른 request에서 수정한 message 필드 값을 사용하며 이슈가 발생하게 되었다.
 
