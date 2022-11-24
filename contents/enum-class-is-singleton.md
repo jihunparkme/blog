@@ -87,6 +87,8 @@ Enum Class는 왜 싱글톤 성질을 가지고 있을까?!
 
 동시성 문제는 스레드 로컬로도 해결이 가능한데 이 부분은 다음 시간에 알아보도록 하자.
 
+[[ThreadLocal] 동시성 문제와 스레드 로컬](https://data-make.tistory.com/751)
+
 ```java
 // Generate Push Message
 StringBuffer message = new StringBuffer();
