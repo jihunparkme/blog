@@ -1,16 +1,17 @@
-# 동시성 문제와 스레드 로컬(ThreadLocal)
+# 동시성 문제와 스레드 로컬
 
-동시성 문제는
-- 다수의 쓰레드가 동시에 같은 인스턴스 필드 값을 변경하면서 발생하는 문제
+## 동시성 문제
+
+- 다수의 스레드가 동시에 같은 인스턴스 필드 값을 변경하면서 발생하는 문제
 - 스프링 빈처럼 싱글톤 객체의 필드를 변경하며 사용할 때 주의
 
-## Before
+Sample Service
 
 ```java
 @Slf4j
 public class FieldService {
 
-    private String nameStore;
+    private String nameStore; // 싱글톤 객체의 공용 필드
 
     public String logic(String name) {
         log.info("저장 name={} -> nameStore={}", name, nameStore);
@@ -23,6 +24,8 @@ public class FieldService {
     }
 }
 ```
+
+Test
 
 ```java
 @Slf4j
@@ -48,7 +51,7 @@ public class FieldServiceTest {
 
         threadA.start();
 
-         sleep(100);
+         sleep(100); 
 
         threadB.start();
 
@@ -58,6 +61,9 @@ public class FieldServiceTest {
 }
 ```
 
+thread-A 로직의 끝나기 전에 thread-B 로직이 싱글톤 객체의 공용 필드를 수정하면서 thread-A의 필드 값을 덮어쓰게 되었다.
+- 다수의 스레드가 동시에 같은 인스턴스/공용 필드 값을 변경하면서 발생하는 이슈가 바로 이러한 상황이다.
+- thread-A는 김치볶음밥이지만 짜장면이 되어 버렸다.
 
 ```console
 [Test worker] INFO ...FieldServiceTest - main start
@@ -68,22 +74,23 @@ public class FieldServiceTest {
 [Test worker] INFO ...FieldServiceTest - main exit
 ```
 
+## ThreadLocal
+
+- 동시성 문제를 해결할 수 있는 방법 중 하나
+- **특정 스레드만 접근**할 수 있는 **특별한 저장소**
+- 각 스레드마다 **별도의 내부 저장소 제공**
+- 특정 스레드 로컬을 모두 사용면 메모리 누수 방지를 위해 `ThreadLocal.remove()` 호출로 저장된 값 제거
+
+[Class ThreadLocal](https://docs.oracle.com/javase/8/docs/api/java/lang/ThreadLocal.html)
 
 
-## After
-
-- **특정 스레드만 접근**할 수 있는 특별한 저장소
-- 각 스레드마다 별도의 내부 저장소 제공
-- 특정 스레드가 스레드 로컬을 모두 사용면 ThreadLocal.remove() 호출로 저장된 값 제거 필요
-  - 메모리 누수 방지
-
-[ThreadLocal](https://docs.oracle.com/javase/8/docs/api/java/lang/ThreadLocal.html)
-
+Sample Service
 
 ```java
 @Slf4j
 public class ThreadLocalService {
 
+    // 싱글톤 객체의 공용 필드 대신 스레드 로컬 사용
     private ThreadLocal<String> nameStore = new ThreadLocal<>();
 
     public String logic(String name) {
@@ -97,6 +104,8 @@ public class ThreadLocalService {
     }
 }
 ```
+
+Test
 
 ```java
 @Slf4j
@@ -126,13 +135,13 @@ public class ThreadLocalServiceTest {
 
         threadB.start();
 
-        sleep(2000);
-
+        sleep(3000);
         log.info("threadLocal main exit");
     }
 }
-
 ```
+
+스레드 로컬을 통해 동시성 문제가 해결되었다.
 
 ```console
 [Test worker] INFO ...ThreadLocalServiceTest - threadLocal main start
