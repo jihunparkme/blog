@@ -50,7 +50,7 @@ Java 코드의 일부를 보자면..
 
 .
 
-추가로, ObjectMapper를 통해서 String 이 아닌 Object 상태로 리턴받을 수도 있다.
+추가로, ObjectMapper를 통해서 String 이 아닌 Object 상태로 리턴 받을 수도 있다.
 
 **PapagoApiTest.java**
 
