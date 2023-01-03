@@ -12,7 +12,9 @@
 List<Customer> x = dbconn.executeQuery(query);
 // After
 var custList = dbconn.executeQuery(query); 
+```
 
+```java
 // Consider var when the initializer provides sufficient information to the reader.
 // Before
 ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
@@ -25,7 +27,9 @@ List<String> stringList = List.of("a", "b", "c");
  // After
 var reader = Files.newBufferedReader(...);
 var stringList = List.of("a", "b", "c");
+```
 
+```java
 // Take care when using var with literals.
 // Before
 try (InputStream is = socket.getInputStream();
@@ -39,7 +43,9 @@ try (var inputStream = socket.getInputStream();
      var bufReader = new BufferedReader(reader)) {
     return bufReader.readLine();
 }
+```
 
+```java
 // Don’t worry too much about “programming to the interface” with local variables.
 // Before
 List<String> list = new ArrayList<>();
@@ -63,7 +69,9 @@ System.out.println(
         default -> throw new IllegalStateException("Invalid day: " + day);
     }
 );    
+```
 
+```java
 // “Case L” & `yield` 
 int numLetters = switch (day) {
     case MONDAY, FRIDAY, SUNDAY -> {
