@@ -1,4 +1,7 @@
 # Spring Boot + Redis
+
+Spring Boot 에 Redis 를 적용하면서 알게된 내용들을 정리해보자.
+
 [Spring Data Redis](https://docs.spring.io/spring-data/data-redis/docs/current/reference/html/#redis:setup)
 
 ## Ready
@@ -6,7 +9,7 @@
 - Spring Data Redis 는 `RedisTemplate` , `Redis Repository` 를 사용하는 두 방식 제공
 ```gradle
 implementation 'org.springframework.boot:spring-boot-starter-data-redis'
-implementation 'it.ozimov:embedded-redis:0.7.2' # 내장 서버로 Redis 환경 구성
+implementation 'it.ozimov:embedded-redis:0.7.2' # 테스트 용도로 내장 서버 Redis 환경 구성
 ```
 
 **application.yaml**
@@ -34,7 +37,7 @@ Repository 방식은 트랜잭션을 지원하지 않으므로 트랜잭션이 �
 @Getter
 @Configuration
 @RequiredArgsConstructor
-@EnableRedisRepositories
+@EnableRedisRepositories // Redis Repository 활성화
 public class RedisConfig {
 
     @Value("${spring.cache.redis.host}")
@@ -43,11 +46,17 @@ public class RedisConfig {
     @Value("${spring.cache.redis.port}")
     private int port;
 
+    /**
+     * 내장 혹은 외부의 Redis를 연결
+     */
     @Bean
     public RedisConnectionFactory redisConnectionFactory(){
         return new LettuceConnectionFactory(host, port);
     }
 
+		/**
+		 * RedisConnection에서 넘겨준 byte 값 객체 직렬화
+		 */
     @Bean
     public RedisTemplate<?,?> redisTemplate(){
         RedisTemplate<byte[], byte[]> redisTemplate = new RedisTemplate<>();
@@ -67,14 +76,14 @@ public class RedisConfig {
 
 ```java
 @Getter
-@RedisHash(value = "result", timeToLive = 3600)
+@RedisHash(value = "result", timeToLive = 3600) //= @Entity
 @AllArgsConstructor
 @NoArgsConstructor
 public class Result {
 
     @Id
     private String id;
-    @Indexed // 필드 값으로 데이터를 찾을 수 있도록 설정
+    @Indexed // 필드 값으로 데이터를 찾을 수 있도록 설정 (findByAccessToken)
     private String ip;
     private String originalText;
     private String translatedText;
@@ -162,5 +171,5 @@ class ResultRedisRepositoryTest {
 }
 ```
 
-[Spring Boot 에서 Redis 사용하기 :: 뱀귤 블로그](https://bcp0109.tistory.com/328)
-[Spring Boot Redis (Lettuce)를 이용한 간단한 API 제작](https://ozofweird.tistory.com/entry/Spring-Boot-Redis-Lettuce%EB%A5%BC-%EC%9D%B4%EC%9A%A9%ED%95%9C-%EA%B0%84%EB%8B%A8%ED%95%9C-API-%EC%A0%9C%EC%9E%91)
+[Spring + Redis 연동 / Repository](https://backtony.github.io/spring/redis/2021-08-29-spring-redis-1/)
+[Spring + Redis 연동 / RedisTemplate](https://sabarada.tistory.com/105)
