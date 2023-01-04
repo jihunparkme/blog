@@ -2,11 +2,20 @@
 
 Spring Boot 에 Redis 를 적용하면서 알게된 내용들을 정리해보자.
 
+**Redis 특징**
+
+- Collection(List, Set, Sorted Set, Hash) 지원 
+- Race condition 방지
+	- Redis 는 Single Thread 로 Atomic 보장
+- persistence 지원
+	- 서버가 종료되더라도 데이터 리로드 가능
+
 [Spring Data Redis](https://docs.spring.io/spring-data/data-redis/docs/current/reference/html/#redis:setup)
 
 ## Ready
 **build.gradle**
-- Spring Data Redis 는 `RedisTemplate` , `Redis Repository` 를 사용하는 두 방식 제공
+- Redis 는 Key-Value 형식을 갖는 자료구조
+- Spring Data Redis 는 `RedisTemplate` , `Redis Repository` 를 사용하는 두 가지 접근 방식 제공
 ```gradle
 implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 implementation 'it.ozimov:embedded-redis:0.7.2' # 테스트 용도로 내장 서버 Redis 환경 구성
@@ -27,7 +36,8 @@ spring:
 
 
 ## Repository 사용
-Repository 방식은 트랜잭션을 지원하지 않으므로 트랜잭션이 필요할 경우 `RedisTemplate` 사용
+
+- 객체 기반으로 Redis에 적재
 
 ### Config
 
@@ -68,15 +78,18 @@ public class RedisConfig {
 ```
 
 ### Entity
+
 **Person.java**
 - Redis 에 저장할 객체 정의
 	- `value` : Redis keyspace
-	* `timeToLive` : 유효시간(sec), default : -1L)
-* Redis에 저장되는 키 값의 형태: `keyspace:id`
+	- `timeToLive` : 유효시간(sec), default : -1L)
+- Redis에 저장되는 key 형태: `keyspace:@id`
+	- key 는 두 개가 생성되는데, `keyspace`와 `keyspace:@id` 형태로 생성
+	- id를 null로 저장할 경우 랜덤값으로 설정
 
 ```java
 @Getter
-@RedisHash(value = "result", timeToLive = 3600) //= @Entity
+@RedisHash(value = "result", timeToLive = 3600) // Redis Repository 사용을 위한 
 @AllArgsConstructor
 @NoArgsConstructor
 public class Result {
@@ -101,7 +114,7 @@ public class Result {
 ### Repository
 
 **PersonRedisRepository.java**
-- CrudRepository 상속
+- JPA Repository와 유사하게 JpaRepository 상속
 ```java
 public interface ResultRedisRepository extends JpaRepository<Result, String> {
     Optional<List<Result>> findByIp(String ip);
@@ -109,6 +122,7 @@ public interface ResultRedisRepository extends JpaRepository<Result, String> {
 ```
 
 ### Test
+
 ```java
 @Slf4j
 @SpringBootTest
@@ -137,9 +151,6 @@ class ResultRedisRepositoryTest {
 
         // then
         Result find = redisRepository.findById(save.getId()).get();
-        log.info("id: {}", find.getId());
-        log.info("original text: {}", find.getOriginalText());
-        log.info("translated text: {}", find.getTranslatedText());
 
         Assertions.assertThat(save.getIp()).isEqualTo(find.getIp());
         Assertions.assertThat(save.getOriginalText()).isEqualTo(find.getOriginalText());
@@ -173,7 +184,14 @@ class ResultRedisRepositoryTest {
 ```
 ## RedisTemplate 사용
 
-
+- 자료구조 기반으로 Redis에 적재
+- Serialize, Deserialize 로 String 을 사용하는 `StringRedisTemplate` 사용
+- Spring Data Redis 에서 제공하는 opsForXXX 메서드를 통해 쉬운 Serialize/Deserialize 가능
+	- `opsForValue`: Strings Interface
+	- `opsForList`:	List Interface
+	- `opsForSet`:	Set Interface
+	- `opsForZSet`:	ZSet Interface
+	- `opsForHash`:	Hash Interface
 
 ```java
 class RedisTemplateTest {
@@ -181,6 +199,9 @@ class RedisTemplateTest {
     @Autowired
     private StringRedisTemplate redisTemplate;
 
+	/*
+	 * Strings: opsForValue
+	 */
     @Test
     public void string_test() {
         String key = "key01";
@@ -197,6 +218,9 @@ class RedisTemplateTest {
         Assertions.assertThat(result02).isEqualTo("2");
     }
 
+	/*
+	 * List: opsForList
+	 */
     @Test
     public void list_test() {
         String key = "key01";
@@ -216,6 +240,9 @@ class RedisTemplateTest {
         Assertions.assertThat(resultString).isEqualTo(Arrays.asList(new String[]{"H", "i", " ", "a", "a", "r", "o", "n"}));
     }
 
+	/*
+	 * Set: opsForSet
+	 */
     @Test
     public void set_test() {
         String key = "key01";
@@ -238,6 +265,9 @@ class RedisTemplateTest {
         Assertions.assertThat(sb.toString()).isEqualTo("iH");
     }
 
+	/*
+	 * Set: opsForZSet
+	 */
     @Test
     public void sorted_set_test() {
         String key = "key01";
@@ -258,6 +288,9 @@ class RedisTemplateTest {
         Assertions.assertThat(rangeByScore.toArray()).isEqualTo(new String[]{"H", "i", "~", "!"});
     }
 
+	/*
+	 * Set: opsForHash
+	 */
     @Test
     public void hash_test() {
         String key = "key01";
@@ -279,6 +312,12 @@ class RedisTemplateTest {
 }
 ```
 
-[Spring + Redis 연동 / Repository](https://backtony.github.io/spring/redis/2021-08-29-spring-redis-1/)
+[Cache와 Redis](https://sabarada.tistory.com/103)
 
-[Spring + Redis 연동 / RedisTemplate](https://sabarada.tistory.com/105)
+[Redis 기본 명령어](https://sabarada.tistory.com/104)
+
+[Spring Data Redis / RedisTemplate](https://sabarada.tistory.com/105)
+
+[Spring Data Redis / Repository](https://sabarada.tistory.com/106)
+
+[Spring - Redis 연동하기](https://backtony.github.io/spring/redis/2021-08-29-spring-redis-1/)
