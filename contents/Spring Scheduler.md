@@ -62,7 +62,7 @@ public void scheduleFixedRateTask() throws InterruptedException {
 }
 ```
 
-## fixedDelay + fixedRate
+## initialDelay + fixedDelay
 
 - `initialDelay` 값 이후 처음 실행 되고, `fixedDelay` 값에 따라 계속 실행
 
