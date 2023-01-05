@@ -199,13 +199,15 @@ class RedisTemplateTest {
     @Autowired
     private StringRedisTemplate redisTemplate;
 
-	/*
-	 * Strings: opsForValue
-	 */
+    private String key = "key01";
+
+    @AfterEach
+    void afterAll() {
+        redisTemplate.delete(key);
+    }
+
     @Test
     public void string_test() {
-        String key = "key01";
-
         ValueOperations<String, String> stringStringValueOperations = redisTemplate.opsForValue();
         stringStringValueOperations.set(key, "1");
 
@@ -218,13 +220,8 @@ class RedisTemplateTest {
         Assertions.assertThat(result02).isEqualTo("2");
     }
 
-	/*
-	 * List: opsForList
-	 */
     @Test
     public void list_test() {
-        String key = "key01";
-
         ListOperations<String, String> stringStringListOperations = redisTemplate.opsForList();
         stringStringListOperations.rightPush(key, "H");
         stringStringListOperations.rightPush(key, "i");
@@ -240,13 +237,8 @@ class RedisTemplateTest {
         Assertions.assertThat(resultString).isEqualTo(Arrays.asList(new String[]{"H", "i", " ", "a", "a", "r", "o", "n"}));
     }
 
-	/*
-	 * Set: opsForSet
-	 */
     @Test
     public void set_test() {
-        String key = "key01";
-
         SetOperations<String, String> stringStringSetOperations = redisTemplate.opsForSet();
         stringStringSetOperations.add(key, "H");
         stringStringSetOperations.add(key, "i");
@@ -265,13 +257,8 @@ class RedisTemplateTest {
         Assertions.assertThat(sb.toString()).isEqualTo("iH");
     }
 
-	/*
-	 * Set: opsForZSet
-	 */
     @Test
     public void sorted_set_test() {
-        String key = "key01";
-
         ZSetOperations<String, String> stringStringZSetOperations = redisTemplate.opsForZSet();
         stringStringZSetOperations.add(key, "H", 1);
         stringStringZSetOperations.add(key, "i", 5);
@@ -288,13 +275,8 @@ class RedisTemplateTest {
         Assertions.assertThat(rangeByScore.toArray()).isEqualTo(new String[]{"H", "i", "~", "!"});
     }
 
-	/*
-	 * Set: opsForHash
-	 */
     @Test
     public void hash_test() {
-        String key = "key01";
-
         HashOperations<String, Object, Object> stringObjectObjectHashOperations = redisTemplate.opsForHash();
         stringObjectObjectHashOperations.put(key, "Hi01", "apple");
         stringObjectObjectHashOperations.put(key, "Hi02", "banana");
