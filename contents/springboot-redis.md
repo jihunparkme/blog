@@ -16,7 +16,7 @@ Spring Boot 에 Redis 를 적용하면서 알게된 내용들을 정리해보자
 **build.gradle**
 - Redis 는 Key-Value 형식을 갖는 자료구조
 - Spring Data Redis 는 `RedisTemplate` , `Redis Repository` 를 사용하는 두 가지 접근 방식 제공
-```gradle
+```groovy
 implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 implementation 'it.ozimov:embedded-redis:0.7.2' # 테스트 용도로 내장 서버 Redis 환경 구성
 ```
@@ -89,10 +89,10 @@ public class RedisConfig {
 
 ```java
 @Getter
-@RedisHash(value = "result", timeToLive = 3600) // Redis Repository 사용을 위한 
+@RedisHash(value = "resultHistory", timeToLive = 3600) // Redis Repository 사용을 위한 
 @AllArgsConstructor
 @NoArgsConstructor
-public class Result {
+public class ResultHistory {
 
     @Id
     private String id;
@@ -100,12 +100,15 @@ public class Result {
     private String ip;
     private String originalText;
     private String translatedText;
+    @Indexed
+    private LocalDateTime createDateTime;
 
     @Builder
-    public Result(String ip, String originalText, String translatedText) {
+    public ResultHistory(String ip, String originalText, String translatedText, LocalDateTime createDateTime) {
         this.ip = ip;
         this.originalText = originalText;
         this.translatedText = translatedText;
+        this.createDateTime = createDateTime;
     }
 }
 
@@ -116,17 +119,15 @@ public class Result {
 **PersonRedisRepository.java**
 - JPA Repository와 유사하게 JpaRepository 상속
 ```java
-public interface ResultRedisRepository extends JpaRepository<Result, String> {
-    Optional<List<Result>> findByIp(String ip);
+@Repository
+public interface ResultRedisRepository extends JpaRepository<ResultHistory, String> {
+    Optional<List<ResultHistory>> findByIpOrderByCreateDateTimeAsc(String ip);
 }
 ```
 
 ### Test
 
 ```java
-@Slf4j
-@SpringBootTest
-@ActiveProfiles("local")
 class ResultRedisRepositoryTest {
 
     @Autowired
@@ -140,17 +141,21 @@ class ResultRedisRepositoryTest {
     @Test
     void save() throws Exception {
         // given
-        Result result = Result.builder()
+        ResultHistory result = ResultHistory.builder()
                 .ip("127.0.0.1")
                 .originalText("안녕하세요.")
                 .translatedText("hello")
+                .createDateTime(LocalDateTime.now())
                 .build();
 
         // when
-        Result save = redisRepository.save(result);
+        ResultHistory save = redisRepository.save(result);
 
         // then
-        Result find = redisRepository.findById(save.getId()).get();
+        ResultHistory find = redisRepository.findById(save.getId()).get();
+        log.info("id: {}", find.getId());
+        log.info("original text: {}", find.getOriginalText());
+        log.info("translated text: {}", find.getTranslatedText());
 
         Assertions.assertThat(save.getIp()).isEqualTo(find.getIp());
         Assertions.assertThat(save.getOriginalText()).isEqualTo(find.getOriginalText());
@@ -160,28 +165,74 @@ class ResultRedisRepositoryTest {
     @Test
     void save_multi() throws Exception {
         // given
-        Result rst1 = Result.builder()
+        ResultHistory rst1 = ResultHistory.builder()
                 .ip("127.0.0.1")
                 .originalText("안녕하세요.")
                 .translatedText("hello")
+                .createDateTime(LocalDateTime.now())
                 .build();
 
-        Result rst2 = Result.builder()
+        ResultHistory rst2 = ResultHistory.builder()
                 .ip("127.0.0.1")
                 .originalText("반갑습니다.")
                 .translatedText("Nice to meet you.")
+                .createDateTime(LocalDateTime.now())
+                .build();
+
+        ResultHistory rst3 = ResultHistory.builder()
+                .ip("127.1.1.1")
+                .originalText("반갑습니다.")
+                .translatedText("Nice to meet you.")
+                .createDateTime(LocalDateTime.now())
                 .build();
 
         // when
         redisRepository.save(rst1);
         redisRepository.save(rst2);
+        redisRepository.save(rst3);
 
         // then
-        List<Result> results = redisRepository.findByIp(rst1.getIp()).get();
+        List<ResultHistory> results = redisRepository.findByIpOrderByCreateDateTimeAsc("127.0.0.1").get();
         Assertions.assertThat(results.size()).isEqualTo(2);
+    }
+
+    @Test
+    void search_order_by() throws Exception {
+        // given
+        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        ResultHistory rst1 = ResultHistory.builder()
+                .ip("127.0.0.1")
+                .originalText("안녕하세요.")
+                .translatedText("hello")
+                .createDateTime(LocalDateTime.parse("2023-01-05 20:20:20", dateTimeFormatter))
+                .build();
+
+        ResultHistory rst2 = ResultHistory.builder()
+                .ip("127.0.0.1")
+                .originalText("반갑습니다.")
+                .translatedText("Nice to meet you.")
+                .createDateTime(LocalDateTime.parse("2023-01-05 20:21:20", dateTimeFormatter))
+                .build();
+
+        ResultHistory rst3 = ResultHistory.builder()
+                .ip("127.0.0.1")
+                .originalText("반갑습니다.")
+                .translatedText("Nice to meet you.")
+                .createDateTime(LocalDateTime.parse("2023-01-05 20:22:20", dateTimeFormatter))
+                .build();
+
+        // when
+        redisRepository.save(rst1);
+        redisRepository.save(rst2);
+        redisRepository.save(rst3);
+
+        // then
+        List<ResultHistory> results = redisRepository.findByIpOrderByCreateDateTimeAsc("127.0.0.1").get();
+        Assertions.assertThat(results.get(0).getCreateDateTime()).isEqualTo(LocalDateTime.parse("2023-01-05 20:20:20", dateTimeFormatter));
     }
 }
 ```
+
 ## RedisTemplate 사용
 
 - 자료구조 기반으로 Redis에 적재
