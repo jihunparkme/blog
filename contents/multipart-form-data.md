@@ -1,4 +1,4 @@
-# multipart/form-data Request
+# Request multipart/form-data type API by attaching a file
 
 서버단에서 multipart/form-data 타입으로 파일을 첨부해서 요청을 보내본 적은 없었는데..
 
@@ -16,7 +16,7 @@ SampleResponse uploadImage(MultipartFile upload, @RequestHeader(value = "Authori
 ```
 
 MultipartFile 객체를 생성하는 방법은 다양하나, FileItem 객체를 활용하여 CommonsMultipartFile 객체를 생성하게 되었다. 
-(이 방법을 선택한 이유는 딱히 없다.. 가장 괜찮아보여서..? 더 좋은 방법이 있다면 알려쥬세요..😯)
+(이 방법을 선택한 이유는 딱히 없다.. 가장 괜찮아 보여서..? 더 좋은 방법이 있다면 알려쥬세요..😯)
 
 ```java
 MultipartFile image = new CommonsMultipartFile(fileItem);
@@ -26,7 +26,7 @@ MultipartFile image = new CommonsMultipartFile(fileItem);
 
 참고로.. 이상하게 `@RequestPart(value = "upload") MultipartFile upload` upload 라는 이름으로 MultipartFile 내용을 보내는데, MultipartFile key name 을 @RequestPart 의 value 값을 보지 않고, CommonsMultipartFile 생성 시 넣어준 fileItem 의 fileName 을 참조하고 있다.
 
-fileItem 의 이름이 우선권이 있는건지 이 부분은 아직 자세히는 모르겠다..🥲
+fileItem 의 이름이 우선권이 있는 건지 이 부분은 아직 자세히는 모르겠다..🥲
 
 ```java
 @Override
@@ -37,7 +37,7 @@ public String getName() {
 
 결론은, 파일을 담고 있는 MultipartFile key name 이 upload 라면 (ex. `--form 'upload=@..'`)
 
-upload 라는 이름은 FileItem 생성 시 명시해준 fileName 을 참조하게 된다.
+upload 라는 이름은 FileItem 생성 시 명시해 준 fileName 을 참조하게 된다.
 
 ```java
 final FileItem fileItem = new DiskFileItem("upload" // fileName
@@ -98,7 +98,7 @@ public void uploadImage(SampleRequestBundle bundle) throws SampleException {
         IOUtils.copy(is, os);
 
         MultipartFile image = new CommonsMultipartFile(fileItem);
-        bundle.setSampleImageResponse(nftMintApiService.uploadImage(image, bundle.getAuthToken()));
+        bundle.setSampleImageResponse(sampleApiService.uploadImage(image, bundle.getAuthToken()));
     } catch (Exception e) {
         log.error("fail...");
         throw new SampleException(SampleErrorMessage.GLOBAL_ERROR_MESSAGE.getMessage(), e);
@@ -138,7 +138,7 @@ private HttpsURLConnection getProxyHttpsURLConnection(URL url, Proxy proxy, SSLC
 
 ### Service
 
-여기는 MultipartFile 객체를 전달해주는 거처가는 단계..
+여기는 MultipartFile 객체를 전달해주는 거쳐가는 단계..
 
 **SampleApiServiceImpl.java**
 
@@ -214,6 +214,6 @@ curl --location 'https://api.domain.com/sample/image' \
 
 .
 
-@RequestPart value 값이 제대로 적용되지 않고 FileItem fileName 이 우선으로 적용되는 부분.
+@RequestPart value 값이 제대로 적용되지 않고 FileItem fileName 이 우선으로 적용되는 부분. (이건 미스테리를 좀 풀어보아야겠다...)
 
 FeignClient 에서 multipart/form-data 타입으로 요청을 하기 위해 Encoder, Decoder 가 필요했던 부분에서 많이 헤맸던 것 같다..
