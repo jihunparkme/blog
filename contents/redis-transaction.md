@@ -2,9 +2,9 @@
 
 프로젝트에 Redis 를 적용하면서 Redis Transaction 을 잘 모르고 사용했다가,
 
-Spring Transaction 과 함께 데이터가 롤백되어버리는 상황을 맞이하고 Redis Transaction 에 대해 알아보게 되었다.
+Spring Transaction 과 함께 데이터가 롤백되어 버리는 상황을 맞이하고 Redis Transaction 에 대해 알아보게 되었다.
 
----
+.
 
 Redis 는 **싱글 스레드 기반**으로 데이터 처리
 
