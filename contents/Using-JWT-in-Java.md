@@ -1,6 +1,6 @@
 # Using JWT(JSON Web Tokens) in Java
 
-JWT 를 업무에 사용해야 하는 일이 생겼는데, 알고는 써야지 생각을 해서..
+JWT를 업무에 사용해야 하는 일이 생겼는데, 알고는 써야지 생각을 해서..
 
 JWT 생성과 복호화과정을 간략하게 살펴보려고 한다.
 
@@ -14,7 +14,7 @@ JWT 생성과 복호화과정을 간략하게 살펴보려고 한다.
 ## JWT
 
 - JSON 형식 웹 토큰
-- URL에 안전하고, 인코딩되고, 암호화된 문자열로 다양한 응용 프로그램에서 토큰으로 사용 가능
+- URL에 안전하고, 인코딩 되고, 암호화된 문자열로 다양한 응용 프로그램에서 토큰으로 사용 가능
 - 마침표(.)로 구분된 세 개의 정보(`Header`, `Payload`, `Signature`)가 base64 URL로 인코딩되어 URL에서 안전하게 사용 가능
   
 ```text
@@ -80,7 +80,7 @@ runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'
 2.JWT의 암호 서명
 3.JWT Compact Serialization 규칙에 따른 URL-safe 문자열에 대한 JWT 압축
 
-빌드 결과로 특정 시그니처 알고리즘으로 서명되고, Base64로 인코딩된 세 섹션(`Header`, `Payload`, `Signature`)의 문자열 획득
+빌드 결과로 특정 시그니처 알고리즘으로 서명되고, Base64로 인코딩 된 세 섹션(`Header`, `Payload`, `Signature`)의 문자열 획득
 
 ```java
 @Test
