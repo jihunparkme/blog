@@ -1,6 +1,6 @@
 # Jenkins REST API in JAVA
 
-특정 시기마다 대략 20개 정도의 배치를 Jenkins 에서 수동 재기동해야하는 일이 있다.
+특정 시기마다 대략 20개 정도의 배치를 Jenkins 에서 수동 재기동해야 하는 일이 있다.
 
 가끔씩? 종종? sometimes.. 있는 일이긴 하지만 너무나 귀찮은 일이다.
 
@@ -345,7 +345,7 @@ void build_result() throws Exception {
 
 ### Job Last Success Build
 
-다음으로 Job 마지막 설공 빌드 정보 조회 API 테스트를 해보자.
+다음으로 Job 마지막 성공 빌드 정보 조회 API 테스트를 해보자.
 
 ```java
 @Test
