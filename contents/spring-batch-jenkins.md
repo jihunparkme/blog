@@ -97,6 +97,8 @@ fi
 
 .
 
+![Result](https://raw.githubusercontent.com/jihunparkme/blog/207a6e54080067d49d81abbf25ef8c432bea004a/img/springbatch-jenkins-flow.png?raw=true 'Result')
+
 **change-link.sh**
 
 ```bash
