@@ -246,7 +246,7 @@ assertEquals("Hello World", future.get());
 
 ## Example
 
-리스트를 순회하며 String 타입 결과를 리스트로
+리스트를 순회하며 문자열 타입 결과를 리스트로
 
 ```java
 @Test
@@ -305,7 +305,7 @@ End - C
 End - D
 ```
 
-리스트를 순회하며 String 리스트 결과를 반환
+리스트를 순회하며 문자열 리스트 결과를 리스트로
 
 ```java
 @Test
