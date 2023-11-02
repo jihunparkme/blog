@@ -12,6 +12,33 @@ AWS EC2 & RDS 구축 방법은 [향로님의 블로그](https://jojoldu.tistory.
 
 .
 
+### AWS 프리티어 무료 사용량
+
+`EC2`(Amazon Elastic Compute Cloud) : 클라우드에서 제공되는 크기 조정 가능한 컴퓨팅 파워
+- 월별 750시간 무료 (EC2 인스턴스 하나를 풀로 돌려도 남는 시간)
+  - EC2 하나당 750시간 가동이 기준으로, 만일 EC2 2개를 돌린다면 375시간만(15일) 무료. 3개일 경우 250시간(10일) 무료.
+  - 프리티어에서 다수의 인스턴스를 풀로 돌릴경우 월별 무료 사용량이 금방 제한되어 과금이 되니 학습이 끝나면 항상 인스턴스를 종료 혹은 중지 해주자.
+- 리전에 따라 Linux/Windows 운영체제의 t2.micro 또는 t3.micro 인스턴스 타입만 무료
+
+
+`RDS`(Amazon Relational Database Service) : MySQL, PostgreSQL, MariaDB 또는 SQL Server를 위한 관리형 관계형 데이터베이스 서비스
+- RDS 인스턴스 1개 무료 사용 가능
+- 월별 750시간까지 무료(단, db.t2.micro, db.t3.micro, db.t4g.micro 타입만 사용 가능)
+- 범용(SSD) 데이터베이스 스토리지 20GB 제한
+  - 10GB를 사용하는 RDS 인스턴스 3개를 생성하면 과금 발생(30GB)
+- 데이터베이스 백업 및 DB 스냅샷용 스토리지 20GB
+- 과금 방지 옵션 설정
+  - 자동 백업 활성화 옵션 OFF
+  - 스토리지 자동 조정 활성화 옵션 OFF
+  - 마이너 버전 자동 업그레이드 사용 옵션 OFF
+  - Multi-AZ와 고성능 I/O인 Provisioned IOPS Storate를 사용하지 않도록 설정
+
+> [AWS 프리티어 요금 폭탄 방지 무료 사용량 정리](https://inpa.tistory.com/entry/AWS-%F0%9F%92%B0-%ED%94%84%EB%A6%AC%ED%8B%B0%EC%96%B4-%EC%9A%94%EA%B8%88-%ED%8F%AD%ED%83%84-%EB%B0%A9%EC%A7%80-%F0%9F%92%B8-%EB%AC%B4%EB%A3%8C-%EC%82%AC%EC%9A%A9%EB%9F%89-%EC%A0%95%EB%A6%AC)
+>
+> [AWS Free Tier](https://aws.amazon.com/ko/free/?all-free-tier.sort-by=item.additionalFields.SortRank&all-free-tier.sort-order=asc&awsf.Free%20Tier%20Types=*all&awsf.Free%20Tier%20Categories=*all)
+
+.
+
 ### EC2 인스턴스 생성
 
 - EC2 OS : Amazon Linux(Amazon Linux 2023 AMI)
@@ -44,7 +71,11 @@ AWS EC2 & RDS 구축 방법은 [향로님의 블로그](https://jojoldu.tistory.
 
 .
 
-나머지 `AWS EC2 고정 IP(Elastic IP) 등록`, `EC2 터미널 접속`은 [향로님의 블로그](https://jojoldu.tistory.com/259)를 참고해 보자.
+나머지 
+- `AWS EC2 고정 IP(Elastic IP) 등록`
+- `EC2 터미널 접속`
+
+은 [향로님의 블로그](https://jojoldu.tistory.com/259)를 참고해 보자.
 
 .
 
@@ -91,38 +122,17 @@ AWS EC2 & RDS 구축 방법은 [향로님의 블로그](https://jojoldu.tistory.
 
 RDS 생성은 생각보다 간단하지만 과금 방지를 위한 몇 가지 설정들만 잘 체크해 주면 될 것 같다.
 
-나머지 `보안 그룹 생성`, `RDS 접근 확인`, `파라미터 그룹 생성`, `EC2 에서 RDS 접근` [향로님의 블로그](https://jojoldu.tistory.com/259)를 참고해 보자.
+나머지 
+- `보안 그룹 생성`
+- `RDS 접근 확인`
+- `파라미터 그룹 생성`
+- `EC2 에서 RDS 접근` 
+  
+은 [향로님의 블로그](https://jojoldu.tistory.com/259)를 참고해 보자.
 
 .
 
-### AWS 프리티어 무료 사용량
-
-`EC2`(Amazon Elastic Compute Cloud) : 클라우드에서 제공되는 크기 조정 가능한 컴퓨팅 파워
-- 월별 750시간 무료 (EC2 인스턴스 하나를 풀로 돌려도 남는 시간)
-  - EC2 하나당 750시간 가동이 기준으로, 만일 EC2 2개를 돌린다면 375시간만(15일) 무료. 3개일 경우 250시간(10일) 무료.
-  - 프리티어에서 다수의 인스턴스를 풀로 돌릴경우 월별 무료 사용량이 금방 제한되어 과금이 되니 학습이 끝나면 항상 인스턴스를 종료 혹은 중지 해주자.
-- 리전에 따라 Linux/Windows 운영체제의 t2.micro 또는 t3.micro 인스턴스 타입만 무료
-
-
-`RDS`(Amazon Relational Database Service) : MySQL, PostgreSQL, MariaDB 또는 SQL Server를 위한 관리형 관계형 데이터베이스 서비스
-- RDS 인스턴스 1개 무료 사용 가능
-- 월별 750시간까지 무료(단, db.t2.micro, db.t3.micro, db.t4g.micro 타입만 사용 가능)
-- 범용(SSD) 데이터베이스 스토리지 20GB 제한
-  - 10GB를 사용하는 RDS 인스턴스 3개를 생성하면 과금 발생(30GB)
-- 데이터베이스 백업 및 DB 스냅샷용 스토리지 20GB
-- 과금 방지 옵션 설정
-  - 자동 백업 활성화 옵션 OFF
-  - 스토리지 자동 조정 활성화 옵션 OFF
-  - 마이너 버전 자동 업그레이드 사용 옵션 OFF
-  - Multi-AZ와 고성능 I/O인 Provisioned IOPS Storate를 사용하지 않도록 설정
-
-> [AWS 프리티어 요금 폭탄 방지 무료 사용량 정리](https://inpa.tistory.com/entry/AWS-%F0%9F%92%B0-%ED%94%84%EB%A6%AC%ED%8B%B0%EC%96%B4-%EC%9A%94%EA%B8%88-%ED%8F%AD%ED%83%84-%EB%B0%A9%EC%A7%80-%F0%9F%92%B8-%EB%AC%B4%EB%A3%8C-%EC%82%AC%EC%9A%A9%EB%9F%89-%EC%A0%95%EB%A6%AC)
->
-> [AWS Free Tier](https://aws.amazon.com/ko/free/?all-free-tier.sort-by=item.additionalFields.SortRank&all-free-tier.sort-order=asc&awsf.Free%20Tier%20Types=*all&awsf.Free%20Tier%20Categories=*all)
-
-.
-
-### Amazon Linux 2023 MySQL 설치
+### EC2 Amazon Linux 2023 MySQL 설치
 
 AMI(Amazon Machine Image)로 EC2 Amazon Linux AMI 2023 를 선택했었는데,
 
@@ -159,6 +169,8 @@ $ sudo ln -s /usr/share/zoneinfo/Asia/Seoul /etc/localtime
 ```
 
 최종 반영을 위해 재부팅을 해주자.
+
+.
 
 **`RDS`**
 
