@@ -44,13 +44,54 @@ AWS EC2 & RDS 구축 방법은 [향로님의 블로그](https://jojoldu.tistory.
 
 .
 
-AWS EC2 고정 IP(Elastic IP) 등록, EC2 터미널 접속은 [향로님의 블로그](https://jojoldu.tistory.com/259)를 참고해 보자.
+나머지 `AWS EC2 고정 IP(Elastic IP) 등록`, `EC2 터미널 접속`은 [향로님의 블로그](https://jojoldu.tistory.com/259)를 참고해 보자.
 
 .
 
 ### RDS 생성
 
-------------------> 대시보드 사진 첨부
+- 표준 생성.
+- MariaDB.
+- 추가 비용 없이 쓰기 처리량을 최대 2배로 늘려준다고 하니 10.6.10 버전을 사용해 보자.
+- 프리 티어로 선택.
+
+![Result](https://raw.githubusercontent.com/jihunparkme/blog/main/img/aws-rds/1.png 'Result')
+
+.
+
+- 마스터 사용자 이름과 암호는 까먹지 않도록 잘 기록해 두자.
+- 인스턴스는 db.t2.micro.
+
+![Result](https://raw.githubusercontent.com/jihunparkme/blog/main/img/aws-rds/2.png 'Result')
+
+.
+
+- 프리 티어에서는 20GB 까지 사용 가능.
+- 과금 방지를 위해 스토리지 자동 조정 활성화 OFF
+
+![Result](https://raw.githubusercontent.com/jihunparkme/blog/main/img/aws-rds/3.png 'Result')
+
+.
+
+- EC2 컴퓨팅 리소스는 나중에 설정이 가능하니 편한 방식을 선택.
+- 기본 VPC
+- 기본 서브넷 그룹
+- 퍼블릭 액세스 허용
+- VPC 보안 그룹 새로 생성
+
+![Result](https://raw.githubusercontent.com/jihunparkme/blog/main/img/aws-rds/4.png 'Result')
+
+- 초기 데이터베이스 이름을 설정해 두는게 편하다.
+- 과금 방지를 위해 자동 백업 활성화 OFF
+- 과금 방지를 위해 마이너 버전 자동 업그레이드 사용 OFF
+
+![Result](https://raw.githubusercontent.com/jihunparkme/blog/main/img/aws-rds/5.png 'Result')
+
+.
+
+RDS 생성은 생각보다 간단하지만 과금 방지를 위한 몇 가지 설정들만 잘 체크해 주면 될 것 같다.
+
+나머지 `보안 그룹 생성`, `RDS 접근 확인`, `파라미터 그룹 생성`, `EC2 에서 RDS 접근` [향로님의 블로그](https://jojoldu.tistory.com/259)를 참고해 보자.
 
 .
 
@@ -65,7 +106,7 @@ AWS EC2 고정 IP(Elastic IP) 등록, EC2 터미널 접속은 [향로님의 블�
 
 `RDS`(Amazon Relational Database Service) : MySQL, PostgreSQL, MariaDB 또는 SQL Server를 위한 관리형 관계형 데이터베이스 서비스
 - RDS 인스턴스 1개 무료 사용 가능
-- 월별 750시간까지 무료(단, db.t2.micro 타입만 사용 가능)
+- 월별 750시간까지 무료(단, db.t2.micro, db.t3.micro, db.t4g.micro 타입만 사용 가능)
 - 범용(SSD) 데이터베이스 스토리지 20GB 제한
   - 10GB를 사용하는 RDS 인스턴스 3개를 생성하면 과금 발생(30GB)
 - 데이터베이스 백업 및 DB 스냅샷용 스토리지 20GB
