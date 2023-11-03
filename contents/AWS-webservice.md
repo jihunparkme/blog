@@ -379,6 +379,21 @@ $ ps -ef | grep my-webservice
 ```
 .
 
+💡 Plain archive
+- Spring Boot 2.5.0 부터 jar 파일 생성 시 `xxx-plain.jar` 파일을 같이 생성
+- `Plain archive`(xxx-plain.jar) 는 애플리케이션 실행에 필요한 모든 의존성을 포함하지 않고, 작성된 소스코드의 클래스 파일과 리소스 파일만 포함하여 실행 불가능한 상태
+- 반면, `Executable archive`(.jar) 는 모든 의존성을 포함하여 실행 가능한 상태
+- [Spring Boot 2.5.0 generates plain.jar file. Can I remove it?](https://stackoverflow.com/questions/67663728/spring-boot-2-5-0-generates-plain-jar-file-can-i-remove-it)
+- build.gradle
+  
+  ```groovy
+  jar {
+      enabled = false
+  }
+  ```
+
+.
+
 ### 외부에서 서비스 접속
 
 EC2 에 배포된 서비스의 포트 번호가 외부에서 접근 가능하도록 설정이 필요
@@ -450,7 +465,7 @@ $ docker images # 설치된 jenkins image 확인
 Create jenkins Container
 
 ```shell
-$ docker run -itd -p 8000:8080 --name jenkins -u root jenkins/jenkins:lts
+$ docker run -itd -p 8000:8080 --restart=always --name jenkins -u root jenkins/jenkins:lts
 
 $ docker ps # 실행중인 docker 확인
 $ docker exec -it --user root 'Container ID' /bin/bash # jenkins container 진입
@@ -504,6 +519,8 @@ cat initialAdminPassword
 
 ![Result](https://raw.githubusercontent.com/jihunparkme/blog/main/img/jenkins/4.png 'Result')
 
+.
+
 ### Jenkins 자동 배포 설정
 
 **`GitHub Repository 설정`**
@@ -555,6 +572,15 @@ SSH Servers
 - Remote Directory: `/home/ec2-user`
   - 원격서버 작업 디렉토리
 
+.
+
+**`Tomezone 설정`**
+
+- 우측 상단 로그아웃 좌측 계정명을 클릭하여 사용자 설정으로 이동
+- 설정 -> User Defined Time Zone -> `Asia/Seoul`
+
+.
+
 ### Add Jenkins Item
 
 Item 추가
@@ -587,7 +613,7 @@ Build Steps
 - Remote directory: `/app/git/deploy`
   - jenkins 서버에서 빌드된 jar 파일을 받을 ec2 경로
   - SSH Servers Remote Directory 경로 이후 경로 작성
-- Exec command: sh /home/ec2-user/app/git/jenkins-deploy.sh
+- Exec command: sh /home/ec2-user/app/git/jenkins-deploy.sh > /dev/null 2>&1
   - jenkins -> ec2 로 jar 파일을 전달한 이후 ec2 에서 실행할 명령어
 
 ![Result](https://raw.githubusercontent.com/jihunparkme/blog/main/img/jenkins/9.png 'Result')
@@ -652,6 +678,8 @@ Auth fail for methods 'publickey,gssapi-keyex,gssapi-with-mic'
 
 > [Docker + Jenkins 자동 배포](https://velog.io/@wijoonwu/AWS-Jenkins-%EC%9E%90%EB%8F%99-%EB%B0%B0%ED%8F%AC)
 
+.
+
 ## Nginx 무중단 배포
 
 ### Install Nginx
@@ -660,7 +688,7 @@ Auth fail for methods 'publickey,gssapi-keyex,gssapi-with-mic'
 $ docker pull nginx
 
 # nginx 서버 기동
-$ docker run -itd -p 80:80 --name nginx -u root nginx
+$ docker run -itd -p 80:80 -v /home/ec2-user/app/nginx:/usr/share/nginx/conf --restart=always --name nginx -u root nginx
 
 # 가동 서비스 확인
 $ docker ps
@@ -708,50 +736,54 @@ $ docker container restart [Container ID]
 spring:
   profiles: set1
 server:
-  port: 8080
+  port: 8081
 
 ---
 spring:
   profiles: set2
 
 server:
-  port: 8081
+  port: 8082
 ```
 
 .
 
-
-시간대 변경
-
-spring-boot-starter-actuator 의존성 추가
-
-
-
-
-
-
-
-
-
-
-
-
-
-다음으로 무중단 배포 준비를 해보자.
+다음으로 무중단 배포 스크립트 동작 확인을 위해 기존 jar 파일을 복사해보자.
 
 ```shell
 # 무중단 배포 관련 파일을 관리할 디렉토리
 $ mkdir ~/app/nonstop
-
-$ mkdir ~/app/nonstop/my-webservice
-$ mkdir ~/app/nonstop/my-webservice/build
-$ mkdir ~/app/nonstop/my-webservice/build/libs
-# jenkins docker container 와 마운팅된 디렉토리에서 jar 파일 복사
-$ cp ~/app/git/jenkins/build/build/libs/*.jar ~/app/nonstop/my-webservice/build/libs/
 ```
+
+.
 
 `무중단 배포 스프립트`
 - 스트립트 안에서 오류가 발생할 수도 있으니 전체를 실행하기 전에 커멘드 단위로 실행해 보자.
+
+💡 spring-boot-starter-actuator
+- 스크립트에서 Health check(http://localhost:$IDLE_PORT/health) 를 하는 부분이 있는데 해당 기능을 사용하기 위해 의존성이 필요하다.
+- 추가로 actuator 는 스프링부트 프로젝트의 여러 상태를 확인할 수 있다보니 안전하게 사용하는 것도 중요하다.
+- [Actuator 안전하게 사용하기](https://techblog.woowahan.com/9232/)
+- Actuator 보안 대책이 반영된 actuator 설정 예시
+  - ec2 보안 그룹에서 actuator 포트를 열어주어야 한다.
+
+  ```yml
+  management:
+    server:
+      port: 1234
+    endpoints:
+      info:
+        enabled: true
+      health:
+        enabled: true
+      jmx:
+        exposure:
+          exclude: "*"
+      web:
+        exposure:
+          include: info, health
+        base-path: /abcdefg/actuator
+  ```
 
 ```shell
 $ vi ~/app/nonstop/deploy.sh
@@ -759,33 +791,40 @@ $ vi ~/app/nonstop/deploy.sh
 #!/bin/bash
 
 BASE_PATH=/home/ec2-user/app/nonstop
-BUILD_PATH=$(ls $BASE_PATH/deploy/*.jar)
+BUILD_PATH=$(ls /home/ec2-user/app/git/deploy/*.jar) 
 JAR_NAME=$(basename $BUILD_PATH)
 echo "> build file name: $JAR_NAME"
 
-echo "> Copy build file"
+echo "--- Copy build file"
 DEPLOY_PATH=$BASE_PATH/jar/
 cp $BUILD_PATH $DEPLOY_PATH
 
-echo "> Check the currently running set"
+echo "================================"
+
+echo "> Check the currently running Set"
 CURRENT_PROFILE=$(curl -s http://localhost/profile)
-echo "> $CURRENT_PROFILE"
+echo "--- $CURRENT_PROFILE"
 
 # Find a resting set
 if [ $CURRENT_PROFILE == set1 ]
 then
   IDLE_PROFILE=set2
-  IDLE_PORT=8081
+  IDLE_PORT=8082
+  IDLE_ACTUATOR=2222
 elif [ $CURRENT_PROFILE == set2 ]
 then
   IDLE_PROFILE=set1
-  IDLE_PORT=8080
+  IDLE_PORT=8081
+  IDLE_ACTUATOR=1111
 else
   echo "> Not found Profile. Profile: $CURRENT_PROFILE"
   echo "> assign set1. IDLE_PROFILE: set1"
   IDLE_PROFILE=set1
-  IDLE_PORT=8080
+  IDLE_PORT=8081
+  IDLE_ACTUATOR=1111
 fi
+
+echo "================================"
 
 echo "> change application.jar"
 IDLE_APPLICATION=$IDLE_PROFILE-my-webservice.jar
@@ -793,28 +832,32 @@ IDLE_APPLICATION_PATH=$DEPLOY_PATH$IDLE_APPLICATION
 
 ln -Tfs $DEPLOY_PATH$JAR_NAME $IDLE_APPLICATION_PATH
 
+echo "================================"
+
 echo "> Check the application PID running in $IDLE_PROFILE"
 IDLE_PID=$(pgrep -f $IDLE_APPLICATION)
 
 if [ -z $IDLE_PID ]
 then
-  echo "> 현재 구동중인 애플리케이션이 없으므로 종료하지 않습니다."
+  echo "--- 현재 구동중인 애플리케이션이 없으므로 종료하지 않습니다."
 else
-  echo "> kill -15 $IDLE_PID"
+  echo "--- kill -15 $IDLE_PID"
   kill -15 $IDLE_PID
   sleep 5
 fi
 
+echo "================================"
+
 echo "> Deploy $IDLE_PROFILE"
-nohup java -jar -Dspring.profiles.active=$IDLE_PROFILE $IDLE_APPLICATION_PATH &
+nohup java -jar -Dspring.profiles.active=$IDLE_PROFILE $IDLE_APPLICATION_PATH > $BASE_PATH/deploy-$IDLE_PROFILE.log 2>&1 &
 
 echo "> $IDLE_PROFILE 10초 후 Health check 시작"
-echo "> curl -s http://localhost:$IDLE_PORT/health "
+echo "--- curl -s http://localhost:$IDLE_ACTUATOR/abcdefg/actuator/health"
 sleep 10
 
 for retry_count in {1..10}
 do
-  response=$(curl -s http://localhost:$IDLE_PORT/health)
+  response=$(curl -s http://localhost:$IDLE_ACTUATOR/abcdefg/actuator/health)
   up_count=$(echo $response | grep 'UP' | wc -l)
 
   if [ $up_count -ge 1 ]
@@ -822,8 +865,8 @@ do
       echo "> Health check 성공"
       break
   else
-      echo "> Health check 의 응답을 알 수 없거나 혹은 status 가 UP이 아닙니다."
-      echo "> Health check: ${response}"
+      echo "--- Health check 의 응답을 알 수 없거나 혹은 status 가 UP이 아닙니다."
+      echo "--- Health check: ${response}"
   fi
 
   if [ $retry_count -eq 10 ]
@@ -840,9 +883,13 @@ done
 
 .
 
-`무중단 배포 스크립트 실행`
+`무중단 배포 스크립트 실행 확인`
+- Health check 성공까지 잘 동작하는지 확인해보자.
 
 ```shell
+# 스크립트 실행 권한 추가
+$ chmod 755 ./deploy.sh
+
 $ ~/app/nonstop/deploy.sh
 ```
 
@@ -857,14 +904,14 @@ $ ~/app/nonstop/deploy.sh
 $ docker exec -it --user root [Container ID] /bin/bash 
 
 # service-url 관리 파일 생성
-$ sudo vi /etc/nginx/conf.d/service-url.inc
+$ vi /usr/share/nginx/conf/service-url.inc
 
-set $service_url http://127.0.0.1:8080;
+set $service_url http://[Elastic IP]:8080;
 
 # proxy_pass 수정
 $ vi /etc/nginx/conf.d/default.conf
 
-include /etc/nginx/conf.d/service-url.inc;
+include /usr/share/nginx/conf/service-url.inc;
 
 location / {
         proxy_pass $service_url;
@@ -882,26 +929,78 @@ $ curl -s localhost/profile
 `Nginx 스크립트 작성`
 
 ```shell
+$ vi ~/app/nonstop/switch.sh
+
+#!/bin/bash
+
+echo "> Check the currently running Port"
+CURRENT_PROFILE=$(curl -s http://localhost/profile)
+
+if [ $CURRENT_PROFILE == set1 ]
+then
+  IDLE_PORT=8082
+elif [ $CURRENT_PROFILE == set2 ]
+then
+  IDLE_PORT=8081
+else
+  echo "--- 일치하는 Profile이 없습니다. Profile: $CURRENT_PROFILE"
+  echo "--- 8081을 할당합니다."
+  IDLE_PORT=8081
+fi
+
+echo "================================"
+
+echo "> 전환할 Port: $IDLE_PORT"
+echo "--- Port 전환"
+echo "set \$service_url http://[Elastic IP]:${IDLE_PORT};" | sudo tee /home/ec2-user/app/nginx/service-url.inc
+
+echo "================================"
+
+PROXY_PORT=$(curl -s http://localhost/profile)
+echo "> Nginx Current Proxy Port: $PROXY_PORT"
+
+echo "> Nginx Container Reload"
+NGINX_CONTAINER_ID=$(docker container ls --all --quiet --filter "name=nginx")
+docker container restart $NGINX_CONTAINER_ID
+```
+
+.
+
+`Nginx 스크립트 적용`
+
+```shell
+# 실행 권한 추가
+$ chmod 755 ~/app/nonstop/switch.sh
+
+# 무중단 배포 스크립트 하단에 nginx switch 스크립트 실행 명령 추가
+$ vi ~/app/nonstop/deploy.sh
+
+echo "> 스위칭"
+sleep 10
+/home/ec2-user/app/nonstop/switch.sh
 ```
 
 .
 
 ### Jenkins 에 적용
 
-~/app/nonstop/deploy.sh 를 실행하도록.
+구성 -> 빌드 후 조치 -> Exec command
+~/app/nonstop/deploy.sh  > /dev/null 2>&1 를 실행하도록.
 
+sh /home/ec2-user/app/nonstop/deploy.sh  > /dev/null 2>&1
 
+.
 
+## Domain, HTTPS
 
+[향로님의 블로그](https://jojoldu.tistory.com/259) 에서 아래 내용을 다루는 글이 있는데 아래 설정들도 추가해 보면 좋을 것 같다.
 
+- 도메인 및 서비스 메일 생성
+- EC2 와 도메인 연결
+- Google 이메일 연결
+- HTTPS 연결
 
-
-
-
-
-
-
-nohup java -jar -Dspring.profiles.active=prd
+.
 
 > [Nginx를 활용한 무중단 배포 구축](https://jojoldu.tistory.com/267?category=635883)
 
