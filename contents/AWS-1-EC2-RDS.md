@@ -351,7 +351,7 @@ $ vi deploy.sh
 
 REPOSITORY=/home/ec2-user/app/git
 
-cd $REPOSITORY/my-webservice-site/
+cd $REPOSITORY/my-webservice/
 
 echo "> Git Pull"
 git pull
