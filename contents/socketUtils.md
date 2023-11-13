@@ -4,7 +4,7 @@ Jenkins `Build periodically Schedule` 기능을 활용하여 스프링 배치를
 
 .
 
-그러던 어느날..🌅
+그러던 어느 날..🌅
 
 Jenkins 에 새로운 배치 아이템이 추가될수록 아래 에러가 종종 발생하기 시작했다.
 
@@ -42,7 +42,7 @@ public static void setRandomPort(int minPort, int maxPort) {
 }
 ```
 
-50000 ~ 60000 범위에서 포트를 랜덤하게 사용할 수 있는데 어떻게 포트가 겹칠 수 있는것이지❓❗️
+50000 ~ 60000 범위에서 포트를 랜덤 하게 사용할 수 있는데 어떻게 포트가 겹칠 수 있는 것이지❓❗️
 
 .
 
@@ -66,7 +66,7 @@ SocketUtils 를 사용하여 서버에 사용 가능한 로컬 포트를 찾기 
 
 분명 SocketUtils 를 사용하여 서버에 사용 가능한 로컬 포트를 찾는 방법은 신뢰할 수 없다는 것을 알 수 있다.
 
-그러다보니 아래와 같이 스프링 6.0 에서는 Deprecated 예정이다.
+그러다 보니 아래와 같이 스프링 6.0 에서는 Deprecated 예정이다.
 
 ```text
 as of Spring Framework 5.3.16, to be removed in 6.0
@@ -109,7 +109,7 @@ spring:
 
  .
 
- 실제 로그를 확인해 보면 기존 상태에서는 tomcat 을 실행시키고 있지만 `web-application-type: NONE` 설정 이후 tomcat 을 싫행시키고 있지 않다.
+ 실제 로그를 확인해 보면 기존 상태에서는 tomcat 을 실행 시키고 있지만 `web-application-type: NONE` 설정 이후 tomcat 을 싫행시키고 있지 않다.
 
  ```text
  Tomcat initialized with port(s): 52303 (http)
