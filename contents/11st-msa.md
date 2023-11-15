@@ -136,6 +136,7 @@ Fallback으로 지정된 메소드는 아래의 경우 원본 메소드 대신 �
 - Any Exception (HystrixBadRequestException 제외)
   - HystrixBadRequestException :
   - Client Error로 fallback을 실행하지 않고, Circuit Open 을 위한 통계 집계에서 제외
+  - 만일 Client Error를 다른 Exception으로 던질경우 Circuit Breaker 통계에 집계되어 Client 잘못으로 Circuit Open 및 Fallback 실행으로 오류 인지의 어려움 발생
 - Semaphore / ThreadPool Rejection
 - Timeout
 
@@ -156,6 +157,21 @@ public String recommendFallback() {
 ### Tread Isolation
 
 ### Timeout
+
+`Timeout`
+
+Hystrix에서는 Circuit Breaker(CommandKey) 단위로 Timeout 설정 가능
+
+```text
+hystrix.command.<commandKey>
+
+execution.isolation.thread.timeoutinmilliseconds : default. 1초
+```
+
+.
+
+`주의사항`
+
 
 
 .
