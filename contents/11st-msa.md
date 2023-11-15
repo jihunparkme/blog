@@ -154,7 +154,27 @@ public String recommendFallback() {
 - 잘못된 사용으로 비즈니스 로직의 에러나 장애 상황이 감춰지게 될 수 있음
 - 올바른 모니터 도구 사용 필요
 
-### Tread Isolation
+### Isolation
+
+두 가지 Isolation 방식을 Circuit Breaker 별로 지정 가능
+
+`Thread` (default.)
+
+- Circuit Breaker 별로 사용할 TreadPool 지정(ThreadPoolKey)
+- Circuit Breaker: Thread Pool = N : 1 관계 가능
+- 최대 개수 초과 시 Thread Pool Rejection 발생 -> Fallback 실행
+- Command를 호출한 Thread가 아닌 Thread Pool에서 메소드 실행
+  - Semaphore 방식의 단점을 해결
+
+`Semaphore`
+
+- Circuit Breaker 한 개당 한 개의 Semaphore 생성
+- Semaphore 별로 최대 동시 요청 개수 지정
+- 최대 요청 개수 초과 시 Semaphore Rejection 발생 -> Fallback 실행
+- Command를 호출한 Client Thread에서 메소드 실행
+- 단점) Timeout이 제 시간에 발생하지 못함 -> Client Thread를 중단시킬 수 없으므로..
+
+
 
 ### Timeout
 
@@ -172,7 +192,8 @@ execution.isolation.thread.timeoutinmilliseconds : default. 1초
 
 `주의사항`
 
-
+- Semaphore Isolation인 경우 제 시간에 Timeout이 발생하지 않는 경우가 대부분
+- Default 값이 1초로 매우 짧음
 
 .
 
