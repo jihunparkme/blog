@@ -82,14 +82,34 @@ public class SampleCommand extends HystrixCommand<String> {
 .
 
 **기능 관점 주요 4가지 기능**
+- `Circuit Breaker`
+- `Fallback`
+- `Isolation`
+- `Timeout`
+
+.
+
+**Hystrix Command 호출 시 벌어지는 일**
+
+- `Circuit Breaker`
+  - 메소드 실행 결과 성공 혹은 실패(Exception) 발생 여부를 인스턴스 단위로 기록하고 통계
+  - 통계에 따라 Circuit Open 여부 결정
+- `Fallback`
+  - 실패(Exception)한 경우 사용자가 제공한 메소드를 대신 실행
+- `Tread Isolation`
+  - 해당 메소드를 인터럽트하여 대신 실행
+- `Timeout`
+  - 특정시간동안 메소드가 종료되지 않은 경우 Exception 발생
+
+.
 
 ### Circuit Breaker
 
-`Circuit Breaker`
+**Circuit Breaker**
 
-- **일정 시간** 동안 **일정 개수 이상**의 호출이 발생한 경우, **일정 비율** 이상의 에러가 발생한다면 Circuit Open(호출 차단)
+- **일정 시간** 동안 **일정 개수 이상**의 호출이 발생한 경우, **일정 비율** 이상의 에러가 발생한다면 `Circuit Open`(호출 차단)
   - 장애 전파 차단 효과 제공
-- **일정 시간 경과** 후에 단 한 개의 요청에 대해서 호출을 허용하며(Half Open), 이 호출이 성공하면 Circuit Close(호출 허용)
+- **일정 시간 경과** 후에 단 한 개의 요청에 대해서 호출을 허용하며(Half Open), 이 호출이 성공하면 `Circuit Close`(호출 허용)
 
 ```text
 hystrix.command.<commandKey>
@@ -104,9 +124,9 @@ circuitBreaker.sleepWindowInMilliseconds (Circuit Open 시간) : default. 5초
 
 .
 
-`Circuit Breaker 단위`
+**Circuit Breaker 단위**
 
-Hystrix Circuit Breaker 는 한 프로세스 내에서 주어진 CommandKey 단위로 통계를 내고 동작
+Hystrix Circuit Breaker 는 `한 프로세스 내`에서 주어진 `CommandKey 단위로` 통계를 내고 동작
 - Circuit Breaker 는 CommandKey 단위로 생성
 - Circuit Breaker 단위 설정이 가장 중요한 부분(너무 작아도, 너무 커도 좋지 않음)
 - 너무 작은 단위일 경우
@@ -126,11 +146,13 @@ public String anyMethodWithExternalDependency2() {
 }
 ```
 
+.
+
 ### Fallback
 
-`Fallback`
+**Fallback**
 
-Fallback으로 지정된 메소드는 아래의 경우 원본 메소드 대신 실행
+Fallback으로 지정된 메소드는 아래의 경우 `원본 메소드 대신` 실행
 
 - Circuit Open(호출 차단)
 - Any Exception (HystrixBadRequestException 제외)
@@ -151,8 +173,9 @@ public String recommendFallback() {
 }
 ```
 
-- 잘못된 사용으로 비즈니스 로직의 에러나 장애 상황이 감춰지게 될 수 있음
-- 올바른 모니터 도구 사용 필요
+잘못된 사용으로 비즈니스 로직의 에러나 장애 상황이 감춰지게 될 수 있으므로 올바른 모니터 도구 사용 필요
+
+.
 
 ### Isolation
 
@@ -165,6 +188,7 @@ public String recommendFallback() {
 - 최대 개수 초과 시 Thread Pool Rejection 발생 -> Fallback 실행
 - Command를 호출한 Thread가 아닌 Thread Pool에서 메소드 실행
   - Semaphore 방식의 단점을 해결
+- 실제 메소드 실행은 다른 Thread에서 실행되므로 Thread Local 사용 시 주의 필요
 
 `Semaphore`
 
@@ -174,11 +198,11 @@ public String recommendFallback() {
 - Command를 호출한 Client Thread에서 메소드 실행
 - 단점) Timeout이 제 시간에 발생하지 못함 -> Client Thread를 중단시킬 수 없으므로..
 
-
+.
 
 ### Timeout
 
-`Timeout`
+**Timeout**
 
 Hystrix에서는 Circuit Breaker(CommandKey) 단위로 Timeout 설정 가능
 
@@ -190,28 +214,25 @@ execution.isolation.thread.timeoutinmilliseconds : default. 1초
 
 .
 
-`주의사항`
+**주의사항**
 
 - Semaphore Isolation인 경우 제 시간에 Timeout이 발생하지 않는 경우가 대부분
 - Default 값이 1초로 매우 짧음
 
 .
 
-**Hystrix Command 호출 시 벌어지는 일**
+## Ribbon
 
-- Circuit Breaker
-  - 메소드 실행 결과 성공 혹은 실패(Exception) 발생 여부를 인스턴스 단위로 기록하고 통계
-  - 통계에 따라 Circuit Open 여부 결정
-- Fallback
-  - 실패(Exception)한 경우 사용자가 제공한 메소드를 대신 실행
-- Tread Isolation
-  - 해당 메소드를 인터럽트하여 대신 실행
-- Timeout
-  - 특정시간동안 메소드가 종료되지 않은 경우 Exception 발생
+[Netflix/ribbon](https://github.com/Netflix/ribbon)
 
+.
 
 ## Eureka
 
-## Ribbon
+[Netflix/eureka](https://github.com/Netflix/eureka)
+
+.
 
 ## Zuul
+
+[Netflix/zuul](https://github.com/Netflix/zuul)
