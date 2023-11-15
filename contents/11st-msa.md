@@ -128,7 +128,30 @@ public String anyMethodWithExternalDependency2() {
 
 ### Fallback
 
+`Fallback`
 
+Fallback으로 지정된 메소드는 아래의 경우 원본 메소드 대신 실행
+
+- Circuit Open(호출 차단)
+- Any Exception (HystrixBadRequestException 제외)
+  - HystrixBadRequestException :
+  - Client Error로 fallback을 실행하지 않고, Circuit Open 을 위한 통계 집계에서 제외
+- Semaphore / ThreadPool Rejection
+- Timeout
+
+```java
+@HystrixCommand(commandKey = "ExtDep1", fallbackMethod="recommendFallback")
+public String anyMethodWithExternalDependency1() {
+    // 추천 서버 호출
+}
+
+public String recommendFallback() {
+    return "미리 준비된 상품 목록";
+}
+```
+
+- 잘못된 사용으로 비즈니스 로직의 에러나 장애 상황이 감춰지게 될 수 있음
+- 올바른 모니터 도구 사용 필요
 
 ### Tread Isolation
 
