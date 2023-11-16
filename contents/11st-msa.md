@@ -321,6 +321,9 @@ Netflix 가 만든 Dynamic Service Discovery
 서버의 목록을 설정으로 명시하는 대신 `Eureka` 를 통해서 `Look Up` 해오는 구현
 - Infra 도움 없이 서버 증설과 축소가 간단해 질 수 있음.
 
+> [Spring Cloud Netflix](https://spring.io/projects/spring-cloud-netflix#learn)
+
+.
 
 ## Zuul
 
@@ -388,14 +391,65 @@ zuul:
     - RestTeamplte 이 Bean 으로 선언된 것만 적용 가능
   - `Spring Cloud Feign`
 
+.
+
+### Spring Cloud Feign
+
+Declarative Http Client
+
+- Java Interface + Spring MVC Annotation 선언으로 Http 호출이 가능한 Spring Bean 자동 생성
+- OpenFeign 기반의 Spring Cloud 확장
+- Hystrix + Ribbon + Eureka 와 연동
+- Interface 와 @FeignClient 로 interface 타입의 Spring Bean 자동 생성
+
+Ribbon + Eureka 없이 사용
+
+```java
+@FeignClient(name = "product", url = "http://localhost:8080")
+public interface FeignProductREmoteService {
+    @RequestMApping(path = "products/{productId}")
+    String getProductInfo(@PathVariable("productId") String productId)
+}
+```
+
+Ribbon + Eureka 연동
+- url 생략 시 Ribbon, Eureka 연동
+- Eureka 에서 product 라는 서버 목록을 받아서 메소드 호출 시 알아서 로드 밸런스 수행
+
+```java
+@FeignClient(name = "product")
+public interface FeignProductREmoteService {
+    @RequestMApping(path = "products/{productId}")
+    String getProductInfo(@PathVariable("productId") String productId)
+}
+```
 
 .
 
+**Hystrix 연동**
 
+- Hystrix 를 Classpath 에 넣기
+- 메소드 하나하나가 Circuit Breaker 기능에 의해 동작
+  - 특정 메소드가 에러가 많다면 호출 차단
 
+```yml
+feign:
+  hystrix:
+    enabled: true
+```
 
+.
 
+**Spring Cloud Feign 사용 시 주의**
 
-> [Spring Cloud Netflix](https://spring.io/projects/spring-cloud-netflix#learn)
+- Circuit Breaker 단위와 Thread Pool 의 단위가 메소드 단위로 분할되므로 커스텀한 설정을 통해 비슷한 유형의 메소드들은 같은 Circuit Breaker 를 사용하도록 해야 함.
 
+.
 
+**Spring Cloud Feign with Hystrix, Ribbon, Eureka**
+
+![Result](https://raw.githubusercontent.com/jihunparkme/blog/main/img/11st-msa/spring-cloud-feign.png?raw=true 'Result')
+
+- 호출하는 모든 메소드는 Hystrix Command 로 실행
+  - Circuit Breaker, Timeout, Isolation, Fallback 적용
+- 호출할 서버는 Eureka 를 통해 얻고, Ribbon 으로 Load Balancing 되어 호출
