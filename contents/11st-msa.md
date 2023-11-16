@@ -225,6 +225,50 @@ execution.isolation.thread.timeoutinmilliseconds : default. 1초
 
 [Netflix/ribbon](https://github.com/Netflix/ribbon)
 
+Netflix가 만든 Software Load Balancer를 내장한 RPC(REST) Library
+- Client Load Balancer with HTTP Client
+- API Caller 쪽에 Load Balancer 내장
+- 다수의 서버 목록을 애플리케이션 단에서 Load Balancing 하여 호출
+
+```text
+Caller Server | Ribbon | -> Server1
+              | Ribbon | -> Server2
+              | Ribbon | -> Server3
+              | Ribbon | -> Server4
+```
+.
+
+**Ribbon in Spring Cloud**
+
+- Spring Cloud 에서는 Ribbon Client를 사용자가 직접 사용하지 않음
+- 옵션이나 설정으로 접하고 직접 Ribbon Client 를 호출해서 사용하지 않음
+- Spring Colud의 HTTP 통신이 필요한 요소에 내장되어 있음
+  - Zuul API Gateway
+  - RestTEmplate(@LoadBalanced) -> 서버 주소는 호출할 서버군의 이름을 작성
+  - Spring Could Feign (선언전 Http Client)
+
+.
+
+**기존 Load Balancer 와 다른 점**
+
+- Ribbon은 대부분의 동작이 Programmable 하다.
+- Spring Cloud 에서는 아래와 같은 BeanType 으로 Ribbon Client 마다 모든 동작을 코딩 가능
+  - [IRule](https://javadoc.io/static/com.netflix.ribbon/ribbon-loadbalancer/2.6.7/com/netflix/loadbalancer/IRule.html) : 주어진 서버 목록에서 어떤 서버를 선택할 것인가.
+    - [IRule.java](https://github.com/Netflix/ribbon/blob/master/ribbon-loadbalancer/src/main/java/com/netflix/loadbalancer/IRule.java)
+  - [IPing](https://javadoc.io/static/com.netflix.ribbon/ribbon-loadbalancer/2.6.7/com/netflix/loadbalancer/IPing.html) : 각 서버가 살아있는지 검사.
+    - [IPing.java](https://github.com/Netflix/ribbon/blob/master/ribbon-loadbalancer/src/main/java/com/netflix/loadbalancer/IPing.java)
+  - [ServerList\<Server\>](https://javadoc.io/static/com.netflix.ribbon/ribbon-loadbalancer/2.6.7/com/netflix/loadbalancer/ServerList.html) : 대상 서버 목록 제공.
+    - [ServerList.java](https://github.com/Netflix/ribbon/blob/master/ribbon-loadbalancer/src/main/java/com/netflix/loadbalancer/ServerList.java)
+  - [ServerListFilter\<Server\>](https://javadoc.io/static/com.netflix.ribbon/ribbon-loadbalancer/2.6.7/com/netflix/loadbalancer/ServerListFilter.html) : 원하는 특성을 가진 후보 서버 목록을 구성하거나 동적으로 획득하여 필터링
+    - [ServerListFilter.java](https://github.com/Netflix/ribbon/blob/master/ribbon-loadbalancer/src/main/java/com/netflix/loadbalancer/ServerListFilter.java)
+  - [ServerListUpdater](https://javadoc.io/static/com.netflix.ribbon/ribbon-loadbalancer/2.6.7/com/netflix/loadbalancer/ServerListUpdater.html) : 동적 서버 목록 업데이트를 수행하는 다양한 방법에 사용하기 위한 전략
+    - [ServerListUpdater.java](https://github.com/Netflix/ribbon/blob/master/ribbon-loadbalancer/src/main/java/com/netflix/loadbalancer/ServerListUpdater.java)
+  - IClientConfig
+    - [IClientConfig.java](https://github.com/Netflix/ribbon/blob/master/ribbon-core/src/main/java/com/netflix/client/config/IClientConfig.java)
+  - [ILoadBalancer](https://javadoc.io/static/com.netflix.ribbon/ribbon-loadbalancer/2.6.7/com/netflix/loadbalancer/ILoadBalancer.html) : 로드 밸런스에 대한 작업을 정의
+    - [ILoadBalancer.java](https://github.com/Netflix/ribbon/blob/master/ribbon-loadbalancer/src/main/java/com/netflix/loadbalancer/ILoadBalancer.java)
+
+
 .
 
 ## Eureka
@@ -236,3 +280,6 @@ execution.isolation.thread.timeoutinmilliseconds : default. 1초
 ## Zuul
 
 [Netflix/zuul](https://github.com/Netflix/zuul)
+
+
+> [Spring Cloud Netflix](https://spring.io/projects/spring-cloud-netflix#learn)
