@@ -226,7 +226,7 @@ execution.isolation.thread.timeoutinmilliseconds : default. 1초
 [Netflix/ribbon](https://github.com/Netflix/ribbon)
 
 Netflix가 만든 Software Load Balancer를 내장한 RPC(REST) Library
-- Client Load Balancer with HTTP Client
+- Client `Load Balancer` with HTTP Client
 - API Caller 쪽에 Load Balancer 내장
 - 다수의 서버 목록을 애플리케이션 단에서 Load Balancing 하여 호출
 
@@ -243,9 +243,9 @@ Caller Server | Ribbon | -> Server1
 - Spring Cloud 에서는 Ribbon Client를 사용자가 직접 사용하지 않음
 - 옵션이나 설정으로 접하고 직접 Ribbon Client 를 호출해서 사용하지 않음
 - Spring Colud의 HTTP 통신이 필요한 요소에 내장되어 있음
-  - Zuul API Gateway
-  - RestTEmplate(@LoadBalanced) -> 서버 주소는 호출할 서버군의 이름을 작성
-  - Spring Could Feign (선언전 Http Client)
+  - `Zuul API Gateway`
+  - `RestTEmplate`(@LoadBalanced) -> 서버 주소는 호출할 서버군의 이름을 작성
+  - `Spring Could Feign`(선언적 Http Client)
 
 .
 
@@ -268,18 +268,68 @@ Caller Server | Ribbon | -> Server1
   - [ILoadBalancer](https://javadoc.io/static/com.netflix.ribbon/ribbon-loadbalancer/2.6.7/com/netflix/loadbalancer/ILoadBalancer.html) : 로드 밸런스에 대한 작업을 정의
     - [ILoadBalancer.java](https://github.com/Netflix/ribbon/blob/master/ribbon-loadbalancer/src/main/java/com/netflix/loadbalancer/ILoadBalancer.java)
 
-
 .
 
 ## Eureka
 
 [Netflix/eureka](https://github.com/Netflix/eureka)
 
+Netflix 가 만든 Dynamic Service Discovery
+
+- 등록 : 서버가 자신의 서비스 이름(종류)과 IP 주소, 포트를 등록
+- 조회 : 서비스 이름(종류)를 가지고 서버 목록을 조회
+  - Ribbon 이 서버 목록을 가져오는 데 사용
+
 .
+
+**Eureke Client 를 탑재할 경우 Spring Application Life Cycle 과 함께 동작**
+- 서버 시작 시 Eureka 서버에 자동으로 자신의 서버군 이름과 상태(UP) 등록
+  - Eureka 상에 등록된 서버군 이름은 `spring.application.name`
+- 주기적인 HeartBeat 으로 Eureka Server 에 자신이 살아 있음을 알림
+- 서버 종료 시 Eureka 서버에 자신의 상태(DOWN)를 변경 혹은 목록에서 삭제
+
+.
+
+**Eureka + Ribbon in Spring Cloud**
+
+- Eureka 는 Ribbon 과 결합하여 동작
+- 서버에 Eureka Client 와 Ribbon Client 가 함께 설정되면 Spring Cloud 는 다음의 Ribbon Bean 을 대체
+  - ServerList<Server>
+    - 기본: ConfigurationBasedServerList
+    - 변경: `DiscoveryEnabledNIWSServerList`
+  - IPing
+    - 기본: DummyPing
+    - 변경: `NIWSDiscoveryPing`
+
+서버의 목록을 설정으로 명시하는 대신 `Eureka` 를 통해서 `Look Up` 해오는 구현
+- Infra 도움 없이 서버 증설과 축소가 간단해 질 수 있음.
+
 
 ## Zuul
 
 [Netflix/zuul](https://github.com/Netflix/zuul)
 
+Sprng Cloud Zuul 는 API Routing 을 Hystrix, Ribbon, Eureka 를 통해 수형
+- Spring Cloud 와 가장 잘 통합되어 있는 API Gateway
+
 
 > [Spring Cloud Netflix](https://spring.io/projects/spring-cloud-netflix#learn)
+
+
+
+
+
+
+
+
+
+
+API Gateway
+
+MSA 환경에서 API Gateway 필요성
+- Single Endpoint 제공
+  - API를 사용할 Client들은 API Gateway 주소만 인지
+- API 공통 로직 구현
+  - Logging, Authentication, Authorization
+- Traffic Control
+  - API Quota, Throttling
