@@ -43,11 +43,15 @@ Hybrid MSA
 - 레거시 코드에서는 새로운 API 서버들을 호출
 - 기존 코드와 새로운 API 호출은 DB Flag 를 통해 Wsitchable 하도록
 
+.
+
 # Netflix OSS
 
 [Netflix OSS](https://github.com/Netflix)
 
 오픈소스를 위한 소스보다 실제 운영에서 사용하는 코드들로 검증된 솔루션
+
+.
 
 ## Hystrix
 
@@ -453,3 +457,29 @@ feign:
 - 호출하는 모든 메소드는 Hystrix Command 로 실행
   - Circuit Breaker, Timeout, Isolation, Fallback 적용
 - 호출할 서버는 Eureka 를 통해 얻고, Ribbon 으로 Load Balancing 되어 호출
+
+.
+
+# 장애 시나리오
+
+**`특정 API 서버의 인스턴스가 한 개 DOWN 된 경우`**
+
+**Eureka** : `Heartbeat` 송신이 중단 됨으로 일정 시간 후 목록에서 사라짐
+- 서버가 하나 죽었을 때 실제 Caller 까지 서버 목록에서 사라지려면 내부적으로 네 단계를 거치게 됨
+- 네 단계 각각 조정할 수 있는 파라미터 옵션이 존재하므로 환경에 맞게 시간을 줄여서 사용 권장(기본값은 상당히 크게 설정)
+
+**Ribbon** : IOException 발생 시 다른 인스턴스로 `Retry`
+- 회복 탄력성(Resilience)에 대한 다양한 기능 존재. 대표적으로 Retry
+- Hystrix 와 무관하게 IOException 발생 시 어느 서버를 어떻게 몇 번 찌를지 설정 가능
+
+**Hystrix** : Circuit 은 오픈되지 않음(Error = 33%)\
+- 서버 3대 중 1대가 장애나면 33%
+- Fallback, Timeout 은 동작
+
+.
+
+**`특정 API 가 비정상(지연, 에러) 동작하는 경우`**
+
+**Hystrix** : 해당 API 를 호출하는 Circuit Breaker Open(호출 차단)
+- 어느 서버를 찔러도 비정상 동작하므로 에러 비율이 50% 초과
+- Fallback, Timeout 도 동작
