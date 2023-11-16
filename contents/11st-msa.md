@@ -183,6 +183,8 @@ public String recommendFallback() {
 
 `Thread` (default.)
 
+![Result](https://raw.githubusercontent.com/jihunparkme/blog/main/img/11st-msa/thread-isolation.png?raw=true 'Result')
+
 - Circuit Breaker 별로 사용할 TreadPool 지정(ThreadPoolKey)
 - Circuit Breaker: Thread Pool = N : 1 관계 가능
 - 최대 개수 초과 시 Thread Pool Rejection 발생 -> Fallback 실행
@@ -191,6 +193,8 @@ public String recommendFallback() {
 - 실제 메소드 실행은 다른 Thread에서 실행되므로 Thread Local 사용 시 주의 필요
 
 `Semaphore`
+
+![Result](https://raw.githubusercontent.com/jihunparkme/blog/main/img/11st-msa/semaphore-isolation.png?raw=true 'Result')
 
 - Circuit Breaker 한 개당 한 개의 Semaphore 생성
 - Semaphore 별로 최대 동시 요청 개수 지정
@@ -246,6 +250,19 @@ Caller Server | Ribbon | -> Server1
   - `Zuul API Gateway`
   - `RestTEmplate`(@LoadBalanced) -> 서버 주소는 호출할 서버군의 이름을 작성
   - `Spring Could Feign`(선언적 Http Client)
+
+참고. API Gateway
+
+```text
+MSA 환경에서 API Gateway 필요성
+
+- Single Endpoint 제공
+  - API를 사용할 Client들은 API Gateway 주소만 인지
+- API 공통 로직 구현
+  - Logging, Authentication, Authorization
+- Traffic Control
+  - API Quota, Throttling
+```
 
 .
 
@@ -312,24 +329,73 @@ Netflix 가 만든 Dynamic Service Discovery
 Sprng Cloud Zuul 는 API Routing 을 Hystrix, Ribbon, Eureka 를 통해 수형
 - Spring Cloud 와 가장 잘 통합되어 있는 API Gateway
 
+.
+
+![Result](https://raw.githubusercontent.com/jihunparkme/blog/main/img/11st-msa/spring-cloud-zuul.png?raw=true 'Result')
+
+- 각 서버군으로의 모든 호출이 Hystrix Command 로 감싸서 동작
+  - Hystrix Command 의 네 가지 장점을 보유
+- Hystrix Command 안에는 Ribbon Client 존재
+- Ribbon Client 는 Eureka Client 를 통해 실제 서버 목록을 얻어서 호출
+- API Gateway 입장에서 어느 서버한테 트래픽을 줘야 하는지 endpoint 를 관리하는 일을 Eureka, Ribbon 에 의해 기본적으로 자동화
+- 운영 서비스군에 장애가 있더라도 Gateway 가 죽지 않을 수 있는 최후의 보루가 생김
+  - Hystrix 의 Circuit Breaker, Isolation 으로 운영 서비스의 지연이 Zuul 자체를 죽이지 않도록 격리
+
+API 요청들은 각각 Hystrix Command 를 통해 실행되며, 각 API 의 Routing 은 Ribbon, Eureka 의 조합으로 수행
+
+.
+
+**Hystrix Isolation in Spring Cloud Zuul**
+
+- Spring Cloud Zuul 에서 Hystrix Isolation 는 Semephore Isolation 을 기본으로
+- Hystrix 의 기본은 Thread Isolation
+  - Hystrix Isolation 은 Semaphore/Threa 두 가지 모드 존재
+  - Semaphore 는 Circuit Breaker 와 1:1 
+  - ThreadPool 은 별도 부여된 ThreadPoolKey 단위로 생성
+
+![Result](https://raw.githubusercontent.com/jihunparkme/blog/main/img/11st-msa/zuul-isolation.png?raw=true 'Result')
+
+- Spring Cloud Zuul 의 기본 설정으로는 Semaphore Isolation
+  - 특정 API 군의 장애(지연) 등이 발생하여도 Zuul 자체의 장애로 이어지지 않음
+  - 하지만, Semaphore Isolation 사용으로 API Gateway 입장에서 중요한 timeout 기능을 잃게 됨..
+  - 품질을 알 수 없는 대단위의 API 서버들이 존재할 때, 한 종류의 API 서버때문에 Zuul 이 영향을 받을 가능성 존재
+
+![Result](https://raw.githubusercontent.com/jihunparkme/blog/main/img/11st-msa/spring-cloud-zuul-thread-pool.png?raw=true 'Result')
+
+- Spring Cloud Zuul 에서의 Thread Isolation 사용
+  - Hystrix Timeout 을 통해 특정 서버군의 장애 시에도 Zuul 의 Contaier Work Thread 원활한 반환
+
+
+```yml
+zuul:
+  ribbon-isolation-strategy: threa
+  threadPool:
+    useSeparateThreadPools: true
+    threadPoolKeyPrefix: zuulgw
+```
+
+.
+
+**Server to Server Call in MSA**
+
+![Result](https://raw.githubusercontent.com/jihunparkme/blog/main/img/11st-msa/server-to-server-call.png?raw=true 'Result')
+
+- Ribbon + Eureka 조합으로 API 간 Peer to Peer 호출
+  - Ribbon, Eureka 의 도움으로 받아 Discovery 기반으로 직접 Load Balancing 하여 호출
+- Spring Cloud 에서는 다음의 Ribbon + Eureka 기반의 Http 호출 방법 제공
+  - `@LoadBalanced RestTemplate`
+    - RestTeamplte 이 Ribbon + Eureka 기능을 갖도록 하는 애노테이션
+    - RestTeamplte 이 Bean 으로 선언된 것만 적용 가능
+  - `Spring Cloud Feign`
+
+
+.
+
+
+
+
+
 
 > [Spring Cloud Netflix](https://spring.io/projects/spring-cloud-netflix#learn)
 
 
-
-
-
-
-
-
-
-
-API Gateway
-
-MSA 환경에서 API Gateway 필요성
-- Single Endpoint 제공
-  - API를 사용할 Client들은 API Gateway 주소만 인지
-- API 공통 로직 구현
-  - Logging, Authentication, Authorization
-- Traffic Control
-  - API Quota, Throttling
