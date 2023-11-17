@@ -460,7 +460,9 @@ feign:
 
 .
 
-# 장애 시나리오
+# Story
+
+## 장애 시나리오
 
 **`특정 API 서버의 인스턴스가 한 개 DOWN 된 경우`**
 
@@ -483,3 +485,81 @@ feign:
 **Hystrix** : 해당 API 를 호출하는 Circuit Breaker Open(호출 차단)
 - 어느 서버를 찔러도 비정상 동작하므로 에러 비율이 50% 초과
 - Fallback, Timeout 도 동작
+
+.
+
+## with Spring Cloud
+
+![Result](https://raw.githubusercontent.com/jihunparkme/blog/main/img/11st-msa/11st-spring-cloud.png?raw=true 'Result')
+
+- 모든 MSA Platform 내의 서버는 Eureka Client 를 탑재
+- API Server 들간의 호출도 Spring Cloud Feign 을 통해 Hystrix + Ribbon + Eureka 조합으로 호출
+
+.
+
+**Spring Cloud Config**
+
+- Git 기반의 Config 관리
+- 플랫폼 내의 모든 서버들은 Config Client 탑재
+- 서버 시작 시 Config 서버가 제공하는 Config 들이 PropertySource 로 등록
+- Git Repository 내의 Config 파일들은 다양하게 구성 가능(옵션을 통해 우선순위 조정 가능)
+  - 전체 서버 공통 Config
+  - 서버군용 Config
+  - 특정 서버용 Config
+
+.
+
+**MSA 운영 환경을 위한 전용 모니터링 도구들**
+
+![Result](https://raw.githubusercontent.com/jihunparkme/blog/main/img/11st-msa/11st-spring-cloud-monitoring.png?raw=true 'Result')
+
+- Zipkin, Turbine, Spring Boot Admin
+
+.
+
+**분산 트레이싱에서 서버간 트레이스 정보의 전달**
+
+![Result](https://raw.githubusercontent.com/jihunparkme/blog/main/img/11st-msa/distributed-tracing.png?raw=true 'Result')
+
+- 서버간의 트레이스 정보의 전달은 사용 프로토콜의 헤더를 통해 전달 필요
+  - 특정 서버의 endpoint 에서 UUID, tracing 정보 생성 후 HTTP Header 에 계속 들고 다니면서 끝까지 연동
+- 이 정보들을 적절한 로깅으로 남기면 특정 UUID 로 서버간 호출된 내용들을 확인 가능
+- 다만, 다양한 라이브러리에 의한 Thread 변경으로 Trace 정보의 전달이 어려움
+  - 단순한 Thread Local 에 저장하는 방식을 사용하기 어려움
+  - Hystrix, RxJava, @Async ..
+- 이 문제를 `Spring Cloud Sleuth` 에서 해결
+
+.
+
+**Spring Cloud Sleuth**
+
+- Spring Cloud 에서 제공하는 Distributed Tracing 솔루션
+- 대부분의 내외부 호출 구간에서 Trace 정보를 생성 및 전달
+- `로그`에 남기거나 수집 서버(`Zipkin`)에 전송하여 검색/시각화
+- Spring CLoud Sleuth 가 지원되는 Component
+  - Zuul, Servlet, RestTemplate, Hystrix, Feign, RxJava ..
+  - 앞단 endpoint 에서 context tracing 정보를 헤더에서 꺼내기 위한 기능
+  - 뒷단으로 어떠한 로직을 보낼 때 앞단에서 받은 정보들을 그대로 헤더에 담아서 전달하기 위한 기능
+  - 안에서 Thread Change 발생 시 정보들을 옮겨 담는 기능..
+  - 추적 정보를 읽지 않고 서버의 입구부터 서버 바깥까지 전달하는 기능을 제공
+
+Spring Cloud Sleuth 사용(dependency) 시 애플리케이션 로그에 Trace Id(UUID)가 함께 출력
+
+```shell
+2023-11-17 17:00:00.000 DEBUG [vine-zuul, 123d4fab3k5dd9d3, 192d8b0b78903d09, true]
+2023-11-17 17:00:00.000 DEBUG [vine-zuul, 123d4fab3k5dd9d3, 123d4fab3k5dd9d3, true]
+```
+
+- Spring Cloud Sleuth 를 적용한 모든 서버들의 애플리케이션 로그가 위처럼 바뀌게 됨
+  - [`서버 이름`, `request UUID`, `UUID 에 속한 단위 ID`, `Sampling 여부`]
+  - Trace ID(request UUID) : 하나의 Request 에 대해 서버 전체를 걸쳐 동일한 UUID
+- 특정 라이브러리를 사용하지 않았다면 서버간의 tracing 정보들이 이미 옮겨 담아서 전달되고 있음
+- 로그 수집 / 검색 시스템이 있다면 동일 요청에 해당하는 전체 서버의 로그 분석 가능
+
+.
+
+**Spring Cloud Sleuth with Zipkin**
+
+수집한 로그를 시각화해주는 Twitter 의 Zipkin
+- [Distributed Systems Tracing with Zipkin](https://blog.twitter.com/engineering/en_us/a/2012/distributed-systems-tracing-with-zipkin)
+
