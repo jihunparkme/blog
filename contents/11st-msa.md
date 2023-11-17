@@ -562,4 +562,17 @@ Spring Cloud Sleuth 사용(dependency) 시 애플리케이션 로그에 Trace Id
 
 수집한 로그를 시각화해주는 Twitter 의 Zipkin
 - [Distributed Systems Tracing with Zipkin](https://blog.twitter.com/engineering/en_us/a/2012/distributed-systems-tracing-with-zipkin)
+- DB 호출 구간은 표현이 안되므로 Spring AOP 를 사용하여 Sleuth API 로 Trace 정보를 직접 생성
+
+.
+
+**Hystrix Monitoring with Netflix Turbine**
+
+- [Netflix/Turbine](https://github.com/Netflix/Turbine)
+- 실시간 확인만 가능하고 지난 오류는 확인이 어려운 아쉬움
+- InfluxDB 에 일주일치 Hystrix Metrics 를 보관하여 Grafana 를 통해 Dashboard 구성
+
+.
+
+**Spring Boot Admin**
 
