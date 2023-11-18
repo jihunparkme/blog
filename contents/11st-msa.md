@@ -576,3 +576,12 @@ Spring Cloud Sleuth 사용(dependency) 시 애플리케이션 로그에 Trace Id
 
 **Spring Boot Admin**
 
+- Eureka 에 등록되어 있는 모든 서버 정보를 표시/제어
+- Spring Boot Actuator 호출
+- Vine Admin
+  - 운영 시 필요한 추가 기능 구현
+  - Eureka Server 상태 변경
+  - Zuul 내부 Eureka/Ribbon 상태 확인 및 강제 변경
+
+
+
