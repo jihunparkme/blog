@@ -8,7 +8,7 @@
 
 입사 후 1년 반이 지난 지금은 입사 전보다는 이해가 잘 될 것이라는 기대를 안고..
 
-지금으로부터는 약 5년 전 영상이지만 회사 기술을 다시 한 번 복기하고자 새로운 마음으로 정리를 해보려고 한다. 💪🏼
+지금으로부터는 약 5년 전 영상이지만 회사 기술을 다시 한번 복기하고자 새로운 마음으로 정리를 해보려고 한다. 💪🏼
 
 ## Before
 
@@ -101,9 +101,9 @@ public class SampleCommand extends HystrixCommand<String> {
 - `Fallback`
   - 실패(Exception)한 경우 사용자가 제공한 메소드를 대신 실행
 - `Tread Isolation`
-  - 해당 메소드를 인터럽트하여 대신 실행
+  - 해당 메소드를 인터럽트 하여 대신 실행
 - `Timeout`
-  - 특정시간동안 메소드가 종료되지 않은 경우 Exception 발생
+  - 특정시간 동안 메소드가 종료되지 않은 경우 Exception 발생
 
 .
 
@@ -162,7 +162,7 @@ Fallback으로 지정된 메소드는 아래의 경우 `원본 메소드 대신`
 - Any Exception (HystrixBadRequestException 제외)
   - HystrixBadRequestException :
   - Client Error로 fallback을 실행하지 않고, Circuit Open 을 위한 통계 집계에서 제외
-  - 만일 Client Error를 다른 Exception으로 던질경우 Circuit Breaker 통계에 집계되어 Client 잘못으로 Circuit Open 및 Fallback 실행으로 오류 인지의 어려움 발생
+  - 만일 Client Error를 다른 Exception으로 던질 경우 Circuit Breaker 통계에 집계되어 Client 잘못으로 Circuit Open 및 Fallback 실행으로 오류 인지의 어려움 발생
 - Semaphore / ThreadPool Rejection
 - Timeout
 
@@ -204,7 +204,7 @@ public String recommendFallback() {
 - Semaphore 별로 최대 동시 요청 개수 지정
 - 최대 요청 개수 초과 시 Semaphore Rejection 발생 -> Fallback 실행
 - Command를 호출한 Client Thread에서 메소드 실행
-- 단점) Timeout이 제 시간에 발생하지 못함 -> Client Thread를 중단시킬 수 없으므로..
+- 단점) Timeout이 제시간에 발생하지 못함 -> Client Thread를 중단시킬 수 없으므로..
 
 .
 
@@ -298,7 +298,7 @@ MSA 환경에서 API Gateway 필요성
 Netflix 가 만든 Dynamic Service Discovery
 
 - 등록 : 서버가 자신의 서비스 이름(종류)과 IP 주소, 포트를 등록
-- 조회 : 서비스 이름(종류)를 가지고 서버 목록을 조회
+- 조회 : 서비스 이름(종류)을 가지고 서버 목록을 조회
   - Ribbon 이 서버 목록을 가져오는 데 사용
 
 .
@@ -365,7 +365,7 @@ API 요청들은 각각 Hystrix Command 를 통해 실행되며, 각 API 의 Rou
 - Spring Cloud Zuul 의 기본 설정으로는 Semaphore Isolation
   - 특정 API 군의 장애(지연) 등이 발생하여도 Zuul 자체의 장애로 이어지지 않음
   - 하지만, Semaphore Isolation 사용으로 API Gateway 입장에서 중요한 timeout 기능을 잃게 됨..
-  - 품질을 알 수 없는 대단위의 API 서버들이 존재할 때, 한 종류의 API 서버때문에 Zuul 이 영향을 받을 가능성 존재
+  - 품질을 알 수 없는 대단위의 API 서버들이 존재할 때, 한 종류의 API 서버 때문에 Zuul 이 영향을 받을 가능성 존재
 
 ![Result](https://raw.githubusercontent.com/jihunparkme/blog/main/img/11st-msa/spring-cloud-zuul-thread-pool.png?raw=true 'Result')
 
@@ -466,7 +466,7 @@ feign:
 
 **`특정 API 서버의 인스턴스가 한 개 DOWN 된 경우`**
 
-**Eureka** : `Heartbeat` 송신이 중단 됨으로 일정 시간 후 목록에서 사라짐
+**Eureka** : `Heartbeat` 송신이 중단됨으로 일정 시간 후 목록에서 사라짐
 - 서버가 하나 죽었을 때 실제 Caller 까지 서버 목록에서 사라지려면 내부적으로 네 단계를 거치게 됨
 - 네 단계 각각 조정할 수 있는 파라미터 옵션이 존재하므로 환경에 맞게 시간을 줄여서 사용 권장(기본값은 상당히 크게 설정)
 
@@ -475,7 +475,7 @@ feign:
 - Hystrix 와 무관하게 IOException 발생 시 어느 서버를 어떻게 몇 번 찌를지 설정 가능
 
 **Hystrix** : Circuit 은 오픈되지 않음(Error = 33%)\
-- 서버 3대 중 1대가 장애나면 33%
+- 서버 3대 중 1대가 장애 나면 33%
 - Fallback, Timeout 은 동작
 
 .
@@ -517,13 +517,13 @@ feign:
 
 .
 
-**분산 트레이싱에서 서버간 트레이스 정보의 전달**
+**분산 트레이싱에서 서버 간 트레이스 정보의 전달**
 
 ![Result](https://raw.githubusercontent.com/jihunparkme/blog/main/img/11st-msa/distributed-tracing.png?raw=true 'Result')
 
-- 서버간의 트레이스 정보의 전달은 사용 프로토콜의 헤더를 통해 전달 필요
+- 서버 간의 트레이스 정보의 전달은 사용 프로토콜의 헤더를 통해 전달 필요
   - 특정 서버의 endpoint 에서 UUID, tracing 정보 생성 후 HTTP Header 에 계속 들고 다니면서 끝까지 연동
-- 이 정보들을 적절한 로깅으로 남기면 특정 UUID 로 서버간 호출된 내용들을 확인 가능
+- 이 정보들을 적절한 로깅으로 남기면 특정 UUID 로 서버 간 호출된 내용들을 확인 가능
 - 다만, 다양한 라이브러리에 의한 Thread 변경으로 Trace 정보의 전달이 어려움
   - 단순한 Thread Local 에 저장하는 방식을 사용하기 어려움
   - Hystrix, RxJava, @Async ..
@@ -553,14 +553,14 @@ Spring Cloud Sleuth 사용(dependency) 시 애플리케이션 로그에 Trace Id
 - Spring Cloud Sleuth 를 적용한 모든 서버들의 애플리케이션 로그가 위처럼 바뀌게 됨
   - [`서버 이름`, `request UUID`, `UUID 에 속한 단위 ID`, `Sampling 여부`]
   - Trace ID(request UUID) : 하나의 Request 에 대해 서버 전체를 걸쳐 동일한 UUID
-- 특정 라이브러리를 사용하지 않았다면 서버간의 tracing 정보들이 이미 옮겨 담아서 전달되고 있음
+- 특정 라이브러리를 사용하지 않았다면 서버 간의 tracing 정보들이 이미 옮겨 담아서 전달되고 있음
 - 로그 수집 / 검색 시스템이 있다면 동일 요청에 해당하는 전체 서버의 로그 분석 가능
 
 .
 
 **Spring Cloud Sleuth with Zipkin**
 
-수집한 로그를 시각화해주는 Twitter 의 Zipkin
+수집한 로그를 시각화해 주는 Twitter 의 Zipkin
 - [Distributed Systems Tracing with Zipkin](https://blog.twitter.com/engineering/en_us/a/2012/distributed-systems-tracing-with-zipkin)
 - DB 호출 구간은 표현이 안되므로 Spring AOP 를 사용하여 Sleuth API 로 Trace 정보를 직접 생성
 
@@ -591,10 +591,10 @@ Spring Cloud Sleuth 사용(dependency) 시 애플리케이션 로그에 Trace Id
 
 마무리.
 
-영상 내용을 정리하면서 보다보니 
+영상 내용을 정리하면서 보다 보니 
 
-확실히 실무에서 경험했던 부분들이 머릿속에서 같이 그려지다보니 다행히 입사 전보다는 이해가 잘 되었다.
+확실히 실무에서 경험했던 부분들이 머릿속에서 같이 그려지다 보니 다행히 입사 전보다는 이해가 잘 되었다.
 
 하지만, MSA 에 대한 깊은 이해는 아직 부족하다고 느껴진다..
 
-MSA 는 강의나 다른 경로를 통해 더 이해해 보아야 겠다.💪🏼
+MSA 는 강의나 다른 경로를 통해 더 이해해 보아야겠다. 💪🏼💪🏼
