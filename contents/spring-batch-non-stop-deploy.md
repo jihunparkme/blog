@@ -4,6 +4,8 @@
 
 # 심볼릭 링크로 스프링 배치 무중단 배포하기
 
+안녕하세요. 11번가 클레임개발팀 박지훈입니다.
+
 11번가에서는 전사 배치 서버가 있고, 각 팀별로 팀 전용 배치 서버를 추가로 관리하기도 합니다.<br/>
 (최종 목표는 모든 팀이 함께 관리하는 레거시 배치를 각 팀 전용 배치로 이관하는 것입니다.)
 
@@ -18,6 +20,19 @@ Spring Batch Job(이하 Job) 스케줄러는 Jenkins 툴을 사용하여 Job 들
 Job 수행을 위해 jar 파일을 실행하는 도중 배포가 진행될 경우, **jar 파일이 변경(업데이트, 제거)되면서 에러가 발생**하는 문제입니다.
 
 이러한 이슈를 해결하기 위해 스프링 배치 무중단 배포를 적용하게 된 과정을 공유해 드리고자 합니다.
+
+## Contents
+
+- [Contents](#contents)
+- [문제 상황](#문제-상황)
+- [기존 배포 방식](#기존-배포-방식)
+- [아이디어](#아이디어)
+- [Symbolic link](#symbolic-link)
+- [적용](#적용)
+  - [배포 이후 단계](#배포-이후-단계)
+  - [Job 실행 단계](#job-실행-단계)
+  - [적용 결과](#적용-결과)
+- [마무리](#마무리)
 
 ---
 
@@ -51,16 +66,14 @@ Exception in thread "SpringApplicationShutdownHook" java.lang.NoClassDefFoundErr
 
 개선 방법을 공유하기 전에 팀 배치 서버의 배포 방식을 간단하게 소개하고 가면 좋을 것 같습니다.
 
-.
-
-**1) 빌드&배포**
-- 클레임개발팀의 배치 서버 빌드, 배포는 **사내 배포 시스템**을 사용하고 있습니다.
-- 사내 배포 시스템을 통해 **특정 브랜치를 빌드**하고, **특정 경로(Deploy Path)에 빌드된 파일을 배포**하게 됩니다.
-
-**2) Job 실행**
-- Jenkins 툴의 `Build periodically > Schedule` 설정에 따라 주기적으로 `Execute Shell` 명령으로 Job을 실행시키고 있습니다.
-
-![Jenkins Execute Shell](https://raw.githubusercontent.com/jihunparkme/blog/main/img/spring-batch-non-stop-deploy/image01.png)
+> **1) 빌드&배포**
+> - 클레임개발팀의 배치 서버 빌드, 배포는 **사내 배포 시스템**을 사용하고 있습니다.
+> - 사내 배포 시스템을 통해 **특정 브랜치를 빌드**하고, **특정 경로(Deploy Path)에 빌드된 파일을 배포**하게 됩니다.
+> 
+> **2) Job 실행**
+> - Jenkins 툴의 `Build periodically > Schedule` 설정에 따라 주기적으로 `Execute Shell` 명령으로 Job을 실행시키고 있습니다.
+> 
+> ![Jenkins Execute Shell](https://raw.githubusercontent.com/jihunparkme/blog/main/img/spring-batch-non-stop-deploy/image01.png)
 
 `run_job.sh` 파일을 살짝 보면 단순하게 `Execute Shell` 에 명시된 jobName, jobParameter 정보를 가져와서 Job을 실행하는 역할을 하고 있습니다.
  
@@ -97,18 +110,16 @@ $JAVA_HOME/bin/java -jar -Dspring.profiles.active=$PROFILE /app/deploy/batch/bat
 
 사내 배포 시스템을 사용하다 보니 빌드&배포는 기존 방식과 동일하고 **배포 이후**와 **Job 실행** 단계에 심볼릭 링크를 활용하여 스프링 배치 무중단 배포를 적용하는 전략을 세우게 되었습니다. 
 
-.
-
-**1) 빌드&배포 (기존 방식과 동일)**
-- 사내 배포 시스템을 통해 **특정 브랜치를 빌드**하고, **Deploy Path에 빌드된 파일 배포**하기.
-
-**2) 배포 이후 단계**
-- Deploy Path에 배포된 jar 파일을 **새로운 디렉토리로 복사**하기.
-- 기존 링크를 해제하고 **새로운 디렉토리 경로에 복사된 jar 파일로 링크 연결**하기.
-
-**3) Job 실행 단계**
-- 심볼릭 링크가 연결되어 있는 원본 파일명을 가져오는 **readlink 명령어를 활용하여 새로 배포된 jar 파일로 Job 실행**하기
-- **기존 jar 파일은 변경(업데이트, 제거)되지 않고 유지**되므로 문제의 상황 해결 기대
+> **1) 빌드&배포 (기존 방식과 동일)**
+> - 사내 배포 시스템을 통해 **특정 브랜치를 빌드**하고, **Deploy Path에 빌드된 파일 배포**하기.
+> 
+> **2) 배포 이후 단계**
+> - Deploy Path에 배포된 jar 파일을 **새로운 디렉토리로 복사**하기.
+> - 기존 링크를 해제하고 **새로운 디렉토리 경로에 복사된 jar 파일로 링크 연결**하기.
+> 
+> **3) Job 실행 단계**
+> - 심볼릭 링크가 연결되어 있는 원본 파일명을 가져오는 **readlink 명령어를 활용하여 새로 배포된 jar 파일로 Job 실행**하기
+> - **기존 jar 파일은 변경(업데이트, 제거)되지 않고 유지**되므로 문제의 상황 해결 기대
 
 ![Idea](https://raw.githubusercontent.com/jihunparkme/blog/main/img/spring-batch-non-stop-deploy/image05.png)
 
@@ -125,17 +136,15 @@ ln [ -s ] [대상 파일/디렉토리 경로] [링크 파일/디렉토리 경로
 
 하드 링크와 심볼릭 링크를 간략하게 살펴보겠습니다.
 
-.
-
-**심볼릭 링크**
-- 윈도우의 바로가기와 유사한 기능
-- 링크 파일은 대상 파일에 대한 참조를 가지고 있어서 링크 파일을 대상 파일처럼 사용 가능
-- 대상 파일이 삭제될 경우 링크 파일 사용 불가
-
-**하드 링크**
-- 파일 복사와 유사한 개념
-- 원본 파일과 동일한 inode
-- 원본 파일이 삭제되어도 링크 파일 사용 가능
+> **심볼릭 링크**
+> - 윈도우의 바로가기와 유사한 기능
+> - 링크 파일은 대상 파일에 대한 참조를 가지고 있어서 링크 파일을 대상 파일처럼 사용 가능
+> - 대상 파일이 삭제될 경우 링크 파일 사용 불가
+>
+> **하드 링크**
+> - 파일 복사와 유사한 개념
+> - 원본 파일과 동일한 inode
+> - 원본 파일이 삭제되어도 링크 파일 사용 가능
 
 심볼릭 링크도 간략히 알아보았으니 이제 적용해 보겠습니다.
 
@@ -172,29 +181,25 @@ sh /app/batch/shell/remove-old-directories.sh
 
 참고 1. 새로운 디렉토리 생성
 
-`mkdir batch-$(/bin/date +%Y%m%d%H%M%S)` 명령으로 아래와 같이 날짜 정보로 디렉토리를 생성할 수 있습니다. 
-
-![Result mkdir command](https://raw.githubusercontent.com/jihunparkme/blog/main/img/spring-batch-non-stop-deploy/image02.png)
-
-.
+> `mkdir batch-$(/bin/date +%Y%m%d%H%M%S)` 명령으로 아래와 같이 날짜 정보로 디렉토리를 생성할 수 있습니다. 
+> 
+> ![Result mkdir command](https://raw.githubusercontent.com/jihunparkme/blog/main/img/spring-batch-non-stop-deploy/image02.png)
 
 참고 2. 심볼릭 링크 변경
 
-`ln -Tfs TARGET LINK` 명령으로 링크를 변경할 수 있습니다.
-- `-T option`: --no-target-directory  treat LINK_NAME as a normal file
- - 링크 파일을 일반 파일처럼 다루는 옵션
-- `-f option`: --force remove existing destination files
- - 심볼릭 링크가 이미 존재할 경우 덮어쓰는 옵션
-- `-s option`: --symbolic make symbolic links instead of hard links
- - 심볼릭 링크 파일 생성 옵션
-
-.
+> `ln -Tfs TARGET LINK` 명령으로 링크를 변경할 수 있습니다.
+> - `-T option`: --no-target-directory  treat LINK_NAME as a normal file
+>   - 링크 파일을 일반 파일처럼 다루는 옵션
+> - `-f option`: --force remove existing destination files
+>   - 심볼릭 링크가 이미 존재할 경우 덮어쓰는 옵션
+> - `-s option`: --symbolic make symbolic links instead of hard links
+>   - 심볼릭 링크 파일 생성 옵션
 
 참고 3. 실행 결과
 
-`./switch-link.sh` 명령으로 위에 작성한 쉘 파일을 실행해 보면 아래와 같이 디렉토리 생성, jar 파일 복사, 링크 스위칭이 정상적으로 동작하는 것을 할 수 있습니다.
-
-![Result Execute Shell](https://raw.githubusercontent.com/jihunparkme/blog/main/img/spring-batch-non-stop-deploy/image03.png)
+> `./switch-link.sh` 명령으로 위에 작성한 쉘 파일을 실행해 보면 아래와 같이 디렉토리 생성, jar 파일 복사, 링크 스위칭이 정상적으로 동작하는 것을 확인할 수 있습니다.
+> 
+> ![Result Execute Shell](https://raw.githubusercontent.com/jihunparkme/blog/main/img/spring-batch-non-stop-deploy/image03.png)
 
 ...
 
@@ -229,14 +234,14 @@ fi
 
 흐름은 아래와 같습니다.
 
-1) 배포 경로에 존재하는 디렉토리(jar 파일이 담긴) 개수 카운팅
-
-2) 10개의 디렉토리를 제외하고 제거할 디렉토리의 개수 카운팅
-
-3) 제거할 디렉토리 목록 추출
-- 오래된 순으로 제거하기 위해 ls 명령어의 `-t`, `-r` 옵션 사용
-- `-t option`: 파일과 디렉토리를 최근 시간 기준 내림차순 정렬
-- `-r option`: 정렬된 데이터의 순서를 오름차순으로
+> 1) 배포 경로에 존재하는 디렉토리(jar 파일이 담긴) 개수 카운팅
+>
+> 2) 10개의 디렉토리를 제외하고 제거할 디렉토리의 개수 카운팅
+>
+> 3) 제거할 디렉토리 목록 추출
+> - 오래된 순으로 제거하기 위해 ls 명령어의 `-t`, `-r` 옵션 사용
+> - `-t option`: 파일과 디렉토리를 최근 시간 기준 내림차순 정렬
+> - `-r option`: 정렬된 데이터의 순서를 오름차순으로
 
 위에서 생성한 `remove-old-directories.sh` 파일을 실행하기 전과 후를 비교해 보면 최근 10개의 디렉토리를 제외한, 오래된 디렉토리들이 삭제된 것을 확인할 수 있습니다.
 
@@ -289,13 +294,13 @@ $JAVA_HOME/bin/java -jar -Dspring.profiles.active=$PROFILE ${ORIGIN_JAR} $JAVA_O
 
 ![Jenkins Execute Shell](https://raw.githubusercontent.com/jihunparkme/blog/main/img/spring-batch-non-stop-deploy/image06.png)
 
-1) 배포된 jar 파일을 보관해 둘 디렉토리 생성
-
-2) 생성한 디렉토리에 배포된 jar 파일 복사
-
-3) 심볼릭 링크를 배포된 jar 파일 경로로 스위칭
-
-4) jar 파일이 담긴 오래된 디렉토리 제거
+> 1) 배포된 jar 파일을 보관해 둘 디렉토리 생성
+> 
+> 2) 생성한 디렉토리에 배포된 jar 파일 복사
+> 
+> 3) 심볼릭 링크를 배포된 jar 파일 경로로 스위칭
+> 
+> 4) jar 파일이 담긴 오래된 디렉토리 제거
 
 ---
 
