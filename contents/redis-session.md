@@ -2,7 +2,7 @@
 
 사이드 프로젝트에서 JWT를 쿠키에 저장하는 방식으로 인가를 구현하게 되었습니다.
 
-처음에 각각 명확한 장/단점이 존재하는 쿠키 방식과 세션 방식 중 고민을 많이 했었는데, JWT 정보가 클라이언트 측에 저장되다보니 쿠키에 저장된 JWT 정보만 있으면 너무나도 쉽게 계정을 도용해서 접속할 수 있을 것 같다는 생각이 들었습니다.
+처음에 각각 명확한 장/단점이 존재하는 쿠키 방식과 세션 방식 중 고민을 많이 했었는데, JWT 정보가 클라이언트 측에 저장되다보니 쿠키에 저장된 JWT 정보만 탈취하면 너무나도 쉽게 계정을 도용해서 접속할 수 있을 것 같다는 생각이 들었습니다.
 
 사용자가 얼마나 될지 모르겠지만, 그래도 사용자에게 로그인에 대한 찝찝함을 제공하지 않으려면 그래도 안전한 세션 방식을 활용하는 것이 좋을 것 같아서 세션 방식으로 다시 적용하게 되었습니다. (찾다보니 쿠키, 세션의 장점을 모두 활용하는 방식으로 함께 적용한다고도 합니다.)
 
@@ -78,26 +78,22 @@ implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 redis가 지원하는 스프링 세션을 설정합니다.
 
 `spring.session.store-type=redis` 설정으로 스프링 부트는 `@EnableRedisHttpSession`를 수동으로 추가하는 것과 동일한 구성을 적용합니다.
-- 즉 해당 설정을 해주면 Spring Session으로 Redis를 사용하기 위한 어노테이션 설정이 불필요합니다.
+- 즉 해당 설정을 추가해 주면 Spring Session으로 Redis를 사용하기 위한 어노테이션 설정이 불필요합니다.
 
 ```yml
 spring:
   session:
-    store-type: redis
+    store-type: redis # Session store type.
 ```
 
-이것은 `Filter`를 구현한 `springSessionRepositoryFilter`의 이름을 가진 스프링 빈을 생성합니다.
+위 설정은 `Filter`를 구현한 `springSessionRepositoryFilter`의 이름을 가진 스프링 빈을 생성합니다.
 - `Filter`는 스프링 세션에서 지원할 `HttpSession` 구현을 대체하는 역할을 담당합니다.
 - 아래와 같이 추가 사용자 지정도 가능합니다.
 
 ```yml
-server:
-  servlet:
-    session:
-      timeout: 3600 # Session timeout. If a duration suffix is not specified, seconds is used.  
-      redis:
-        flush-mode: on_save # Sessions flush mode.
-        namespace: spring:session # Namespace for keys used to store sessions.
+server.servlet.session.timeout= 3600 # Session timeout. If a duration suffix is not specified, seconds is used.
+spring.session.redis.flush-mode=on_save # Sessions flush mode.
+spring.session.redis.namespace=spring:session # Namespace for keys used to store sessions.
 ```
 
 .
@@ -111,7 +107,7 @@ server:
 spring:
   data:
     redis:
-      host: localhost # Redis server host.
+      host: 0.0.0.0 # Redis server host.
       password: # Login password of the redis server.
       port: 6379 # Redis server port.
 ```
@@ -134,11 +130,12 @@ spring:
 - 인덱싱이 없기 때문에 세션 ID 이외의 속성이나 기준에 기반하여 세션을 쿼리하는 것은 비효율적
 
 `RedisIndexedSessionRepository`
-- Redis에 저장된 세션에 대한 인덱싱 기능을 제공하는 확장된 구현
-- 속성 또는 기준에 기반하여 효율적으로 세션을 쿼리하기 위해 Redis에 추가 데이터 구조를 도입
-- RedisSessionRespository에서 사용하는 키-값 구조 외에도 빠른 조회가 가능하도록 추가 인덱스를 유지
+- Redis에 저장된 세션에 대한 **인덱싱 기능을 제공**하는 확장된 구현
+- 속성 또는 기준에 기반하여 **효율적으로 세션을 쿼리**하기 위해 Redis에 추가 데이터 구조를 도입
+- RedisSessionRespository에서 사용하는 키-값 구조 외에도 **빠른 조회가 가능하도록 추가 인덱스를 유지**
   - ex. 사용자 ID 또는 마지막 액세스 시간과 같은 세션 속성에 기반하여 인덱스 생성 가능
   - 이러한 인덱스는 특정 기준에 기반하여 효율적인 세션 쿼리를 가능하게 하여 성능을 향상시키고 고급 세션 관리 가능
+  - 변경된 속성을 추적하고 해당 속성만 업데이트
   - 그 외에도 세션 만료 및 삭제도 지원
 - 세션 라이프사이클에 따라 일종의 처리를 수행할 수도 있습니다.
   - [Listening to Session Events](https://docs.spring.io/spring-session/reference/configuration/redis.html#listening-session-events)
@@ -195,14 +192,16 @@ spring:
   session:
     store-type: redis
     redis:
-      repository-type: indexed
-  servlet:
-    session:
-      timeout: 3600
-  data:
+      repository-type: indexed  
+  data: # 생략 가능
     redis:
       host: localhost
       port: 6379
+
+server:
+  servlet:
+    session:
+      timeout: 3600
 ```
 
 
@@ -270,7 +269,9 @@ redis-cli
 
 .
 
-### Keys
+### Create a Session
+
+**Keys**
 
 ```shell
 keys *
@@ -278,23 +279,30 @@ keys *
 
 <center><img src="https://raw.githubusercontent.com/jihunparkme/blog/main/img/redis/keys.png" width="100%"></center>
 
-로그인 세션을 보면 4개의 key가 저장됩니다.
+로그인 후 저장된 세션을 보면 4개의 key가 저장됩니다.
 
 (1) `spring:session:index:org.springframework.session.FindByIndexNameSessionRepository.PRINCIPAL_NAME_INDEX_NAME:113835272441423113034` (Set)
 - username 으로 세션을 가져올 수 있도록 저장되는 인덱스
 
-(2) `spring:session:sessions:expires:$sesssionId` (String)
-- 스프링 세션의 만료시간을 관리하는 key
+(2) `spring:session:sessions:expires:{sesssionId}` (String)
+- 스프링 세션 만료 key
 
-(3) `spring:session:sessions:$sesssionId` (hash)
-- 생성된 스프링 세션 데이터
+(3) `spring:session:sessions:{sesssionId}` (hash)
+- 스프링 세션 데이터
 
-(4) `spring:session:expirations:$expireTime` (Set)
+(4) `spring:session:expirations:{expireTime}` (Set)
 - 스프링 세션의 만료시간
 
 .
 
-### Hash Keys
+세션 만료는 `Session.getMaxInactiveInterval()`을 기반으로 각 세션과 연결됩니다. 
+- 스프링 세션은 Redis의 삭제 및 만료된 [keyspace notifications](http://redis.io/topics/notifications)에 의존하여 `SessionDeletedEvent`, `SessionExpiredEvent` 를 각각 실행합니다.
+- 만료는 세션 데이터를 더 이상 사용할 수 없음을 의미하므로 세션 키 자체에서 직접 추적되지 않고, 대신 세션 만료 키(`spring:session:sessions:expires`)가 사용됩니다.
+- 세션 만료 키(`spring:session:sessions:expires`)가 삭제되거나 만료되면 keyspace notifications이 실제 세션의 조회를 트리거하고 `SessionDestroyedEvent`가 발생합니다.
+
+.
+
+**Hash Keys**
 
 ```shell
 hkeys {key}
@@ -303,6 +311,11 @@ hkeys {key}
 `spring:session:sessions:$sesssionId` Key를 조회해 보면 세션에 담긴 정보를 확인할 수 있습니다.
 
 <center><img src="https://raw.githubusercontent.com/jihunparkme/blog/main/img/redis/sessions.png" width="100%"></center>
+
+- `creationTime`: 세션 생성시간
+- `lastAccessedTime`: 마지막 세션 조회 시간
+- `sessionAttr`: 세션에 저장한 데이터
+- `maxInactiveInterval`: 세션 만료시간(sec)
 
 .
 
@@ -314,15 +327,66 @@ hkeys {key}
 hgetall {key}
 ```
 
+### Session Expired
 
-> 여기서 로그아웃을 해도 세션 정보와 만료시간이 남아있게 됩니다.
->
-> 로그인 정보와 세션의 생명주기가 완전히 같지 않기 때문에 세션에 로그인 정보를 담고 있습니다.
+만료 시간은 테스트를 위해 60초로 설정해 두었습니다.
 
-즉, 코드상으로 만료시간을 60초로 지정하면 spring:session:sessions:expires에는 60초로 설정되고, spring:session:sessions에는 5분을 더한 6분이 만료시간으로 설정됩니다. 그 이유는 세션 세부 데이터가 세션 만료시간(1분)에 삭제되는 순간에도 필요하기 때문에 5분의 시간이 더 주어지는 것입니다.
+```yml
+server:
+  servlet:
+    session:
+      timeout: 60
+```
+
+**세션 만료 전**
+
+<center><img src="https://raw.githubusercontent.com/jihunparkme/blog/main/img/redis/01.png" width="100%"></center>
+
+.
+
+**세션 만료 후**
+
+60초가 경과하고 세션이 만료되었는데 `spring:session:sessions:expires:{sesssionId}`, `spring:session:expirations:{expireTime}` 키는 삭제되지만  
+`spring:session:sessions:{sesssionId}`는 남아있는 것을 확인할 수 있습니다.
+- 세션은 남아있지만 세션 안에 있는 사용자 정보는 삭제됩니다.
+
+<center><img src="https://raw.githubusercontent.com/jihunparkme/blog/main/img/redis/02.png" width="100%"></center>
+
+실제 세션이 만료되는 시점은 세션 만료 시점(세션 생성 60초 후) 세션 값에 엑세스를 위해 `만료 설정 시간 + 5분` 뒤에 실제 만료되는 것을 확인할 수 있습니다.
+
+만료시간을 60초로 지정하였으므로 `spring:session:sessions:expires`에는 60초로 설정되고, `spring:session:sessions`에는 5분을 더한 6분이 만료시간으로 설정됩니다. 
+- 세션 세부 데이터가 세션 만료시간(1분)에 삭제되는 순간에도 필요하기 때문에 5분의 시간이 더 주어지게 됩니다.
+
+그렇게 세션이 생ㅇ성되고 6분 뒤(세션 만료 설정 1분 + redis 기본 설정 5분)에 세션이 사라지는 것을 확인할 수 있습니다.
+
+<center><img src="https://raw.githubusercontent.com/jihunparkme/blog/main/img/redis/01.png" width="100%"></center>
 
 
-redis session 삭제 시점
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+세션 저장부분 확인
+
+```java
+String username = "username";
+this.session.setAttribute(FindByIndexNameSessionRepository.PRINCIPAL_NAME_INDEX_NAME, username);
+```
+
+
 
 https://velog.io/@sileeee/Redis%EB%82%B4%EB%B6%80%EC%97%90-session-%EC%A0%80%EC%9E%A5%EC%82%AD%EC%A0%9C
 
@@ -337,12 +401,8 @@ redis 위키 확인 Luttuce
 
 
 https://velog.io/@readnthink/Redis%EB%A5%BC-%EC%9D%B4%EC%9A%A9%ED%95%B4-Session%EC%A0%95%EB%B3%B4%EB%A5%BC-%EA%B3%B5%EC%9C%A0%ED%95%98%EC%9E%90
-
-
 https://zzang9ha.tistory.com/442
-
 https://zuminternet.github.io/spring-session/
-
 https://escapefromcoding.tistory.com/702
 
 
@@ -352,9 +412,7 @@ https://escapefromcoding.tistory.com/702
 
 - [Spring Session](https://docs.spring.io/spring-boot/docs/3.2.0/reference/htmlsingle/#web.spring-session)
 - [Redis Configurations](https://docs.spring.io/spring-session/reference/configuration/redis.html)
+- [Storage Details](https://docs.spring.io/spring-session/reference/api.html#api-redisindexedsessionrepository-storage)
+
 - [Redis Master Slave 구성하기](https://velog.io/@ililil9482/Redis-Master-Slave-%EA%B5%AC%EC%84%B1)
-
-
-
-[Spring Boot로 ElastiCache 간단한 실습해보기](https://devlog-wjdrbs96.tistory.com/314)
-
+- [Spring Boot로 ElastiCache 간단한 실습해보기](https://devlog-wjdrbs96.tistory.com/314)
