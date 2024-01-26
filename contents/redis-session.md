@@ -18,7 +18,7 @@
 
 Redis는 세션의 단점인 `서버 부하`(많은 사용자가 동시에 접속하는 경우)와 `확장 어려움`(서버가 여러 대로 확장되는 경우 세션 데이터의 일관성 유지 필요)을 어느 정도 해결해 줄 수 있다고 생각하여 적용하게 되었습니다.
 
-## Redis in Docker
+# Redis in Docker
 
 `Amazon ElastiCache for Redis`를 사용할 수도 있지만 자원의 한계로 인해.. Docker 컨테이너로 Redis를 구성해 보려고 합니다.
 
@@ -62,7 +62,7 @@ docker run -itd --name redis -p 6379:6379 --restart=always redis
 .
 <br/>
 
-## Spring Boot Configuration
+# Spring Boot Configuration
 
 **Updating Dependencies**
 <br/>
@@ -128,7 +128,7 @@ spring:
 .
 <br/>
 
-## RedisSessionRepository and RedisIndexedSessionRepository
+# RedisSessionRepository and RedisIndexedSessionRepository
 
 스프링 세션으로 redis를 사용할 때는 `RedisSessionRepository`와 `RedisIndexedSessionRepository` 중 하나를 선택해야 합니다.
 - 두 Repository 모두 세션 데이터를 redis에 저장하는 Session Repository Interface를 구현한 것이지만 세션 인덱싱과 쿼리를 처리하는 방식이 다릅니다.
@@ -203,7 +203,7 @@ spring:
 
 .
 
-## application.yml
+# application.yml
 
 적용한 전체 속성은 아래와 같습니다.
 <br/>
@@ -226,7 +226,7 @@ server:
 ```
 
 
-## RedisConfig
+# RedisConfig
 
 Redis 관련 설정을 구성합니다.
 
@@ -262,7 +262,7 @@ public class RedisConfig {
 }
 ```
 
-## Check Session in Redis
+# Check Session in Redis
 
 Spring Session으로 Redis를 사용하기 위한 설명을 모두 마쳤다면, 로그인 후 세션을 저장하고 Redis에 저장된 세션 정보를 확인해 보겠습니다.
 - 세션 인덱스 설정이 필요할 경우 `PRINCIPAL_NAME_INDEX_NAME`에 username으로 사용할 필드를 저장해 주시면 됩니다.
@@ -296,7 +296,7 @@ redis-cli
 
 .
 
-### Create a Session
+## Create a Session
 
 **Keys**
 <br/>
@@ -363,7 +363,7 @@ hkeys {key}
 hgetall {key}
 ```
 
-### Session Expired
+## Session Expired
 
 만료 시간은 테스트를 위해 60초로 설정해 두었습니다.
 <br/>
@@ -400,7 +400,9 @@ server:
 <br/>
 
 ```text
-Note that the expiration that is set to five minutes after the session actually expires. This is necessary so that the value of the session can be accessed when the session expires. An expiration is set on the session itself five minutes after it actually expires to ensure that it is cleaned up, but only after we perform any necessary processing.
+Note that the expiration that is set to five minutes after the session actually expires. 
+This is necessary so that the value of the session can be accessed when the session expires. 
+An expiration is set on the session itself five minutes after it actually expires to ensure that it is cleaned up, but only after we perform any necessary processing.
 ```
 
 실제 세션이 만료되는 시점은 세션 만료 시점(세션 생성 60초 후)에 세션 값에 엑세스를 위해, `만료 설정 시간(60초) + 5분` 뒤에 실제 만료되는 것을 확인할 수 있습니다.
@@ -417,7 +419,7 @@ Note that the expiration that is set to five minutes after the session actually 
 
 <center><img src="https://raw.githubusercontent.com/jihunparkme/blog/main/img/redis/03.png" width="40%"></center>
 
-## Reference
+# Reference
 
 글 작성에 참고한 글들.
 
