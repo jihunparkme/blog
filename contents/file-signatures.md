@@ -1,4 +1,4 @@
-# 모든 파일도 시그니처가 있다.(파일 시그니처로 유효성 검사하기)
+# 파일 시그니처로 유효성 검사하기
 
 기존 반품 신청 시 이미지만 업로드가 가능했었는데요. 이번에 동영상도 업로드가 가능하도록 기능을 추가하게 되었습니다. 클레임 영역에서 동영상 업로드/재생 로직을 신규로 구현하다 보니 신경 써야 할 요소들이 다소 있었습니다. 그중에서 **파일 시그니처로 파일 유효성 검사**에 대한 내용을 다뤄보려고 합니다.<br/><br/>
 
@@ -10,22 +10,21 @@
 
 ## File Signatures
 
-모든 파일은 표준화된 시그니처를 가지고 있는데, `File Signatures(aka. Magic Numbers)`는 **파일의 형태를 식별하기 위해 사용되는 고유한 패턴**입니다.<br/><br/>
+모든 파일은 표준화된 시그니처를 가지고 있는데, `File Signatures(aka. Magic Numbers)`는 **파일의 형태를 식별하기 위해 사용되는 고유한 패턴**입니다. 예를 들어 PNG 이미지 파일의 시그니처는 `89 50 4E 47 0D 0A 1A 0A`, JPEG 이미지 파일의 시그니처는 `FF D8 FF E0`로 나타낼 수 있습니다.<br/><br/>
 
-예를 들어 PNG 이미지 파일의 시그니처는 `89 50 4E 47 0D 0A 1A 0A`, JPEG 이미지 파일의 시그니처는 `FF D8 FF E0`로 나타낼 수 있습니다.</br>
+파일 시그니처는 일반적으로 파일의 시작 부분에 위치하고, 바이너리 형태로 표현됩니다. 파일 마지막 부분에 파일 시그니처가 존재하는 경우도 있는데 파일 시그니처의 위치에 따라 **헤더 시그니처**(파일 시작 부분에 존재), **푸터 시그니처**(파일 마지막에 존재)라고 부르기도 합니다.<br/><br/>
 
-파일 시그니처는 일반적으로 파일의 시작 부분에 위치하고, 바이너리 형태로 표현됩니다. 파일 마지막 부분에 파일 시그니처가 존재하는 경우도 있는데 파일 시그니처의 위치에 따라 **헤더 시그니처**(파일 시작 부분에 존재), **푸터 시그니처**(파일 마지막에 존재)라고 부르기도 합니다.</br><br/>
-
-파일 시그니처를 통해 해당 파일이 어떤 종류의 데이터를 포함하고, 어떤 포맷을 가졌는지 식별할 수 있습니다.
-파일 시그니처는 파일 포맷 분석뿐만 아니라 악성코드 분석, 파일 복구 등에도 적용할 수 있습니다.</br>
+파일 시그니처를 통해 해당 파일이 어떤 종류의 데이터를 포함하고, 어떤 포맷을 가졌는지 식별할 수 있습니다. 그리고 파일 시그니처는 파일 포맷 분석뿐만 아니라 악성코드 분석, 파일 복구 등에도 적용할 수 있습니다.<br/>
 
 ...<br/><br/>
 
-파일 시그니처를 통해 파일의 유효성을 검사하기 전에 테스트에 사용할 몇 가지 확장자의 시그니처를 확인해 보겠습니다.</br>
+파일 시그니처를 통해 파일의 유효성을 검사하기 전에 테스트에 사용할 몇 가지 확장자의 시그니처를 확인해 보겠습니다.<br/>
+
+<br/>.<br/>
 
 ### Video file
 
-**QuickTime MPEG-4 Audio-Video (*.MP4)**
+**QuickTime MPEG-4 Audio-Video (*.MP4)**<br/>
 
 - `MPEG-4 Part 14` 또는 `MP4`는 비디오, 오디오를 저장하는 데 가장 일반적으로 사용되는 형식
 - 인터넷을 통한 스트리밍 가능
@@ -36,7 +35,7 @@
   - MPEG-4 video file(ftypMSNV): `66 74 79 70 4D 53 4E 56`
   - ISO Base Media file(MPEG-4) (ftypisom): `66 74 79 70 69 73 6F 6D`
 
-![출처: https://www.file-recovery.com/mp4-signature-format.htm](/files/post/2024-02-20-file-signatures/mp4-signatures.png)
+![출처: https://www.file-recovery.com/mp4-signature-format.htm](https://raw.githubusercontent.com/jihunparkme/blog/main/img/file-signatures/mp4-signatures.png)
 
 **Apple QuickTime Video Format (*.MOV)**
 
@@ -47,11 +46,13 @@
 - File signature
   - QuickTime movie file(ftypqt): `66 74 79 70 71 74 20 20`
 
-![출처: https://www.file-recovery.com/mov-signature-format.htm](/files/post/2024-02-20-file-signatures/mov-signatures.png)
+![출처: https://www.file-recovery.com/mov-signature-format.htm](https://raw.githubusercontent.com/jihunparkme/blog/main/img/file-signatures/mov-signatures.png)
+
+<br/>.<br/>
 
 ### Image file
 
-**JPEG Image File Format (*.JPG)**
+**JPEG Image File Format (*.JPG)**<br/>
 
 - 디지털 이미지를 위해 일반적으로 사용되는 손실 압축 방법
 - 압축 정도를 조정할 수 있어 저장 크기와 이미지 품질 간의 절충 가능
@@ -60,15 +61,17 @@
 - File signature
   - Generic JPEG Image file: `FF D8 FF ...`
 
-![출처: https://www.file-recovery.com/jpg-signature-format.htm](/files/post/2024-02-20-file-signatures/jpg-signatures.png)
+![출처: https://www.file-recovery.com/jpg-signature-format.htm](https://raw.githubusercontent.com/jihunparkme/blog/main/img/file-signatures/jpg-signatures.png)
 
-**Portable Network Graphic (*.PNG)**
+**Portable Network Graphic (*.PNG)**<br/>
 
 - 비손실 그래픽 파일 포맷의 하나
 - 특허 문제가 얽힌 GIF 포맷의 문제를 해결 및 개선하기 위해 고안
 - PNG 파일은 8 바이트의 시그니처(`89 50 4E 47 0D 0A 1A 0A`)를 갖는데, 이 중 `50 4E 47`이 ASCII 값으로 PNG를 의미
 - File signature
   - Portable Network Graphics file: `89 50 4E 47 0D 0A 1A 0A`
+
+<br/>.<br/>
 
 ### Manipulated file
 
@@ -262,13 +265,13 @@ public void validate_pkg_to_mov_file() throws Exception {
 }
 ```
 
-파일 업로드 시 단순하게 업로드 가능한 확장자인지만 검사하고 넘어갈 수도 있었는데, 팀원의 호기심 덕분에 파일 유효성 검사를 추가하여 안전성을 높일 수 있었답니다.🙇🏻‍♂️
+파일 업로드 시 단순하게 업로드 가능한 확장자인지만 검사하고 넘어갈 수도 있었는데, 팀원의 호기심 덕분에 파일 유효성 검사를 추가하여 안전성을 높일 수 있었답니다.
 
 ## 마무리
 
 동영상 업로드 기능을 구현하면서 모든 파일에 시그니처가 있고, 해당 시그니처로 파일 유효성을 검사할 수 있다는 재미있는 사실을 알게 되었던 시간이었답니다.<br/>
 읽으시면서 궁금하신 사항이나 개선 사항이 보이신다면 언제든 아래 코멘트 부탁드립니다.<br/>
-글을 읽어주신 모든 분께 감사드립니다. 🙇🏻‍
+글을 읽어주신 모든 분께 감사드립니다.🙇🏻‍♂️
 
 ## Reference
 
