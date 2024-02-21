@@ -94,6 +94,7 @@ public <T> Mono<T> bodyToMono(ParameterizedTypeReference<T> elementTypeRef) {
 ```
 
 `DefaultClientResponse`의 bodyToMono() 메서드는 `BodyExtractors` 클래스의 toMono() 메서드를 호출하여 Responsebody를 Mono로 변환하고 있는 것을 볼 수 있습니다.
+<br/>
 
 BodyExtractors.toMono() 메서드를 계속 따라가 보겠습니다.
 
@@ -116,6 +117,7 @@ private static <T> BodyExtractor<Mono<T>, ReactiveHttpInputMessage> toMono(Resol
 ```
 
 `BodyExtractors`의 toMono() 메서드를 계속 따라가 보면 readWithMessageReaders() 메서드를 만날 수 있습니다.
+<br/>
 
 ```java
 private static <T, S extends Publisher<T>> S readWithMessageReaders(
@@ -134,8 +136,10 @@ private static <T, S extends Publisher<T>> S readWithMessageReaders(
 ```
 
 readWithMessageReaders() 메서드에서 contentType 값을 설정해 주는 부분을 보면 `HttpMessage`의 헤더 값에 `Content-Type`이 없다면 `MediaType.APPLICATION_OCTET_STREAM`으로 세팅하고 있는 것을 볼 수 있습니다.
+<br/>
 
 이어서 return 쪽도 살펴보겠습니다.
+<br/>
 
 ```java
 ...
@@ -155,10 +159,13 @@ return context.messageReaders().stream()
 ```
 
 `messageReaders`에서 `contentType`(application/octet-stream)으로 bodyToMono() 메서드로 전달된 `elementType`(Response.class)을 읽을 수 있는 `HttpMessageReader`를 찾고, readToMono 메서드를 호출(readerFunction)하고 있습니다.
+<br/>
 
 여기서, 전달된 `elementType`(Response.class)는 `application/json` 으로만 읽을 수 있으므로 적합한 `HttpMessageReader`를 찾지 못하고 orElseGet() 메서드로 빠지게 됩니다.
+<br/>
 
 그렇게 `UnsupportedMediaTypeException`을 전달하게 되면서 아래 로그를 마주할 수 있었습니다.
+<br/>
 
 ```shell
 org.springframework.web.reactive.function.UnsupportedMediaTypeException: Content type 'application/octet-stream' not supported for bodyType={elementClass}
@@ -166,8 +173,11 @@ org.springframework.web.reactive.function.UnsupportedMediaTypeException: Content
 
 ## Solution
 
-API 요청이 실패하거나 응답을 받지 못하는 상황이 아니라 `application/octet-stream` 타입으로 `Response.class`를 읽을 수 있는 `HttpMessageReader`가 없어서 발생하는 현상으로 판단을 하게 되었고,<br/>
+API 요청이 실패하거나 응답을 받지 못하는 상황이 아니라 `application/octet-stream` 타입으로 `Response.class`를 읽을 수 있는 `HttpMessageReader`가 없어서 발생하는 현상으로 판단을 하게 되었고,
+<br/>
+
 단순하게 `Response.class` 대신 `String.class` 를 `application/octet-stream` 타입으로 읽고, Gson.fromJson() 메서드를 이용해서 jsonString을 Object로 변환해 주는 방법을 적용하게 되었습니다.
+<br/>
 
 ```java
 String response = webClient.mutate()
