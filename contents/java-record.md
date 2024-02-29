@@ -1,13 +1,14 @@
 # Record
 
-`record` 클래스를 잘 알고 사용하기 위해 java14 에 출시한 `record` 클래스를 알아보려고 합니다.
+`record` 클래스를 잘 알고 사용하기 위해 java14에 출시한 `record` 클래스를 알아보려고 합니다.
 
 ## Intro
 
-Record 클래스는 데이터를 저장하는 데 사용되는 DTO(Data Transfer Object)나 VO(Value Object)같은 간단한 데이터를 운반하기 위한 불변 클래스를 정의할 때 간결하고 유용하게 사용할 수 있습니다.
+Record 클래스는 데이터를 저장하는 데 사용되는 DTO(Data Transfer Object)나 VO(Value Object) 같은 간단한 데이터를 운반하기 위한 불변 클래스를 정의할 때 간결하고 유용하게 사용할 수 있습니다.
+<br/>
 
-record 클래스는 데이터를 저장하는데 사용되는 
-DTO(Data Transfer Object)라고 불리우는 클래스를 API 요청, 쿼리 결과 등의 데이터 이동에 사용하곤 합니다.
+record 클래스는 데이터를 저장하는데 사용되는 DTO(Data Transfer Object)라고 불리는 클래스를 API 요청, 쿼리 결과 등의 데이터 이동에 사용하곤 합니다.
+<br/>
 
 DTO는 대부분 불변성을 가지고 있는데, 불변 클래스로 만들기 위해 적지 않은 노력이 필요합니다.
 - 각 데이터에 private, final 키워드 선언
@@ -19,6 +20,7 @@ DTO는 대부분 불변성을 가지고 있는데, 불변 클래스로 만들기
 
 DTO 로 사용되는 Person 클래스를 살펴보겠습니다.
 - 다행히도 lombok 덕분에 getter, toString, equals, hashCode 메서드는 애노테이션만으로 선언할 수 있기도 합니다.
+<br/>
 
 ```java
 public class Person {
