@@ -58,7 +58,54 @@
 
 메서드 또는 클래스 레벨에서 트랜잭션 경계를 정의
 - 주로 데이터베이스 트랜잭션의 관리에 사용
-- 메서드 전체를 하나의 트랜잭션으로 처리하도록 지시
+- 메서드 전체를 하나의 트랜잭션으로 처리
 
+### Java synchronized
+
+특정 객체에 대한 동시 접근을 제한하여 한 시점에 하나의 스레드만이 특정 코드 블록을 실행할 수 있음
+
+```java
+@Service
+public class MyService {
+
+    private final Object lock = new Object();
+
+    @Transactional
+    public void updateData() {
+        synchronized(lock) {
+            // 데이터 업데이트 로직
+            // 이 블록은 동시에 하나의 스레드만 접근 가능
+        }
+    }
+}
+```
+
+### Spring Integration LockRegistry 
+
+보다 복잡한 로직의 락을 관리
+- 여러 인스턴스가 동일한 데이터에 접근할 때 유용
+
+```java
+@Service
+public class MyService {
+
+    @Autowired
+    private LockRegistry lockRegistry;
+
+    @Transactional
+    public void updateData(String id) {
+        Lock lock = lockRegistry.obtain(id);
+        try {
+            if (lock.tryLock()) {
+                // 데이터 업데이트 로직
+            } else {
+                // 락 획득 실패 처리
+            }
+        } finally {
+            lock.unlock();
+        }
+    }
+}
+```
 
 ## Distributed Lock
