@@ -109,3 +109,19 @@ public class MyService {
 ```
 
 ## Distributed Lock
+
+여러 컴퓨팅 노드가 있는 분산 시스템에서 공유 자원에 대한 동시 접근을 조율하기 위해 사용되는 메커니즘
+- 단일 시스템에서의 락과 비슷하게, 분산 락은 동시에 하나의 엔티티만이 특정 자원 또는 작업에 대해 독점적인 액세스 권한을 가질 수 있도록 보장
+- 단, 분산 환경은 네트워크 지연, 노드 장애, 복잡한 동기화 등의 추가적인 도전 과제를 제공
+
+**분산 잠금의 필요성**
+
+분산 시스템에서는 여러 서버나 노드가 같은 데이터 또는 자원을 사용하려 할 때 일관성과 순서를 유지해야 할 필요가 있음
+- 금융 거래 처리나 글로벌 데이터베이스 관리와 같은 작업에서 데이터 일관성을 보장하기 위해 분산 락이 필요
+
+
+## Reference
+
+- [레디스와 분산 락(1/2) - 레디스를 활용한 분산 락과 안전하고 빠른 락의 구현](https://hyperconnect.github.io/2019/11/15/redis-distributed-lock-1.html)
+- [멱등성이 뭔가요?](https://velog.io/@tosspayments/%EB%A9%B1%EB%93%B1%EC%84%B1%EC%9D%B4-%EB%AD%94%EA%B0%80%EC%9A%94)
+- [JPA를 활용한 DataBase Lock & Redis Lock 적용](https://velog.io/@youmakemesmile/Spring-DataJPA%EB%A5%BC-%ED%99%9C%EC%9A%A9%ED%95%9C-DataBase-Lock-Redis-Lock-%EC%A0%81%EC%9A%A9)
