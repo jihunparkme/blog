@@ -23,7 +23,7 @@ public interface PlatformTransactionManager extends TransactionManager {
 
 Spring 은 Transaction을 추상화해서 제공하고, 데이터 접근 기술에 대한 `TransactionManager`의 구현체도 제공
 - 데이터 접근 기술마다 모두 다른 트랜잭션 처리 방식을 추상화
-- 사용자는 필요한 구현체를 Spring Bean 으로 등록하고, 주입 받아서 사용
+- 사용자는 필요한 구현체를 Spring Bean 으로 등록하고, 주입받아서 사용
 
 **Spring Boot.**
 
@@ -207,7 +207,7 @@ public void internal() {
 [출처: https://www.inflearn.com/course/%EC%8A%A4%ED%94%84%EB%A7%81-db-2]
 
 1. 클라이언트가 service.external() 을 호출하면 실제 service 객체 인스턴스 호출
-2. service 는 주입 받은 internalService.internal() 호출
+2. service 는 주입받은 internalService.internal() 호출
 3. internalService 는 트랜잭션 프록시이므로 트랜잭션 적용
 4. 트랜잭션 적용 후 실제 internalService 객체 인스턴스의 internal() 호출
 
@@ -216,7 +216,7 @@ public void internal() {
 > 
 > 스프링 트랜잭션 AOP 기능은 과도한 트랜잭션 적용을 막기 위해 `public 메서드`에만 트랜잭션이 적용되도록 기본 설정
 > 
-> public 이 아닌곳에 @Transactional 이 붙으면 트랜잭션 적용을 무시한다.
+> public 이 아닌 곳에 @Transactional 이 붙으면 트랜잭션 적용을 무시한다.
 
 .
 
