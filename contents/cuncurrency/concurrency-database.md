@@ -11,7 +11,7 @@ Series
 >
 > [Database Concurrency Controll](https://data-make.tistory.com/791)
 >
-> [Redis Concurrency Controll]()
+> [Redis Concurrency Controll](https://data-make.tistory.com/792)
 >
 > [Kafka Concurrency Controll]()
 
@@ -71,7 +71,11 @@ Series
 - **데이터 무결성이 매우 중요한 경우 →** 금융 거래 시스템이나 회계 소프트웨어
 - **긴 트랜잭션 처리 →** 트랜잭션이 복잡하고 긴 시간이 소요되는 경우
 
-[Database Pessimistic Lock](https://github.com/jihunparkme/Study-project-spring-java/commit/8b8d4681224a18ac2d1cd0189a644c85087c5a71)
+.
+
+[Database Pessimistic Lock example](https://github.com/jihunparkme/Study-project-spring-java/commit/8b8d4681224a18ac2d1cd0189a644c85087c5a71)
+
+.
 
 **🛠️  성능 테스트.**
 - 한정 수량: 50,000
@@ -138,7 +142,11 @@ Series
 재고는 0보다 작을 수 없습니다.
 ```
 
-[database optimistic lock](https://github.com/jihunparkme/Study-project-spring-java/commit/69c57fd43525767056251213fc3447dcf37d519a)
+.
+
+[database optimistic lock example](https://github.com/jihunparkme/Study-project-spring-java/commit/69c57fd43525767056251213fc3447dcf37d519a)
+
+.
 
 **🛠️  성능 테스트.**
 
@@ -191,7 +199,11 @@ Series
     - ex) 서버 간의 작업 충돌을 방지하고 일관성을 유지
 - **일회성 작업 보장 →** 한 번만 실행되어야 하는 작업에서 동시에 여러 트랜잭션이 동일한 작업을 수행하지 않도록 보장
 
-[database Named Lock](https://github.com/jihunparkme/Study-project-spring-java/commit/e096d50e80617910314a4c55658f024d35c24196)
+.
+
+[database Named Lock example](https://github.com/jihunparkme/Study-project-spring-java/commit/e096d50e80617910314a4c55658f024d35c24196)
+
+.
 
 **🛠️  성능 테스트.**
 - 한정 수량: 10,000
