@@ -11,7 +11,7 @@ Series
 >
 > [Database Concurrency Control](https://data-make.tistory.com/791)
 >
-> [Redis Concurrency Control]()
+> [Redis Concurrency Control](https://data-make.tistory.com/792)
 >
 > [Kafka Concurrency Control]()
 
