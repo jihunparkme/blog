@@ -11,7 +11,7 @@ Series
 >
 > [Database Concurrency Control](https://data-make.tistory.com/791)
 >
-> [Redis Concurrency Control]()
+> [Redis Concurrency Control](https://data-make.tistory.com/792)
 >
 > [Kafka Concurrency Control]()
 
@@ -184,7 +184,7 @@ Series
 
 **정의.**
 
-- 채널을 만들고 락을 점유중인 스레드가 락 획득을 대기중인 스레드에게 락 해제라는 메시지를 전송
+- 채널을 만들고 락을 점유 중인 스레드가 락 획득을 대기 중인 스레드에게 락 해제라는 메시지를 전송
     - 메시지를 전달받은 스레드가 락 획득을 시도하는 방식
 - 락 획득을 위해 반복적으로 락 획득을 시도하는 Lettuce 대비 부하를 줄일 수 있음
 
@@ -242,7 +242,7 @@ Series
 - **동시 작업 제한**
   - 여러 서버에서 동시에 실행되는 작업의 수를 제한해야 할 때 사용
   - ex) 분산된 웹 서버가 동일한 파일을 동시에 수정하지 못하게 하거나, 동일한 외부 API에 대한 동시 요청 수를 제한하는 데 활용
-- **재진입 락 필요 시**
+- **재진입 락 필요시**
   - 동일한 클라이언트에서 락을 여러 번 획득하고 해제할 필요가 있는 경우, Redisson의 재진입 락 기능을 통해 이 작업을 안전하게 처리
 - **복잡한 동기화 로직**
   - 읽기-쓰기 락, 공정 락 등 복잡한 동기화 요구 사항이 있는 경우 시나리오 구현 가능
@@ -272,7 +272,7 @@ Series
 - Duration: 3 min
 
 > Lettuce 의 Spin Lock 방식 대한 단점을 해결하기 위한 차선책으로 Redisson 이 사용되는데,<br/>
-> Redisson 에서는 lua script와 세마포어가 사용된다곤 한다.
+> Redisson 에서는 lua script와 세마포어가 사용된 다곤 한다.
 > 
 > 환경에 따라 다를 수 있지만 Redisson Lock 방식도 성능이 좋지만은 않았다.<br/>
 > 동일한 조건으로 28,816 건밖에 처리를 못 하였다. (Lettuce Lock 보다 더 안 좋은 성능)
