@@ -9,7 +9,7 @@
 Series
 > [Java Concurrency Control](https://data-make.tistory.com/790)
 >
-> [Database Concurrency Control]()
+> [Database Concurrency Control](https://data-make.tistory.com/791)
 >
 > [Redis Concurrency Control]()
 >
@@ -33,7 +33,11 @@ before: 92, after: 91
 before: 99, after: 98
 ```
 
-[java asynchronous](https://github.com/jihunparkme/Study-project-spring-java/commit/ce56981975dabb74deb364cf383dff6d9b3601f1)
+.
+
+[java asynchronous example](https://github.com/jihunparkme/Study-project-spring-java/commit/ce56981975dabb74deb364cf383dff6d9b3601f1)
+
+.
 
 **🛠️ 성능 테스트.**
 
@@ -58,7 +62,11 @@ before: 99, after: 98
 - (1) `@Transactional` 사용 시 프록시 방식의 AOP가 적용되어 **트랜잭션 종료 전에 다른 스레드가 갱신된 전 값을 읽게 되면** 결국 이전과 동일한 문제가 발생
 - (2) 하나의 프로세스 안에서만 보장 → 서버가 2대 이상일 경우 **결국 여러 스레드에서 동시에 데이터에 접근**
 
-[java synchronous](https://github.com/jihunparkme/Study-project-spring-java/commit/04d5a527e1f8908bf677cb86f0c27275a7d0916f)
+.
+
+[java synchronous example](https://github.com/jihunparkme/Study-project-spring-java/commit/04d5a527e1f8908bf677cb86f0c27275a7d0916f)
+
+.
 
 **🛠️  성능 테스트.**
 
