@@ -6,14 +6,16 @@
 - Race Condition 으로 동시에 들어오는 요청들이 갱신 전 값을 읽고, 수정하면서
 - 실제 갱신이 누락되는 현상이 발생
 
-Series
-> [Java Concurrency Controll](https://data-make.tistory.com/790)
+**Series**
+> [Java Concurrency Control](https://data-make.tistory.com/790)
 >
-> [Database Concurrency Controll](https://data-make.tistory.com/791)
+> [Database Concurrency Control](https://data-make.tistory.com/791)
 >
-> [Redis Concurrency Controll](https://data-make.tistory.com/792)
+> [Redis Concurrency Control](https://data-make.tistory.com/792)
 >
-> [Kafka Concurrency Controll]()
+> [Kafka Concurrency Control](https://data-make.tistory.com/793)
+>
+> [Compare Concurrency Control](https://data-make.tistory.com/794)
 
 ## Database Lock
 
