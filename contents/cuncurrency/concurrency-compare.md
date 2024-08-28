@@ -26,19 +26,7 @@
 
 (DB Named 방식은 제외)
 
-|                     | Java Async | Java Sync | DB Pessimistic | DB Optimistic   | DB Named                    | Redis Incr     | Redis Lettuce   | Redis Redisson  | Kafka + Redis  |
-| ------------------- | ---------- | --------- | -------------- | --------------- | --------------------------- | -------------- | --------------- | --------------- | -------------- |
-| 한정수량            | 50,000     | 50,000    | 50,000         | 50,000          | 10,000                      | 50,000         | 50,000          | 50,000          | 50,000         |
-| Total User          | 296        | 296       | 296            | 296             | 40                          | 296            | 296             | 296             | 296            |
-| Processes / Threads             | 8 / 37     | 8 / 37    | 8 / 37         | 8 / 37          | 2 / 20                      | 8 / 37         | 8 / 37          | 8 / 37          | 8 / 37         |
-| Duration            | 3 min.     | 3 min.    | 3 min.         | 3 min.          | 3 min. (01:57)              | 3 min. (01:40) | 3 min.          | 3 min.          | 3 min. (01:50) |
-| TPS                 | 975.5      | 567.0     | 283.6          | 218.3           | 87.5                        | 519.3          | 177.9           | 163.2           | 470.6          |
-| Peak TPS            | 1,164      | 667       | 444            | 248             | 181                         | 2,082          | 218             | 190             | 1,534          |
-| Mean Test Time (ms) | 301.43     | 488.02    | 750.04         | 1,350.66        | 244.13                      | 189.74         | 1,643.21        | 1,802.55        | 252.14         |
-| Executed Tests      | 171,933    | 112,696   | 79,791         | 38,491          | 22,668                      | 82,720         | 31,380          | 28,816          | 82,697         |
-| Successful Tests    | 171,933    | 99,971    | 50,000         | 38,491          | 10,000                      | 50,000         | 31,380          | 28,816          | 50,000         |
-| Errors              | 0          | 12,725    | 29,791         | 0               | 12,668                      | 32,720         | 0               | 0               | 32,697         |
-| Concurrency Control | Fail       | Fail      | Success        | Low performance | Dead Lock + Low performance | Success        | Low performance | Low performance | Success        |
+![Result](https://github.com/jihunparkme/blog/blob/0f52180eb07cdddf77a1c351ad06600ae7d5cad7/img/concurrency/compare-1.png?raw=true 'Result')
 
 <br/>.<br/>
 
@@ -64,3 +52,37 @@
 처음 결과를 보았을 때 빠른 성능을 자랑하는 **Redis 의 Lettuce, Redisson** 방식이 성능 저하 이슈가 있을 줄을 몰랐다.
 
 락 획득을 위한 재시도 로직으로 인해서 발생하는 성능 저하일 수도 있을 것이라는 생각이 든다.
+
+## Case 02
+
+**한정수량 : `1,000`**
+
+- Total User : `99`
+- Processes : `3`
+- Threads : `33`
+
+![Result](https://github.com/jihunparkme/blog/blob/0f52180eb07cdddf77a1c351ad06600ae7d5cad7/img/concurrency/compare-2.png?raw=true 'Result')
+
+<br/>.<br/>
+
+시간 내에 모든 트래픽을 성공적으로 처리한 방식
+
+- **DB Pessimistic**
+- **DB Optimistic**
+- **Redis Incr**
+- **Redis Lettuce**
+- **Redis Redisson**
+- **Kafka + Redis**
+
+<br/>.<br/>
+
+일부 성공을 하긴 하였지만, 트래픽을 버티지 못하고 성능 문제가 발생한 방식
+
+- **DB Named →** 커넥션 풀 부족으로 인한 DeadLock 발생 및 성능 저하
+
+<br/>.<br/>
+
+한정수량이 50,000 건일 경우에 비해 대부분의 방식이 성공적으로 모든 트래픽을 처리한 것을 볼 수 있다.
+
+위 결과들을 통해 지극히 개인적인 생각으로 각 방식에 대한 결론을 내보려고 한다.
+
