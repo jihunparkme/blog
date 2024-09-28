@@ -62,3 +62,32 @@
 - Jetty Metrics
 - @Timed Annotation Support
 - Redis Metrics
+
+## Prometheus & Grafana
+
+**Prometheus**
+- Metric을 지속해서 수집하고 DB에 저장하는 역할
+- [Prometheus Docs](https://prometheus.io/docs/introduction/overview/)
+
+**Grafana**
+- Prometheus에 있는 데이터를 불러서 데이터를 그래프로 보여주는 툴
+- 다양한 그래프를 제공하고, Prometheus를 포함한 다양한 데이터소스 지원
+
+```bash
+├── CPU / JVM / CON ...
+│   └── Micrometer 표준 측정 방식 # (1. micrometer 표준 방식에 맞추어 Metric 측정)
+│       └── Micrometer Prometheus 구현체
+│           # (2. Prometheus는 Metric 지속 수집하여 구현체로 전달)
+│           └── Prometheus # (3. Prometheus DB에 Metric 저장)
+│           # (Prometheus를 통해 Metric 조회)
+│           └── Grafana # (4. Grafana를 통한 조회) 
+└── 
+```
+
+- (1). spring boot actuator, Micrometer를 사용하면 수 많은 `Metric`이 자동 생성
+  - `Micrometer Prometheus 구현체`는 Prometheus가 읽을 수 있는 포멧으로 Metric을 생성
+- (2). `Prometheus`는 이렇게 만들어진 Metric을 지속해서 수집
+- (3). `Prometheus`는 수집한 Metric을 내부 DB에 저장
+- (4). 사용자는 `Grafana` 대시보드 툴을 통해 그래프로 편리하게 Metric을 조회(필요한 데이터는 Prometheus를 통해 조회)
+
+
