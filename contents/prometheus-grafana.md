@@ -6,6 +6,39 @@
 >
 > 애플리케이션의 CPU, Memory, Connection, Request 같은 수 많은 지표들을 확인하는 것이 필요
 
+## Spring Actuator
+
+[Production-ready Features](https://docs.spring.io/spring-boot/reference/actuator/index.html)
+
+애플리케이션이 살아있는지, 로그 정보는 정상 설정 되었는지, 커넥션 풀은 얼마나 사용되고 있는지 등 확인
+
+- 지표(metric): CPU 사용량
+- 추적(trace): 이슈 코드 추적
+- 감사(auditing): 고객 로그인, 로그아웃 이력 추적
+- 모니터링: 시스템 상태
+
+**Dependency**
+
+```groovy
+implementation 'org.springframework.boot:spring-boot-starter-actuator'
+```
+
+http://localhost:8080/actuator 로 확인 가능
+
+- 애플리케이션 상태 정보: http://localhost:8080/actuator/health
+- 각 엔드포인트는 `/actuator/{endpoints}` 형식으로 접근
+- 더 많은 기능을 제공받기 위해 엔드포인트 노출 설정 가능(모든 엔드포인트를 웹에 노출)
+- 엔드포인트는 shutdown 제외하고 대부분 기본으로 활성화
+- 특정 엔드포인트 활성화 시 `management.endpoint.{endpoints}.enabled=true`
+
+```yml
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+```
+
 ## Micrometer
 
 [Micrometer Documentation](https://micrometer.io/docs)
@@ -90,4 +123,5 @@
 - (3). `Prometheus`는 수집한 Metric을 내부 DB에 저장
 - (4). 사용자는 `Grafana` 대시보드 툴을 통해 그래프로 편리하게 Metric을 조회(필요한 데이터는 Prometheus를 통해 조회)
 
+### Prometheus
 
