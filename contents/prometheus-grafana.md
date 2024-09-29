@@ -8,7 +8,7 @@
 
 ## Spring Actuator
 
-[Production-ready Features](https://docs.spring.io/spring-boot/reference/actuator/index.html)
+> [Production-ready Features](https://docs.spring.io/spring-boot/reference/actuator/index.html)
 
 애플리케이션이 살아있는지, 로그 정보는 정상 설정 되었는지, 커넥션 풀은 얼마나 사용되고 있는지 등 확인
 
@@ -37,6 +37,107 @@ management:
     web:
       exposure:
         include: "*"
+```
+
+### Endpoints
+
+> [Endpoints](https://docs.spring.io/spring-boot/reference/actuator/endpoints.html#actuator.endpoints)
+
+**`/actuator`**
+- /actuator/`beans`: 스프링 컨테이너에 등록된 스트링 빈 목록
+- /actuator/`caches`: /actuator/caches/{cache}:  
+- /actuator/`health`: 애플리케이션 문제를 빠르게 인지(전체 상태, db, mongo, redis, diskspace, ping 등 확인 가능)
+  - /actuator/health/{*path}: 
+  - health 컴포넌트 중 하나라도 문제가 있으면 전체 상태는 DOWN
+  - health 정보를 더 자세히 보기 위한 옵션 `management.endpoint.health.show-details=always`
+  - 간략히 보기 위한 옵션 `management.endpoint.health.show-components=always`
+  - [Auto-configured HealthIndicators](https://docs.spring.io/spring-boot/docs/current/reference/html/actuator.html#actuator.endpoints.health.auto-configured-health-indicators)
+  - [Writing Custom HealthIndicators](https://docs.spring.io/spring-boot/docs/current/reference/html/actuator.html#actuator.endpoints.health.writing-custom-health-indicators)
+- /actuator/`info`: 애플리케이션 기본 정보 (default 비활성화)
+  - `management.info.<id>.enabled=true`
+  - java : 자바 런타임 정보
+  - os : OS 정보
+  - env : Environment 에서 info. 로 시작하는 정보
+  - build : 빌드 정보 (META-INF/build-info.properties 파일 필요)
+    ```groovy
+    // build.gradle 에 아래 코드를 추가하면 자동으로 빌드 정보 파일 생성
+    springBoot {
+      buildInfo()
+    }
+    ```
+  - git : git 정보 (git.properties 파일 필요)
+    ```groovy
+    // git.properties plugin 추가
+    id "com.gorylenko.gradle-git-properties" version "2.4.1"
+    ```
+  - [Writing Custom InfoContributors](https://docs.spring.io/spring-boot/docs/current/reference/html/actuator.html#actuator.endpoints.info.writing-custom-info-contributors)
+  - [info endpoints sample](https://github.com/jihunparkme/Inflearn-Spring-Boot/commit/d079267ec76a83406061158a6bfef60eb7d7fb2c)
+- /actuator/`conditions`: condition을 통해 빈 등록 시 평가 조건과 일치하거나 일치하지 않는 이유 표시
+- /actuator/`configprops`: @ConfigurationProperties 목록
+- - /actuator/configprops/{prefix}: 
+- /actuator/`env`: Environment 정보
+  - /actuator/env/{toMatch}: 
+- /actuator/`loggers`: 로깅 관련 정보 확인. 실시간 변경
+  - 특정 패키지에 로그 레벨 설정(default. INFO)
+    ```properties
+    logging.level.hello.controller: debug
+    ```
+  - 특정 로거 이름 기준으로 조회. /actuator/`loggers/{name}`
+    - /actuator/loggers/hello.controller
+  - 애플리케이션을 다시 시작하지 않고, (메모리에) 실시간으로 로그 레벨 변경
+    ```json
+    POST http://localhost:8080/actuator/loggers/hello.controller
+
+    {
+      "configuredLevel": "TRACE"
+    }
+    ```
+- /actuator/`heapdump`: 
+- /actuator/`threaddump`: 쓰레드 덤프 정보
+- /actuator/`metrics`: : 애플리케이션의 메트릭 정보
+  - /actuator/metrics/{requiredMetricName}
+    ```text
+    /actuator/metrics/jvm.memory.used : JVM 메모리 사용량
+    --- availableTags
+    /actuator/metrics/jvm.memory.used?tag=area:heap
+
+    /actuator/metrics/http.server.requests : HTTP 요청수
+    --- availableTags
+    /actuator/metrics/http.server.requests?tag=uri:/log
+    /actuator/metrics/http.server.requests?tag=uri:/log&tag=status:200
+    ```
+- /actuator/`scheduledtasks`: 
+- /actuator/`mappings`: @RequestMapping 정보 목록
+
+**`/httpexchanges`**
+- HTTP 호출 응답 정보. HttpExchangeRepository 구현 빈 등록 필요
+- 최대 100개의 HTTP 요청 제공(최대 요청 초과 시 과거 요청을 삭제
+- setCapacity() 로 최대 요청수를 변경 가능
+- 단순하고 제한이 많은 기능이므로 개발 단계에서만 주로 사용하고, 실제 운영 서비스에서는 모니터링 툴이나 핀포인트, Zipkin 같은 다른 기술 사용 추천
+
+**`/shutdown`**
+- 애플리케이션 종료. 기본으로 비활성화
+
+.
+
+외부망을 통해 접근이 필요하다면 `/actuator` 경로에 서블릿 필터, 스프링 인터셉터, 스프링 시큐티리를 통해 인증된 사용자만 접근 가능하도록 설정 필요
+
+```yml
+management:
+  server:
+    port: 1234 # 보안을 위해 내부망에서만 사용 가능하도록 포트 설정
+  endpoints:
+    info:
+      enabled: true # info 엔드포인트 활성화(애플리케이션에 대한 정보(빌드, 메타데이터 등))
+    health:
+      enabled: true # health 엔드포인트 활성화(애플리케이션의 상태)
+    jmx:
+      exposure:
+        exclude: "*" # JMX(Java Management Extensions) 노출을 전부 제외
+    web:
+      exposure:
+        include: info, health # 웹 인터페이스를 통해 info, health 엔드포인트를 노출하도록 설정
+      base-path: /abcdefg/actuator # 엔드포인트 기본 경로 설정
 ```
 
 ## Micrometer
