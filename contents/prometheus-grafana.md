@@ -137,7 +137,7 @@ management:
     web:
       exposure:
         include: info, health # 웹 인터페이스를 통해 info, health 엔드포인트를 노출하도록 설정
-      base-path: /abcdefg/actuator # 엔드포인트 기본 경로 설정
+      base-path: /management/actuator # 엔드포인트 기본 경로 설정
 ```
 
 ## Micrometer
@@ -226,3 +226,67 @@ management:
 
 ### Prometheus
 
+`docker compose`로 prometheus, grafana 설치
+
+**docker-compose.yml**
+
+```yml
+version: '3'
+
+services:
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+       - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    restart: always
+  
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    user: "$UID:$GID"
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./grafana-data:/var/lib/grafana
+    depends_on:
+      - prometheus
+    restart: always
+```
+
+**애플리케이션 설정**
+
+애플리케이션 설정
+- prometheus가 애플리케이션의 metric을 가져갈 수 있도록
+  - prometheus 포멧에 맞춰 metric 생성
+- 각 metric들은 내부에서 micrometer 표준 방식으로 측정되어 어떤 구현체를 사용할지만 지정
+- 스프링 부트와 actuator가 자동으로 micrometer prometheus 구현체를 등록해서 동작하도록 설정
+    ```groovy
+    implementation 'io.micrometer:micrometer-registry-prometheus'
+    ```
+- actuator에 prometheus micrometer 수집 엔드포인트가 자동 추가
+  - `/actuator/prometheus`
+
+**prometheus 설정**
+- prometheus가 애플리케이션의 metric을 주기적으로 수집하도록 설정
+
+**prometheus.yml**
+
+```yml
+scrape_configs:
+ - job_name: "prometheus"
+   static_configs:
+     - targets: ["localhost:9090"]
+ # 하단 추가
+ - job_name: "spring-actuator" # 수집하는 임의 이름
+   metrics_path: '/actuator/prometheus' # 수집 경로 지정(1초에 한 번씩 호출해서 메트릭 수집)
+   scrape_interval: 1s # 수집 주기 (10s~1m 권장)
+   static_configs: # 수집할 서버 정보(IP, PORT)
+     - targets: ['localhost:8080']
+```
+
+```sh
+docker compose -f docker-compose-monitoring.yml up -d
+```
