@@ -175,6 +175,13 @@ management:
 - Jersey Server Metrics
 - HTTP Client Metrics
 - Tomcat Metrics
+  - 톰캣의 최대 쓰레드, 사용 쓰레드 수를 포함한 다양한 메트릭
+    ```yml
+    server:
+      tomcat:
+        mbeanregistry:
+          enabled: true
+    ```
 - Cache Metrics
 - Spring Batch Metrics
 - Spring GraphQL Metrics
@@ -342,6 +349,8 @@ services:
 docker compose -f docker-compose-monitoring.yml up -d
 ```
 
+.
+
 👉🏻 **Grafana 실행 확인**
 
 - 3000 포트에서 로그인 화면 확인
@@ -358,13 +367,33 @@ docker compose -f docker-compose-monitoring.yml up -d
 
 ![Result](https://github.com/jihunparkme/blog/blob/main/img/monitoring/grafana-connection.png?raw=true 'Result')
 
+.
+
 👉🏻 **대시보드 생성**
 
 - [Grafana dashboards](https://grafana.com/grafana/dashboards/) 에서 공유 대시보드 활용
-  - [Spring Boot 2.1 System Monitor](https://grafana.com/grafana/dashboards/11378-justai-system-monitor/) 가 많이 사용
-  - Import the dashboard template → Copy ID to clipboard
+  - [Spring Boot 2.1 System Monitor](https://grafana.com/grafana/dashboards/11378-justai-system-monitor/), [JVM (Micrometer)](https://grafana.com/grafana/dashboards/4701-jvm-micrometer/) 가 많이 사용
+  - Import the dashboard template → Copy ID to clipboard (ID: 11378)
 - Dashboards → New dashboard → Import a dashboard 
 
 ![Result](https://github.com/jihunparkme/blog/blob/main/img/monitoring/grafana-dashboard.png?raw=true 'Result')
 
+.
 
+👉🏻 **대시보드 살펴보기**
+
+- `/actuator/metrics`에서 확인할 수 있는 데이터들이 모두 노출
+- 공유 대시보드 수정을 위해서 `Dashboard settings` → `make editable` → `save dashboard`
+  - `Jetty Statistics`를 `Tomcat Statistics`으로 수정
+    - Managed Bean(MBean)을 JMX로 등록하기 위한 레지스트리 활성화가 되어있지 않을 경우 추가
+    ```yml
+    server:
+      tomcat:
+        mbeanregistry:
+          enabled: true
+    ```
+  - Thread Config Max 쿼리 수정
+    - `tomcat_threads_config_max_threads{instance="$instance", application="$application"}`
+  - Threads 쿼리 수정
+    - `tomcat_threads_current_threads{instance="$instance", application="$application"}`
+    - `tomcat_threads_busy_threads{instance="$instance", application="$application"}`
