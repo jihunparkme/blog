@@ -1,10 +1,10 @@
 # Prometheus & Grafana
 
-[GitBook Spring Boot](https://jihunparkme.gitbook.io/docs/lecture/spring-boot#undefined-9) 정리 글에서 모니터링에 대한 부분을 재정리한 내용입니다.
+모니터링에 대한 부분을 다시 정리해 보려고 한다.
 
 > 서비스를 운영하며 어디에 어떤 문제가 발생했는지 사전 대응하고, 실제 문제 발생 시에도 원인을 빠르게 파악하고 대처하기 위해
 >
-> 애플리케이션의 CPU, Memory, Connection, Request 같은 수 많은 지표들을 확인하는 것이 필요
+> 애플리케이션의 CPU, Memory, Connection, Request 같은 수많은 지표들을 확인하는 것이 필요
 
 # Spring Actuator
 
@@ -93,7 +93,7 @@ management:
     }
     ```
 - /actuator/`heapdump`: 
-- /actuator/`threaddump`: 쓰레드 덤프 정보
+- /actuator/`threaddump`: 스레드 덤프 정보
 - /actuator/`metrics`: : 애플리케이션의 메트릭 정보
   - /actuator/metrics/{requiredMetricName}
     ```text
@@ -120,7 +120,7 @@ management:
 
 .
 
-외부망을 통해 접근이 필요하다면 `/actuator` 경로에 서블릿 필터, 스프링 인터셉터, 스프링 시큐티리를 통해 인증된 사용자만 접근 가능하도록 설정 필요
+외부망을 통해 접근이 필요하다면 `/actuator` 경로에 서블릿 필터, 스프링 인터셉터, 스프링 시큐리티를 통해 인증된 사용자만 접근 가능하도록 설정 필요
 
 ```yml
 management:
@@ -142,11 +142,11 @@ management:
 
 # Micrometer
 
-> 모니터링을 위한 수 많은 툴이 제공되고 있는데, 각 툴마다 전달 방식이 다른 것들을 추상화한 라이브러리가 `Micrometer`
+> 모니터링을 위한 수많은 툴이 제공되고 있는데, 각 툴마다 전달 방식이 다른 것들을 추상화한 라이브러리가 `Micrometer`
 >
 > [Micrometer Documentation](https://micrometer.io/docs)
 
-- `Micrometer`는 `application metric facade`라고 불리는데, 애플리케이션의 메트릭(측정 지표)을 Micrometer가 정한 표준 방법으로 모아서 제공(추상화된 Micrometer로 구현체를 쉽게 갈아끼울 수 있음)
+- `Micrometer`는 `application metric facade`라고 불리는데, 애플리케이션의 메트릭(측정 지표)을 Micrometer가 정한 표준 방법으로 모아서 제공(추상화된 Micrometer로 구현체를 쉽게 갈아 끼울 수 있음)
 - spring boot actuator는 Micrometer를 기본 내장
 - 개발자는 Micrometer가 정한 표준 방법으로 메트릭(측정 지표) 전달
   - 사용하는 모니터링 툴에 맞는 구현체 선택
@@ -154,6 +154,8 @@ management:
   - 애플리케이션 코드는 모니터링 툴이 변경되어도 그대로 유지
 
 ![[Result](https://www.inflearn.com/course/%EC%8A%A4%ED%94%84%EB%A7%81%EB%B6%80%ED%8A%B8-%ED%95%B5%EC%8B%AC%EC%9B%90%EB%A6%AC-%ED%99%9C%EC%9A%A9)](https://github.com/jihunparkme/blog/blob/main/img/monitoring/micrometer.png?raw=true 'Result')
+
+출처: https://inf.run/7VBBx
 
 # Metric
 
@@ -175,7 +177,7 @@ management:
 - Jersey Server Metrics
 - HTTP Client Metrics
 - Tomcat Metrics
-  - 톰캣의 최대 쓰레드, 사용 쓰레드 수를 포함한 다양한 메트릭
+  - 톰캣의 최대 스레드, 사용 스레드 수를 포함한 다양한 메트릭
     ```yml
     server:
       tomcat:
@@ -301,10 +303,12 @@ docker compose -f docker-compose-monitoring.yml up -d
 > [grafana](https://grafana.com/grafana/)
 
 
-![https://www.inflearn.com/course/%EC%8A%A4%ED%94%84%EB%A7%81%EB%B6%80%ED%8A%B8-%ED%95%B5%EC%8B%AC%EC%9B%90%EB%A6%AC-%ED%99%9C%EC%9A%A9](https://github.com/jihunparkme/blog/blob/main/img/monitoring/prometheus.png?raw=true 'Result')
+![https://inf.run/7VBBx](https://github.com/jihunparkme/blog/blob/main/img/monitoring/prometheus.png?raw=true 'Result')
 
-- (1). spring boot actuator, Micrometer를 사용하면 수 많은 `Metric`이 자동 생성
-  - `Micrometer Prometheus 구현체`는 Prometheus가 읽을 수 있는 포멧으로 Metric을 생성
+출처: https://inf.run/7VBBx
+
+- (1). spring boot actuator, Micrometer를 사용하면 수많은 `Metric`이 자동 생성
+  - `Micrometer Prometheus 구현체`는 Prometheus가 읽을 수 있는 포맷으로 Metric을 생성
 - (2). `Prometheus`는 이렇게 만들어진 Metric을 지속해서 수집
 - (3). `Prometheus`는 수집한 Metric을 내부 DB에 저장
 - (4). 사용자는 `Grafana` 대시보드 툴을 통해 그래프로 편리하게 Metric을 조회(필요한 데이터는 Prometheus를 통해 조회)
@@ -373,7 +377,7 @@ docker compose -f docker-compose-monitoring.yml up -d
 
 - [Grafana dashboards](https://grafana.com/grafana/dashboards/) 에서 공유 대시보드 활용
   - [Spring Boot 2.1 System Monitor](https://grafana.com/grafana/dashboards/11378-justai-system-monitor/), [JVM (Micrometer)](https://grafana.com/grafana/dashboards/4701-jvm-micrometer/) 가 많이 사용
-  - Import the dashboard template → Copy ID to clipboard (ID: 11378)
+  - Import the dashboard template → Copy ID to clipboard (ID: 11378, 4701)
 - Dashboards → New dashboard → Import a dashboard 
 
 ![Result](https://github.com/jihunparkme/blog/blob/main/img/monitoring/grafana-dashboard.png?raw=true 'Result')
