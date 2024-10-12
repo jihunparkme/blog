@@ -115,6 +115,7 @@ mysql> select * from TASK_EXECUTION;
 
 **Install minikube**
 - 로컬에서 kubernetes 환경을 만들기 위해 minikube 설치를 진행하자.
+- [minikube start](https://minikube.sigs.k8s.io/docs/start/?arch=%2Fmacos%2Farm64%2Fstable%2Fbinary+download)
 
 ```sh
 # minikube 설치
@@ -138,26 +139,79 @@ $ brew install kubectl
 - 아래 가이드를 참고하여 SCDF를 설치해 보자.
 - [Spring Cloud Data Flow / Deploying with kubectl](https://godekdls.github.io/Spring%20Cloud%20Data%20Flow/installation.kubernetes.kubectl/)
 
+메타데이터셋 준비
+
+```sh
+git clone https://github.com/spring-cloud/spring-cloud-dataflow
+
+cd spring-cloud-dataflow
+
+git checkout v2.9.1
+```
+
+애플리케이션끼리의 통신을 위해 메세지 브로커(kafka) 설치
+
+```sh
+kubectl create -f src/kubernetes/kafka/
+
+# deployment, pod, service 리소스가 실행중인지 확인
+kubectl get all -l app=kafka
+```
+
+Data Flow는 여러 가지 서비스와 함께 배포가 필요
+- MySQL
+- Enable Monitoring(Prometheus, Grafana)
+- Skipper
+
+```sh
+# Deploy MySQL
+kubectl create -f src/kubernetes/mysql/
+kubectl get all -l app=mysql
+
+# Enable Monitoring
+...
+
+# Create Data FLow Role Binginds and Service Account
+kubectl create -f src/kubernetes/server/server-roles.yaml
+kubectl create -f src/kubernetes/server/server-rolebinding.yaml
+kubectl create -f src/kubernetes/server/service-account.yaml
+```
+
+⚠️ Create Data FLow Role Binginds and Service Account 단계에서 아래 에러가 발생할 경우
+
+```text
+error: resource mapping not found for name: "scdf-rb" namespace: "" from "src/kubernetes/server/server-rolebinding.yaml": no matches for kind "RoleBinding" in version "rbac.authorization.k8s.io/v1beta1"
+ensure CRDs are installed first
+```
+
+`server-rolebinding.yaml` 파일에서 apiVersion 을 `rbac.authorization.k8s.io/v1`로 수정이 필요하다.
+
+
+
+
+
+
+
+
+```sh
+# 리소스 정리
+kubectl delete all -l app=kafka
+
+minikube stop
+minikube delete
+
+$ kubectl get pods
+```
+
+
+
+
+
 
 [spring-cloud / spring-cloud-dataflow](https://github.com/spring-cloud/spring-cloud-dataflow)
 
 
 
-**Install the Database**
-- Spring Cloud Data Flow 디폴트 설정을 사용해 MySQL 서버 설치
-
-```sh
-kubectl apply -f https://raw.githubusercontent.com/spring-cloud/spring-cloud-dataflow/v2.9.1/src/kubernetes/mysql/mysql-deployment.yaml \
--f https://raw.githubusercontent.com/spring-cloud/spring-cloud-dataflow/v2.9.1/src/kubernetes/mysql/mysql-pvc.yaml \
--f https://raw.githubusercontent.com/spring-cloud/spring-cloud-dataflow/v2.9.1/src/kubernetes/mysql/mysql-secrets.yaml \
--f https://raw.githubusercontent.com/spring-cloud/spring-cloud-dataflow/v2.9.1/src/kubernetes/mysql/mysql-svc.yaml
-
-...
-
-$ kubectl get pods
-NAME                    READY   STATUS             RESTARTS   AGE
-mysql-5dbc4bb78-w876g   0/1     ImagePullBackOff   0          5m18s
-```
 
 
 
