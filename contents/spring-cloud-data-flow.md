@@ -1,6 +1,6 @@
 # Spring Cloud Data Flow
 
-실무에서 Spring Batch를 Spring Cloud Data Flow를 활용하여 사용하게 되어<br/>
+실무에서 Spring Batch로 Spring Cloud Data Flow를 사용하게 되어<br/>
 `Spring Cloud Task application`과 `Spring Batch application`을 만들기 위한 방법을 알아보려고 한다.
 
 이 application들은 독립형으로 배포하거나 Spring Cloud Data Flow를 이용해 Cloud Foundry, Kubernetes, local instance에 배포가 가능하다.
@@ -10,12 +10,38 @@
 > [Batch Processing with Spring Cloud Task](https://dataflow.spring.io/docs/batch-developer-guides/batch/spring-task/)
 
 Spring Cloud Task를 이용하여 간단한 Spring Boot Application 만들기
+- 단순하게 Spring Cloud Task를 사용해 BILL_STATEMENTS 테이블을 생성하는 동작을 수행한다.
+- `@EnableTask`는 Task 실행에 관한 정보(Task 시작/종료 시간과 종료 코드 등)를 저장하는 `TaskRepository`를 설정한다.
+- [commit: Building the Application](https://github.com/jihunparkme/Study-project-spring-java/commit/284befb7419863d648d6b3556b356027aa7fec11)
 
-**commit**
-
-- [Building the Application](https://github.com/jihunparkme/Study-project-spring-java/commit/284befb7419863d648d6b3556b356027aa7fec11)
+```kotlin
+@Configuration
+@EnableTask
+class TaskConfiguration {
+    @Autowired
+    private val dataSource: DataSource? = null
+    @Bean
+    fun commandLineRunner(): CommandLineRunner {
+        return CommandLineRunner { args: Array<String?>? ->
+            val jdbcTemplate = JdbcTemplate(dataSource!!)
+            jdbcTemplate.execute(
+                "CREATE TABLE IF NOT EXISTS " +
+                        "BILL_STATEMENTS ( " +
+                            "id int, " +
+                            "first_name varchar(50)," +
+                            "last_name varchar(50), " +
+                            "minutes int," +
+                            "data_usage int, " +
+                            "bill_amount double" +
+                        ")"
+            )
+        }
+    }
+}
+```
 
 **application.yml**
+- `TASK_NAME`은 기본값으로 application이 설정되는데 `spring.cloud.task.name`으로 설정을 변경할 수 있다.
 
 ```yaml
 spring:
@@ -29,7 +55,8 @@ spring:
       name: bill-setup-test
 ```
 
-CustomTaskListener
+**CustomTaskListener**
+- `TaskExecutionListener`를 구현하여 `EXIT_CODE`, `EXIT_MESSAGE`를 설정할 수 있다.
 
 ```kotlin
 @Component
@@ -47,7 +74,7 @@ class CustomTaskListener : TaskExecutionListener {
 
     override fun onTaskFailed(taskExecution: TaskExecution, throwable: Throwable) {
         // 작업이 실패했을 때 실행할 코드
-        taskExecution.exitCode = -1
+        taskExecution.exitCode = 500
         taskExecution.exitMessage = "Task failed due to: ${throwable.message}"
     }
 }
@@ -57,13 +84,13 @@ class CustomTaskListener : TaskExecutionListener {
 
 Spring Cloud Task는 모든 Task 실행 내역을 `TASK_EXECUTION` 테이블에 기록하고,<br/>
 Spring Cloud Task가 기록하는 정보들은 아래와 같다.
-- START_TIME: Task 실행 시작 시간
-- END_TIME: Task 실행 완료 시간
-- TASK_NAME: Task 실행 관련 이름
-- EXIT_CODE: Task 실행 후 반환한 종료 코드
-- EXIT_MESSAGE: Task 실행 후 반환한 종료 메세지
-- ERROR_MESSAGE: Task 실행 후 반환한 에러 메시지(존재 시)
-- EXTERNAL_EXECUTION_ID: Task 실행과 관련한 ID
+- `START_TIME`: Task 실행 시작 시간
+- `END_TIME`: Task 실행 완료 시간
+- `TASK_NAME`: Task 실행 관련 이름
+- `EXIT_CODE`: Task 실행 후 반환한 종료 코드
+- `EXIT_MESSAGE`: Task 실행 후 반환한 종료 메세지
+- `ERROR_MESSAGE`: Task 실행 후 반환한 에러 메시지(존재 시)
+- `EXTERNAL_EXECUTION_ID`: Task 실행과 관련한 ID
 
 ```bash
 mysql> select * from TASK_EXECUTION;
