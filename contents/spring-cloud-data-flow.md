@@ -7,9 +7,10 @@
 
 ## Make Simple Task
 
+> Spring Cloud Task를 이용하여 간단한 Spring Boot Application 만들기
+> 
 > [Batch Processing with Spring Cloud Task](https://dataflow.spring.io/docs/batch-developer-guides/batch/spring-task/)
 
-Spring Cloud Task를 이용하여 간단한 Spring Boot Application 만들기
 - 단순하게 Spring Cloud Task를 사용해 BILL_STATEMENTS 테이블을 생성하는 동작을 수행한다.
 - `@EnableTask`는 Task 실행에 관한 정보(Task 시작/종료 시간과 종료 코드 등)를 저장하는 `TaskRepository`를 설정한다.
 - [commit: Building the Application](https://github.com/jihunparkme/Study-project-spring-java/commit/284befb7419863d648d6b3556b356027aa7fec11)
@@ -109,8 +110,54 @@ mysql> select * from TASK_EXECUTION;
 ## Register and Launch a Spring Cloud Task application using Data Flow
 
 > Data Flow를 이용해 Spring Cloud Task Application 등록 및 가동하기
+>
+> [Deploying a Spring Cloud Task application by Using Data Flow](https://dataflow.spring.io/docs/batch-developer-guides/batch/data-flow-simple-task/)
+
+**Install minikube**
+- 로컬에서 kubernetes 환경을 만들기 위해 minikube 설치를 진행하자.
+
+```sh
+# minikube 설치
+$ brew install minikube
+
+# minikube 버전 확인
+$ minikube version
+
+# minikube 실행
+$ minikube start --driver=docker
+
+# minikube 실행 확인
+$ minikube status
+
+# kubectl 설치
+$ brew install kubectl
+```
+.
+
+**Install SCDF with minikube**
+- 아래 가이드를 참고하여 SCDF를 설치해 보자.
+- [Spring Cloud Data Flow / Deploying with kubectl](https://godekdls.github.io/Spring%20Cloud%20Data%20Flow/installation.kubernetes.kubectl/)
 
 
+[spring-cloud / spring-cloud-dataflow](https://github.com/spring-cloud/spring-cloud-dataflow)
+
+
+
+**Install the Database**
+- Spring Cloud Data Flow 디폴트 설정을 사용해 MySQL 서버 설치
+
+```sh
+kubectl apply -f https://raw.githubusercontent.com/spring-cloud/spring-cloud-dataflow/v2.9.1/src/kubernetes/mysql/mysql-deployment.yaml \
+-f https://raw.githubusercontent.com/spring-cloud/spring-cloud-dataflow/v2.9.1/src/kubernetes/mysql/mysql-pvc.yaml \
+-f https://raw.githubusercontent.com/spring-cloud/spring-cloud-dataflow/v2.9.1/src/kubernetes/mysql/mysql-secrets.yaml \
+-f https://raw.githubusercontent.com/spring-cloud/spring-cloud-dataflow/v2.9.1/src/kubernetes/mysql/mysql-svc.yaml
+
+...
+
+$ kubectl get pods
+NAME                    READY   STATUS             RESTARTS   AGE
+mysql-5dbc4bb78-w876g   0/1     ImagePullBackOff   0          5m18s
+```
 
 
 
