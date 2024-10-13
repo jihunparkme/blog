@@ -6,8 +6,17 @@
 > 
 > dataflow.spring.io: [Spring Cloud Data Flow](https://dataflow.spring.io/)
 
-**Spring Cloud Data Flow (SCDF)**는 마이크로서비스 아키텍처에서 스트리밍 및 배치 데이터 처리 파이프라인을 손쉽게 구축, 배포, 모니터링, 관리할 수 있는 오픈 소스 프로젝트이다.
-- 이를 통해 개발자는 데이터 처리 흐름을 관리하고 실시간 데이터 및 대규모 배치 데이터를 효율적으로 처리할 수 있다.
+**Spring Cloud Data Flow (SCDF)** 는 MSA에서 스트리밍 및 배치 데이터 처리 파이프라인을 손쉽게 구축, 배포, 모니터링, 관리할 수 있는 오픈 소스 프로젝트
+- 이를 통해 개발자는 데이터 처리 흐름을 관리하고 실시간 데이터 및 대규모 배치 데이터를 효율적으로 처리 가능
+- `Spring Cloud Stream`, `Spring Batch`와 통합되어 있으며, 다양한 클라우드 플랫폼 및 컨테이너 오케스트레이션 플랫폼([Kubernetes](https://kubernetes.io/), [Cloud Foundry](https://www.cloudfoundry.org/) 등)과 호환
+
+**Spring Cloud Data Flow (SCDF)** 의 간략한 주요 특징
+- 스트리밍 및 배치 파이프라인을 쉽게 정의하고 관리
+- 도메인 특화 언어(DSL)와 대시보드를 통한 직관적인 파이프라인 정의
+- 사전 정의된 모듈과 MSA 기반의 유연한 파이프라인 구성
+- Kubernetes 및 Cloud Foundry 같은 다양한 클라우드 플랫폼에서 유연하게 배포
+- Spring Cloud Stream과 Spring Batch를 통한 강력한 스트리밍 및 배치 데이터 처리
+- 모니터링 및 관리 도구와의 통합, 탄력적 스케일링 지원
 
 ℹ️ 참고.
 
@@ -130,17 +139,59 @@ mysql> select * from TASK_EXECUTION;
 > [Deploying a Spring Cloud Task application by Using Data Flow](https://dataflow.spring.io/docs/batch-developer-guides/batch/data-flow-simple-task/)
 
 Spring Cloud Data Flow를 사용하기 위해 서버 구성 요소를 설치해야 하는데, Data Flow는 기본적으로 아래 세 가지 플랫폼을 지원한다.
-- local
+- local (스케줄링 기능 불가)
 - [Cloud Foundry](https://www.cloudfoundry.org/)
 - [Kubernetes](https://kubernetes.io/)
 
-여기서는 간단한 테스트를 위해 `spring-cloud-dataflow-server.jar` 파일을 직접 실행하려고 한다.
+여기서는 간단한 테스트를 위해 `spring-cloud-dataflow-server-x.x.x.jar` 파일을 직접 실행하려고 한다.
 - [Manual Installation](https://dataflow.spring.io/docs/installation/local/manual/)
 
 ```sh
+### Downloading Server Jars
+# Download the Spring Cloud Data Flow Server
 wget https://repo.maven.apache.org/maven2/org/springframework/cloud/spring-cloud-dataflow-server/2.11.5/spring-cloud-dataflow-server-2.11.5.jar
 
+# Download Skipper
+wget https://repo.maven.apache.org/maven2/org/springframework/cloud/spring-cloud-skipper-server/2.11.5/spring-cloud-skipper-server-2.11.5.jar
+
+#### Starting Server Jars
+# Skipper
+java -jar spring-cloud-skipper-server-2.11.5.jar
+# Dataflow
 java -jar spring-cloud-dataflow-server-2.11.5.jar
+
+...
+
+  ____                              ____ _                __
+ / ___| _ __  _ __(_)_ __   __ _   / ___| | ___  _   _  __| |
+ \___ \| '_ \| '__| | '_ \ / _` | | |   | |/ _ \| | | |/ _` |
+  ___) | |_) | |  | | | | | (_| | | |___| | (_) | |_| | (_| |
+ |____/| .__/|_|  |_|_| |_|\__, |  \____|_|\___/ \__,_|\__,_|
+  ____ |_|    _          __|___/                 __________
+ |  _ \  __ _| |_ __ _  |  ___| | _____      __  \ \ \ \ \ \
+ | | | |/ _` | __/ _` | | |_  | |/ _ \ \ /\ / /   \ \ \ \ \ \
+ | |_| | (_| | || (_| | |  _| | | (_) \ V  V /    / / / / / /
+ |____/ \__,_|\__\__,_| |_|   |_|\___/ \_/\_/    /_/_/_/_/_/
+
+
+
+2024-10-13 20:18:58.716  INFO 33132 --- [           main] s.c.d.c.p.t.DatabaseTypeAwareInitializer : checking database driver type:org.h2.Driver
+2024-10-13 20:18:58.750  INFO 33132 --- [           main] c.c.c.
+...
+2024-10-13 20:19:01.271  INFO 33132 --- [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port(s): 9393 (http)
+```
+
+### Dashboard
+
+http://localhost:9393/dashboard 접속
+
+
+docker hub 에 task application 이미지 올리기
+
+```sh
+cd projectDir
+
+./gradlew build
 ```
 
 
@@ -148,15 +199,3 @@ java -jar spring-cloud-dataflow-server-2.11.5.jar
 
 
 
-
-
-
-
-
-## Spring Batch Jobs
-
-> 간단한 Spring Batch Job
-
-## Register and launch a Spring Batch application using Data Flow
-
-> Data Flow를 이용해 Spring Batch Application 등록 및 가동하기
