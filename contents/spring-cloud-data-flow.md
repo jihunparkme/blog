@@ -186,14 +186,53 @@ ensure CRDs are installed first
 
 `server-rolebinding.yaml` 파일에서 apiVersion 을 `rbac.authorization.k8s.io/v1`로 수정이 필요하다.
 
+### Deploy Skipper
 
+Data Flow는 스트림 라이프사이클 관리를 `Skipper`에 위임하므로, 스트림 관리 기능을 이용하려면 `Skipper`가 필요하다.
 
+```sh
+# 카프카를 메세징 미들웨어로 사용
+kubectl create -f src/kubernetes/skipper/skipper-config-kafka.yaml
 
+# Skipper 실행
+kubectl create -f src/kubernetes/skipper/skipper-deployment.yaml
+kubectl create -f src/kubernetes/skipper/skipper-svc.yaml
+
+# 리소스 확인
+kubectl get all -l app=skipper
+```
+
+### Deploy Data Flow server
+
+`src/kubernetes/server/server-deployment.yaml`에 정의
+- 카프카에 대한 설정: `src/kubernetes/skipper/skipper-config-kafka.yaml`
+- MySQL secrets: `src/kubernetes/mysql/mysql-secrets.yaml`
+
+```sh
+# 기본 설정으로 configMap 생성
+kubectl create -f src/kubernetes/server/server-config.yaml
+
+# scdf server Deployment
+kubectl create -f src/kubernetes/server/server-svc.yaml
+kubectl create -f src/kubernetes/server/server-deployment.yaml
+
+# 리소스 확인
+kubectl get all -l app=scdf-server
+
+# scdf-server에 할당된 EXTERNAL_IP 확인
+kubectl get svc scdf-server
+# minikube 사용 시 외부 로드 밸런서가 없으므로 pending 상태이므로
+# scdf-server 서비스에 할당된 NodePort를 사용해야 한다.
+minikube service --url scdf-server
+```
 
 
 
 
 ```sh
+# 리소스 확인
+kubectl get all -l app=skipper
+
 # 리소스 정리
 kubectl delete all -l app=kafka
 
