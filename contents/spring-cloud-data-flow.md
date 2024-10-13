@@ -1,9 +1,25 @@
+👉🏻 실무에서 Batch로 `Task`, `Spring Cloud Data Flow`를 사용하게 되어, 간략하게 사용 방법을 살펴보려고 한다.
+
 # Spring Cloud Data Flow
 
-실무에서 Spring Batch로 Spring Cloud Data Flow를 사용하게 되어<br/>
-`Spring Cloud Task application`과 `Spring Batch application`을 만들기 위한 방법을 알아보려고 한다.
+> Github: [spring-cloud/spring-cloud-dataflow](https://github.com/spring-cloud/spring-cloud-dataflow)
+> 
+> dataflow.spring.io: [Spring Cloud Data Flow](https://dataflow.spring.io/)
 
-이 application들은 독립형으로 배포하거나 Spring Cloud Data Flow를 이용해 Cloud Foundry, Kubernetes, local instance에 배포가 가능하다.
+**Spring Cloud Data Flow (SCDF)**는 마이크로서비스 아키텍처에서 스트리밍 및 배치 데이터 처리 파이프라인을 손쉽게 구축, 배포, 모니터링, 관리할 수 있는 오픈 소스 프로젝트이다.
+- 이를 통해 개발자는 데이터 처리 흐름을 관리하고 실시간 데이터 및 대규모 배치 데이터를 효율적으로 처리할 수 있다.
+
+ℹ️ 참고.
+
+> Spring Batch를 실행시키기 위해 Spring Batch Job, Scheduler, Pipeline, Monitoring 등이 필요하다.
+> 
+> 기존에는 Spring Batch Admin과 Jenkins(scheduler)를 이용해 구현했다고 하는데, Spring Batch Admin은 2017년 12월 31일자로 서비스가 종료되었고, 
+> 
+> Spring은 Spring Batch Admin의 복제/확장판인 `Spring Cloud Data Flow` 사용을 권장하고 있다.
+>
+> [Spring Batch Admin](https://docs.spring.io/spring-batch-admin/2.x/)
+
+Cloud Foundry 및 Kubernetes를 위한 마이크로서비스 기반 스트리밍 및 일괄 데이터 처리
 
 ## Make Simple Task
 
@@ -13,7 +29,7 @@
 
 - 단순하게 Spring Cloud Task를 사용해 BILL_STATEMENTS 테이블을 생성하는 동작을 수행한다.
 - `@EnableTask`는 Task 실행에 관한 정보(Task 시작/종료 시간과 종료 코드 등)를 저장하는 `TaskRepository`를 설정한다.
-- [commit: Building the Application](https://github.com/jihunparkme/Study-project-spring-java/commit/284befb7419863d648d6b3556b356027aa7fec11)
+- commit: [Building the Application](https://github.com/jihunparkme/Study-project-spring-java/commit/284befb7419863d648d6b3556b356027aa7fec11)
 
 ```kotlin
 @Configuration
@@ -113,141 +129,21 @@ mysql> select * from TASK_EXECUTION;
 >
 > [Deploying a Spring Cloud Task application by Using Data Flow](https://dataflow.spring.io/docs/batch-developer-guides/batch/data-flow-simple-task/)
 
-**Install minikube**
-- 로컬에서 kubernetes 환경을 만들기 위해 minikube 설치를 진행하자.
-- [minikube start](https://minikube.sigs.k8s.io/docs/start/?arch=%2Fmacos%2Farm64%2Fstable%2Fbinary+download)
+Spring Cloud Data Flow를 사용하기 위해 서버 구성 요소를 설치해야 하는데, Data Flow는 기본적으로 아래 세 가지 플랫폼을 지원한다.
+- local
+- [Cloud Foundry](https://www.cloudfoundry.org/)
+- [Kubernetes](https://kubernetes.io/)
+
+여기서는 간단한 테스트를 위해 `spring-cloud-dataflow-server.jar` 파일을 직접 실행하려고 한다.
+- [Manual Installation](https://dataflow.spring.io/docs/installation/local/manual/)
 
 ```sh
-# minikube 설치
-$ brew install minikube
+wget https://repo.maven.apache.org/maven2/org/springframework/cloud/spring-cloud-dataflow-server/2.11.5/spring-cloud-dataflow-server-2.11.5.jar
 
-# minikube 버전 확인
-$ minikube version
-
-# minikube 실행
-$ minikube start --driver=docker
-
-# minikube 실행 확인
-$ minikube status
-
-# kubectl 설치
-$ brew install kubectl
-```
-.
-
-**Install SCDF with minikube**
-- 아래 가이드를 참고하여 SCDF를 설치해 보자.
-- [Spring Cloud Data Flow / Deploying with kubectl](https://godekdls.github.io/Spring%20Cloud%20Data%20Flow/installation.kubernetes.kubectl/)
-
-메타데이터셋 준비
-
-```sh
-git clone https://github.com/spring-cloud/spring-cloud-dataflow
-
-cd spring-cloud-dataflow
-
-git checkout v2.9.1
-```
-
-애플리케이션끼리의 통신을 위해 메세지 브로커(kafka) 설치
-
-```sh
-kubectl create -f src/kubernetes/kafka/
-
-# deployment, pod, service 리소스가 실행중인지 확인
-kubectl get all -l app=kafka
-```
-
-Data Flow는 여러 가지 서비스와 함께 배포가 필요
-- MySQL
-- Enable Monitoring(Prometheus, Grafana)
-- Skipper
-
-```sh
-# Deploy MySQL
-kubectl create -f src/kubernetes/mysql/
-kubectl get all -l app=mysql
-
-# Enable Monitoring
-...
-
-# Create Data FLow Role Binginds and Service Account
-kubectl create -f src/kubernetes/server/server-roles.yaml
-kubectl create -f src/kubernetes/server/server-rolebinding.yaml
-kubectl create -f src/kubernetes/server/service-account.yaml
-```
-
-⚠️ Create Data FLow Role Binginds and Service Account 단계에서 아래 에러가 발생할 경우
-
-```text
-error: resource mapping not found for name: "scdf-rb" namespace: "" from "src/kubernetes/server/server-rolebinding.yaml": no matches for kind "RoleBinding" in version "rbac.authorization.k8s.io/v1beta1"
-ensure CRDs are installed first
-```
-
-`server-rolebinding.yaml` 파일에서 apiVersion 을 `rbac.authorization.k8s.io/v1`로 수정이 필요하다.
-
-### Deploy Skipper
-
-Data Flow는 스트림 라이프사이클 관리를 `Skipper`에 위임하므로, 스트림 관리 기능을 이용하려면 `Skipper`가 필요하다.
-
-```sh
-# 카프카를 메세징 미들웨어로 사용
-kubectl create -f src/kubernetes/skipper/skipper-config-kafka.yaml
-
-# Skipper 실행
-kubectl create -f src/kubernetes/skipper/skipper-deployment.yaml
-kubectl create -f src/kubernetes/skipper/skipper-svc.yaml
-
-# 리소스 확인
-kubectl get all -l app=skipper
-```
-
-### Deploy Data Flow server
-
-`src/kubernetes/server/server-deployment.yaml`에 정의
-- 카프카에 대한 설정: `src/kubernetes/skipper/skipper-config-kafka.yaml`
-- MySQL secrets: `src/kubernetes/mysql/mysql-secrets.yaml`
-
-```sh
-# 기본 설정으로 configMap 생성
-kubectl create -f src/kubernetes/server/server-config.yaml
-
-# scdf server Deployment
-kubectl create -f src/kubernetes/server/server-svc.yaml
-kubectl create -f src/kubernetes/server/server-deployment.yaml
-
-# 리소스 확인
-kubectl get all -l app=scdf-server
-
-# scdf-server에 할당된 EXTERNAL_IP 확인
-kubectl get svc scdf-server
-# minikube 사용 시 외부 로드 밸런서가 없으므로 pending 상태이므로
-# scdf-server 서비스에 할당된 NodePort를 사용해야 한다.
-minikube service --url scdf-server
+java -jar spring-cloud-dataflow-server-2.11.5.jar
 ```
 
 
-
-
-```sh
-# 리소스 확인
-kubectl get all -l app=skipper
-
-# 리소스 정리
-kubectl delete all -l app=kafka
-
-minikube stop
-minikube delete
-
-$ kubectl get pods
-```
-
-
-
-
-
-
-[spring-cloud / spring-cloud-dataflow](https://github.com/spring-cloud/spring-cloud-dataflow)
 
 
 
