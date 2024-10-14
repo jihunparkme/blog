@@ -181,21 +181,48 @@ java -jar spring-cloud-dataflow-server-2.11.5.jar
 2024-10-13 20:19:01.271  INFO 33132 --- [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port(s): 9393 (http)
 ```
 
+### Build an image on a docker
+
+> docker hub 에 task application 이미지 올리기
+
+```sh
+# >> project path
+
+# docker login
+$ docker login
+
+# project build
+$ ./gradlew build
+
+# make docker directory and create Dockerfile
+$ mkdir docker
+$ cd docker
+$ cp ../build/libs/billsetuptask-0.0.1-SNAPSHOT.jar .
+$ vi Dockerfile
+
+# 이미지를 생성할 때 사용할 기반 이미지
+FROM openjdk:17-jdk-slim 
+# JAR_FILE 변수
+ARG JAR_FILE=billsetuptask-0.0.1-SNAPSHOT.jar 
+# 실행할 jar 파일을 도커 컨테이너 내부에 billsetuptask.jar 이름으로 복사
+COPY ${JAR_FILE} billsetuptask.jar 
+ # 컨테이너가 시작될 때 실행할 스크립트 혹은 명령
+ENTRYPOINT ["java","-jar","/billsetuptask.jar"]
+
+...
+
+# -t : 특정 이름으로 이미지 빌드
+# . : Dockerfile 경로
+$ docker build -t billsetuptask .
+
+# search created image
+$ docker images
+
+REPOSITORY                    TAG          IMAGE ID       CREATED         SIZE
+billsetuptask                 latest       98dfb123a43a   2 minutes ago   432MB
+...
+```
+
 ### Dashboard
 
 http://localhost:9393/dashboard 접속
-
-
-docker hub 에 task application 이미지 올리기
-
-```sh
-cd projectDir
-
-./gradlew build
-```
-
-
-
-
-
-
