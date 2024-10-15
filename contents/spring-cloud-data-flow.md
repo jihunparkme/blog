@@ -143,6 +143,8 @@ Spring Cloud Data Flow를 사용하기 위해 서버 구성 요소를 설치해�
 - [Cloud Foundry](https://www.cloudfoundry.org/)
 - [Kubernetes](https://kubernetes.io/)
 
+### Execute Dataflow
+
 여기서는 간단한 테스트를 위해 `spring-cloud-dataflow-server-x.x.x.jar` 파일을 직접 실행하려고 한다.
 - [Manual Installation](https://dataflow.spring.io/docs/installation/local/manual/)
 
@@ -213,7 +215,7 @@ ENTRYPOINT ["java","-jar","/billsetuptask.jar"]
 
 # -t : 특정 이름으로 이미지 빌드
 # . : Dockerfile 경로
-$ docker build -t billsetuptask .
+$ docker build -t jihunparkme/billsetuptask:0.0.1-SNAPSHOT .   
 
 # search created image
 $ docker images
@@ -221,8 +223,24 @@ $ docker images
 REPOSITORY                    TAG          IMAGE ID       CREATED         SIZE
 billsetuptask                 latest       98dfb123a43a   2 minutes ago   432MB
 ...
+
+# push docker image
+$ docker push jihunparkme/billsetuptask:0.0.1-SNAPSHOT
 ```
 
-### Dashboard
+### Date Flow Dashboard
+
+> [Deploying a Spring Cloud Task application by Using Data Flow](https://godekdls.github.io/Spring%20Cloud%20Data%20Flow/batch-developer-guides.batch-development.data-flow-simple-task/)
 
 http://localhost:9393/dashboard 접속
+
+![dashboard](https://github.com/jihunparkme/blog/blob/main/img/scdf/dashboard.png?raw=true)
+
+### Add Application
+
+> Dashboard ➜ Add application ➜ Register one or more applications ➜ Import Application
+
+- `Name`: 리소스 이름
+- `Type`: Spring Cloud Task application은 항상 `Task` 타입으로 등록
+- `URI`: docker:\<docker-image-path\>/\<imageName\>:\<Version\>
+
