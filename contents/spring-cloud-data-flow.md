@@ -251,3 +251,27 @@ http://localhost:9393/dashboard 접속
 **Application**
 
 ![dashboard](https://github.com/jihunparkme/blog/blob/main/img/scdf/application.png?raw=true)
+
+### Create the Task Definition
+
+> Tasks ➜ Create a task ➜ drag task ➜ Connect to a node ➜ CREATE TASK
+
+**Add Task**
+
+![dashboard](https://github.com/jihunparkme/blog/blob/main/img/scdf/add-task.png?raw=true)
+
+**Task**
+
+![dashboard](https://github.com/jihunparkme/blog/blob/main/img/scdf/task.png?raw=true)
+
+### Launching the Task
+
+> Tasks ➜ Task Menu ➜ Lanuch ➜ Launch task
+
+**Tasks**
+
+![dashboard]()
+
+**Launch task bill-setup-task**
+
+![dashboard]()
