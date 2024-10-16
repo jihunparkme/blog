@@ -244,3 +244,10 @@ http://localhost:9393/dashboard 접속
 - `Type`: Spring Cloud Task application은 항상 `Task` 타입으로 등록
 - `URI`: docker:\<docker-image-path\>/\<imageName\>:\<Version\>
 
+**Add Application(s)**
+
+![dashboard](https://github.com/jihunparkme/blog/blob/main/img/scdf/add-application.png?raw=true)
+
+**Application**
+
+![dashboard](https://github.com/jihunparkme/blog/blob/main/img/scdf/application.png?raw=true)
