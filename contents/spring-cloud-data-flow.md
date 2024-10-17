@@ -268,10 +268,14 @@ http://localhost:9393/dashboard 접속
 
 > Tasks ➜ Task Menu ➜ Lanuch ➜ Launch task
 
+Error creating bean with name 'org.springframework.cloud.task.configuration.TaskLifecycleConfiguration': Unsatisfied dependency expressed through constructor parameter 2: Error creating bean with name 'org.springframework.cloud.task.configuration.SimpleTaskAutoConfiguration': Invocation of init method failed
+
+에러 확인
+
 **Tasks**
 
-![dashboard]()
+![dashboard](https://github.com/jihunparkme/blog/blob/main/img/scdf/tasks.png?raw=true)
 
 **Launch task bill-setup-task**
 
-![dashboard]()
+![dashboard](https://github.com/jihunparkme/blog/blob/main/img/scdf/launch-task.png?raw=true)
