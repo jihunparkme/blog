@@ -93,7 +93,7 @@ val longSum = 3L + intVar
 - toFloat(): Float
 - toDouble(): Double
 
-## 중위함수
+## 중위(infix) 함수
 
 > 코틀린에는 자바처럼 내장 거듭제곱 연산자가 없다.
 
@@ -154,3 +154,78 @@ fun `raise to pwoer`() {
     )
 }
 ```
+
+## Pair 인스턴스
+
+> 중위(infix) to 함수로 Pair 클래스의 인스턴스를 생성할 수 있다.
+
+코틀린은 Pair 인스턴스의 리스트로부터 맵을 생성하는 mapOf와 같은 맵 생성을 위한 최상위 함수 몇 가지를 제공
+
+```kotlin
+fun <K, V> mapOf(vararg pairs: Pair<K, V>): Map<K, V>
+```
+
+Pair는 first, second 이름의 두 개의 원소를 갖는 데이터 클래스이다.
+
+```kotlin
+data class Pair<out A, out B> : Serializable
+```
+
+Pair 클래스는 두 개의 인자를 받는 생성자를 사용해서 Pair 클래스를 생성할 수 있지만, to 함수를 사용하는 것이 일반적이다.
+
+```kotlin
+public infix fun <A, B> A.to(that: B): Pair<A, B> = Pair(this, that)
+```
+
+👉🏻 **mapOf 인자인 pair를 생성하기 위해 to 함수 사용하기**
+
+```kotlin
+@Test
+fun `create map using infix to function`() {
+    // to를 사용한 Pair 생성
+    val map = mapOf("a" to 1, "b" to 2, "c" to 2)
+
+    assertAll(
+        { assertTrue(map.containsKey("a")) },
+        { assertTrue(map.containsKey("b")) },
+        { assertTrue(map.containsKey("c")) },
+        { assertTrue(map.containsValue(1)) },
+        { assertTrue(map.containsValue(2)) },
+    )
+}
+
+@Test
+fun `create a Pair form constructor vs to function`() {
+    val p1 = Pair("a", 1) // 생성자를 사용한 Pair 생성
+    val p2 = "a" to 1 // to를 사용한 Pair 생성
+
+    assertAll(
+        { assertEquals(p1.first, "a") },
+        { assertEquals(p1.second, 1) },
+        { assertEquals(p2.first, "a") },
+        { assertEquals(p2.second, 1) },
+        { assertEquals(p1, p2) },
+    )
+}
+```
+
+⚠️ Pair는 데이터 클래스이므로 구조 분해를 통해서만 개별 원소에 접근할 수 있다.
+
+```kotlin
+@Test
+fun `destructuring a Pair`() {
+    val pair = "a" to 1
+    val (x, y) = pair
+
+    assertEquals(x, "a")
+    assertEquals(y, 1)
+}
+```
+
+{% hint style="info" %}
+
+**Triple**
+
+세 개의 값을 나타내는 Triple이라는 이름의 클래스도 코틀린 표준 라이브러리에 들어 있다.
+
+{% endhint %}
