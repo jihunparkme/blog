@@ -4,6 +4,8 @@
 
 ![BOOK](https://github.com/jihunparkme/blog/blob/main/img/kotlin/kotlin-cookbook.jpeg?raw=true)
 
+[Kotlin Cookbook samples](https://github.com/kousen/kotlin-cookbook)
+
 # 코틀린 기초
 
 ## Null 허용 타입
@@ -90,3 +92,65 @@ val longSum = 3L + intVar
 - toLong(): Long
 - toFloat(): Float
 - toDouble(): Double
+
+## 중위함수
+
+> 코틀린에는 자바처럼 내장 거듭제곱 연산자가 없다.
+
+👉🏻 **시그니처의 확장 함수를 정의**
+
+```kotlin
+fun Int.pow(x: Int) = toDouble().pow(x).toInt()
+fun Long.pow(x: Int) = toDouble().pow(x).toLong()
+```
+
+👉🏻 **중위 연산자 infix 정의**
+
+```kotlin
+import kotlin.math.pow
+
+infix fun Int.`**`(x: Int) = toDouble().pow(x).toInt()
+infix fun Long.`**`(x: Int) = toDouble().pow(x).toLong()
+infix fun Float.`**`(x: Int) = pow()
+infix fun Double.`**`(x: Int) = pow()
+
+fun Int.pow(x: Int) = `**`(x)
+fun Long.pow(x: Int) = `**`(x)
+
+...
+
+@Test
+fun `raise to pwoer`() {
+    assertAll(
+        { assertEquals(1, 2 `**` 0) },
+        { assertEquals(2, 2 `**` 1) },
+        { assertEquals(4, 2 `**` 2) },
+        { assertEquals(8, 2 `**` 3) },
+
+        { assertEquals(1L, 2L `**` 0) },
+        { assertEquals(2L, 2L `**` 1) },
+        { assertEquals(4L, 2L `**` 2) },
+        { assertEquals(8L, 2L `**` 3) },
+
+        { assertEquals(1F, 2F `**` 0) },
+        { assertEquals(2F, 2F `**` 1) },
+        { assertEquals(4F, 2F `**` 2) },
+        { assertEquals(8F, 2F `**` 3) },
+
+        { assertEquals(1.0, 2.0 `**` 0) },
+        { assertEquals(2.0, 2.0 `**` 1) },
+        { assertEquals(4.0, 2.0 `**` 2) },
+        { assertEquals(8.0, 2.0 `**` 3) },
+
+        { assertEquals(1, 2.pow(0)) },
+        { assertEquals(2, 2.pow(1)) },
+        { assertEquals(4, 2.pow(2)) },
+        { assertEquals(8, 2.pow(3)) },
+
+        { assertEquals(1L, 2L.pow(0)) },
+        { assertEquals(2L, 2L.pow(1)) },
+        { assertEquals(4L, 2L.pow(2)) },
+        { assertEquals(8L, 2L.pow(3)) },
+    )
+}
+```
