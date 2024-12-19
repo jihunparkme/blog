@@ -1,4 +1,4 @@
-# Sign in with Apple
+# Oauth2 Sign in
 
 # OAuth 2.0 Login(Kakao, Google, Apple)
 
@@ -24,6 +24,7 @@
   - 로그인 시 가져올 정보 선택(일부 항목은 검수)
 
 .
+
 
 
 
@@ -84,12 +85,30 @@
   - 승인된 리디렉션 URI: `http://localhost:8080/login/oauth2/code/google`
 
 
+```json
+{
+  "web": {
+    "client_id": "123456678123-9shapubp16vmidk9mee67w4nxc4n06o94.apps.googleusercontent.com",
+    "project_id": "aaron-123123",
+    "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+    "token_uri": "https://oauth2.googleapis.com/token",
+    "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+    "client_secret": "ABCDEF-BV4vlK0-e3exFnAt4dovkeOiVir3",
+    "redirect_uris": [
+      "http://localhost:8080/login/oauth2/code/google"
+    ],
+    "javascript_origins": [
+      "http://localhost:8080"
+    ]
+  }
+}
+```
+
+
 .
 
 - JWT 적용은 인프런 강의를 참고
   - [Spring Boot JWT Tutorial](https://www.inflearn.com/course/%EC%8A%A4%ED%94%84%EB%A7%81%EB%B6%80%ED%8A%B8-jwt/dashboard)
-- [Redis 로 토근 관리](https://haviyj.tistory.com/38)
-- [db로 세션 관리](https://jojoldu.tistory.com/170?category=635883)
 - [Spring Security 소셜 로그인 로직 구현하기](https://inkyu-yoon.github.io/docs/Language/SpringBoot/OauthLogin)
 - <https://velog.io/@gkrry2723/SpringBoot-OAuth2-%ED%99%9C%EC%9A%A9%ED%95%B4%EC%84%9C-Google-login-%EA%B5%AC%ED%98%84%ED%95%98%EA%B8%B02-%EC%8A%A4%ED%94%84%EB%A7%81-%EC%8B%9C%ED%81%90%EB%A6%AC%ED%8B%B0-%EC%A0%81%EC%9A%A9%ED%95%98%EA%B8%B0>
 - <https://zkdlu.tistory.com/12>
@@ -107,10 +126,50 @@
 
 
 
+
 ## Apple
 
 
-- apple
+
+
+https://appleid.apple.com/auth/authorize?scope=name%20email&scope=name%20email&response_mode=form_post&response_type=code&client_id=net.dongsik.REON&state=tTN_CXov4I0KQ_jh3UJdV-jZYvIyqQsUJyPYdtItbUI%3D&redirect_uri=https://www.reonai.shop/login/oauth2/code/apple
+
+
+
+https://appleid.apple.com/auth/authorize?client_id=com.reonaicoffee.services&redirect_uri=https%3A%2F%2Fwww.reonaicoffee.com%2Flogin%2Foauth2%2Fapple%2Fredirect&nonce=20R22E-0O4-0N4&response_type=code+id_token&scope=name+email&response_mode=form_post 
+
+
+
+/**
+ * state: null
+ * code: c972c3853257040a4991f0ce1efabd445.0.rryus.EyPtDHR9_y1wD6Ev9lSbnQ
+ * idToken: eyJraWQiOiJCaDZIN3JIVm1iIiwiYWxnIjoiUlMyNTYifQ.eyJpc3MiOiJodHRwczovL2FwcGxlaWQuYXBwbGUuY29tIiwiYXVkIjoiY29tLnJlb25haWNvZmZlZS5zZXJ2aWNlcyIsImV4cCI6MTcwOTQ0OTAzNywiaWF0IjoxNzA5MzYyNjM3LCJzdWIiOiIwMDE4NDIuZmFkMGIzYzk1NTg0NDQ1MGFhNjM1OGYwNGE0ZjQyNDMuMTIyOCIsIm5vbmNlIjoiMjBCMjBELTBTOC0xSzgiLCJjX2hhc2giOiJHZ2h0R0h5SzlkaUdldVdpQWNMMFpBIiwiZW1haWwiOiJwbGs0NjIzQG5hdmVyLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJhdXRoX3RpbWUiOjE3MDkzNjI2MzcsIm5vbmNlX3N1cHBvcnRlZCI6dHJ1ZX0.ejM54W1fX24yukRmuTSohdtbL2uO_ieW--zgJML9PaiiaeEq9GfLwmY82K-IcIQxP3jEd_XKk7ZJ_pnhlS0N7U2vrxeA8CzsSPBzOtg6bFNqU1x5ILUP81-dRPsLBT4awFzfUZMZoEy4N6Dp3pK6NyFDtpxYyMwr_dhsjngu7Zdv08nv-nIuVcQuWnq7a4b-yRWBsWh4uiQANUBInVcNiMMxV_pk4xYcmYRJB3bcVQk7vbEz7aIaO2ObxOiGrkpXm1gQ5ei1BhnWfuKHS4dJTebg36UfvfoU_Y-czTineo4kER3Qx49YiL4r8FiCygYJDwRt_Bs8AmWNakCrT999Tg
+ * user: null
+ */
+
+
+
+
+- https://whitepaek.tistory.com/60
+- https://whitepaek.tistory.com/61
+
+
+
+
+
+
+
+
+https://shxrecord.tistory.com/289
+https://tyrannocoding.tistory.com/66
+
+
+
+https://mingg123.tistory.com/262
+https://devcheon.tistory.com/98
+https://velog.io/@ddonghyeo_/Spring-%EC%95%A0%ED%94%8C-%EB%A1%9C%EA%B7%B8%EC%9D%B8-%EA%B5%AC%ED%98%84%ED%95%98%EA%B8%B0
+https://hwannny.tistory.com/71
+https://2bmw3.tistory.com/23
   - https://shxrecord.tistory.com/289
   - https://2bmw3.tistory.com/22
 
@@ -206,3 +265,8 @@ public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
     return http.build();
 }
 ```
+
+
+
+
+
