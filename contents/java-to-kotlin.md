@@ -12,7 +12,8 @@
 
 IDE의 도움으로 kotlin 설정을 마치면 `build.gradle`, `settings.gradle` 파일에 코틀린 설정이 추가됩니다.
 
-🔗 [commit](https://github.com/jihunparkme/tech-news/commit/efa999f9fe8da9750454e0fc18fcb868c553e057)
+- 🔗 [commit](https://github.com/jihunparkme/tech-news/commit/efa999f9fe8da9750454e0fc18fcb868c553e057)
+- 🔗 [commit ](https://github.com/jihunparkme/tech-news/commit/e5a38732268b26db0b2646aa5e5ee78aea70db57)
 
 ## Minimum Gradle version
 
