@@ -161,7 +161,7 @@ gradle version 설정은 `gradle > wrapper > gradle-wrapper.properties`에서 �
 ### lombok 대신 data class
 
 - 컴파일러가 `equals()`, `hashCode()`, `toString()`, `copy()`, `componentN()` 메서드를 자동 생성
-- 데이터 클래스에 property 를 선언하는 순간 해당 property 는 `field`, `Getter`, Setter, 생성자 파라미터 역할
+- 데이터 클래스에 property 를 선언하는 순간 해당 property 는 `field`, `Getter`, `Setter`, `생성자 파라미터 `역할
 
 ䷿ AS-IS) 
 
@@ -199,22 +199,184 @@ public class Post {
 ```kotlin
 @Document(collection = "posts")
 data class Post(
-    val id: String = StringUtils.EMPTY,
-    val subject: String = StringUtils.EMPTY,
-    val title: String = StringUtils.EMPTY,
-    val url: String = StringUtils.EMPTY,
-    val category: String = StringUtils.EMPTY,
-    val writer: String = StringUtils.EMPTY,
-    val date: String = StringUtils.EMPTY,
+    val id: String = "",
+    val subject: String = "",
+    val title: String = "",
+    val url: String = "",
+    val category: String = "",
+    val writer: String = "",
+    val date: String = "",
     var tags: List<String> = emptyList(),
     var shared: Boolean = false,
-    val createdDt: String = StringUtils.EMPTY,
+    val createdDt: String = "",
 ) {
     fun share() {
-        this.shared = true
+        shared = true
     }
 }
+```
 
+### Enum
+
+- enum도 마찬가지로 property 선언이 `field`, `Getter`, `Setter`, `생성자 파라미터` 역할을 하게 됩니다.
+
+䷿ AS-IS) 
+
+```java
+@AllArgsConstructor
+public enum PostSubjects {
+    SPRING("Spring"),
+    JAVA("Java"),
+    ;
+
+    private String value;
+
+    public String value() {
+        return value;
+    }
+}
+```
+
+䷾ TO-BE)
+
+```kotlin
+enum class PostSubjects(val value: String) {
+    SPRING("Spring"),
+    JAVA("Java"),
+    ;
+
+    companion object {
+        fun from(value: String): PostSubjects {
+            return entries.firstOrNull { it.value == value} ?: SPRING
+        }
+    }
+}
+```
+
+### Controller
+
+- 아래 코드 기준으로는 `@RequiredArgsConstructor` 제외하고는 크게 달라지는 점이 없어 보네요.
+
+䷿ AS-IS) 
+
+```java
+@RestController
+@RequestMapping("/posts")
+@RequiredArgsConstructor
+public class PostsController {
+
+    private final PostsService postsService;
+
+    @GetMapping("/spring")
+    public ResponseEntity springScroll(
+            @RequestParam(value = "categories", required = false) final List<String> categories,
+            @RequestParam(value = "page", required = false, defaultValue = "1") final int page,
+            @RequestParam(value = "size", required = false, defaultValue = "10") final int size) {
+
+        final PageRequest pageable = PageRequest.of(page, size,
+                Sort.by("createdDt").descending().and(Sort.by("date").descending()));
+        final Page<Post> releasePage = postsService.findAllRelease(PostSubjects.SPRING, pageable, categories);
+        return BasicResponse.ok(releasePage);
+    }
+    //...
+}
+```
+
+䷾ TO-BE)
+
+```kotlin
+@RestController
+@RequestMapping("/posts")
+class PostsController(
+    private val postsService: PostsService
+) {
+    @GetMapping("/spring")
+    fun springScroll(
+        @RequestParam(value = "categories", required = false) categories: List<String>?,
+        @RequestParam(value = "page", required = false, defaultValue = "1") page: Int,
+        @RequestParam(value = "size", required = false, defaultValue = "10") size: Int
+    ): ResponseEntity<*> {
+        val pageable = PageRequest.of(
+            page, size,
+            Sort.by("createdDt").descending().and(Sort.by("date").descending())
+        )
+        val releasePage = postsService.findAllRelease(PostSubjects.SPRING, pageable, categories)
+        return BasicResponse.ok(releasePage)
+    }
+    //...
+}
+```
+
+### Service
+
+- kotlin 코드가 확실하게 간결한 것을 확인할 수 있습니다.
+
+䷿ AS-IS) 
+
+```java
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class PostsSchedulerService {
+
+    private final PostsRepository postsRepository;
+
+    @Transactional
+    public void insertPost(SavePostRequest savePostRequest) {
+        try {
+            postsRepository.save(savePostRequest.toPost());
+            log.info("add new post. {}", savePostRequest.getTitle());
+        } catch (Exception e) {
+            log.error("SpringBlogsSchedulerService.insertPost exception", e);
+        }
+    }
+
+    @Transactional(readOnly = true)
+    public Post findLatestPost(final String category) {
+        final List<Post> latestPost = postsRepository.findByCategoryOrderByDateDescLimitOne(category);
+        if (latestPost.isEmpty()) {
+            return Post.EMPTY;
+        }
+
+        return latestPost.get(0);
+    }
+
+    public boolean isNotExistOracleJavaPosts(final String title) {
+        final List<Post> posts = postsRepository.findByTitle(title);
+        if (posts.isEmpty()) {
+            return true;
+        }
+        return false;
+    }
+}
+```
+
+䷾ TO-BE)
+
+```kotlin
+private val logger = KotlinLogging.logger {}
+
+@Service
+class PostsSchedulerService(
+    private val postsRepository: PostsRepository,
+) {
+    @Transactional
+    fun insertPost(savePostRequest: SavePostRequest) {
+        return try {
+            postsRepository.save(savePostRequest.toPost())
+            logger.info("add new post. ${savePostRequest.title}")
+        } catch (e: java.lang.Exception) {
+            logger.error("SpringBlogsSchedulerService.insertPost exception", e)
+        }
+    }
+
+    @Transactional(readOnly = true)
+    fun findLatestPost(category: String): Post =
+        postsRepository.findByCategoryOrderByDateDescLimitOne(category).firstOrNull() ?: Post()
+
+    fun isNotExistOracleJavaPosts(title: String): Boolean =
+        postsRepository.findByTitle(title).isEmpty()
+}
 ```
 
 ### warning
