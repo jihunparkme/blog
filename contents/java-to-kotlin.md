@@ -8,7 +8,7 @@
 
 ※ [Which versions of Kotlin are compatible with which versions of Java?](https://stackoverflow.com/questions/63989767/which-versions-of-kotlin-are-compatible-with-which-versions-of-java)
 
-![Result](https://github.com/jihunparkme/blog/blob/main/img/java-tio-kotlin/kotlin-version.png?raw=true 'Result')
+<center><img src="https://github.com/jihunparkme/blog/blob/main/img/java-tio-kotlin/kotlin-version.png?raw=true" width="80%"></center>
 
 IDE의 도움으로 kotlin 설정을 마치면 `build.gradle`, `settings.gradle` 파일에 코틀린 설정이 추가됩니다.
 
@@ -150,7 +150,7 @@ Kotlin version `2.1.0`으로 설정했으니 Gradle version `8.11`로 사용할 
 
 [Compatibility Matrix](https://docs.gradle.org/current/userguide/compatibility.html#kotlin)
 
-![Result](https://github.com/jihunparkme/blog/blob/main/img/java-tio-kotlin/embedded-kotlin-version.png?raw=true 'Result')
+<center><img src="https://github.com/jihunparkme/blog/blob/main/img/java-tio-kotlin/embedded-kotlin-version.png?raw=true" width="60%"></center>
 
 gradle version 설정은 `gradle > wrapper > gradle-wrapper.properties`에서 수정할 수 있습니다.
 
@@ -163,7 +163,59 @@ gradle version 설정은 `gradle > wrapper > gradle-wrapper.properties`에서 �
 - 컴파일러가 `equals()`, `hashCode()`, `toString()`, `copy()`, `componentN()` 메서드를 자동 생성
 - 데이터 클래스에 property 를 선언하는 순간 해당 property 는 `field`, `Getter`, Setter, 생성자 파라미터 역할
 
-🔗 [commit](https://github.com/jihunparkme/tech-news/commit/4b9eb953ab1742e186b348a70783ff025b085dc0)
+䷿ AS-IS) 
+
+```java
+@Document(collection = "posts")
+@Getter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class Post {
+    public static final Post EMPTY =
+            new Post("", "", "", "", "", "", "", Collections.EMPTY_LIST, false, "");
+
+    private String id;
+    private String subject;
+    private String title;
+    private String url;
+
+    private String category;
+    private String writer;
+    private String date;
+    List<String> tags;
+
+    private boolean shared;
+    private String createdDt;
+
+    public void share() {
+        this.shared = true;
+    }
+}
+```
+
+䷾ TO-BE)
+
+```kotlin
+@Document(collection = "posts")
+data class Post(
+    val id: String = StringUtils.EMPTY,
+    val subject: String = StringUtils.EMPTY,
+    val title: String = StringUtils.EMPTY,
+    val url: String = StringUtils.EMPTY,
+    val category: String = StringUtils.EMPTY,
+    val writer: String = StringUtils.EMPTY,
+    val date: String = StringUtils.EMPTY,
+    var tags: List<String> = emptyList(),
+    var shared: Boolean = false,
+    val createdDt: String = StringUtils.EMPTY,
+) {
+    fun share() {
+        this.shared = true
+    }
+}
+
+```
 
 ### warning
 
