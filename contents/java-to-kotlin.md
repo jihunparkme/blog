@@ -158,6 +158,15 @@ gradle version 설정은 `gradle > wrapper > gradle-wrapper.properties`에서 �
 
 먼저 `java`에서 적용되던 `lombok`과의 이별을 해야 할 때입니다.
 
+전반적인 전환 순서는 컴파일 오류가 발생하는 lombok을 없애면서 변환하게 되었는데, 대략적으로 아래 순서로 진행하게 되었던 것 같습니다.
+- DTO class
+- Util class
+- Entity class
+- Repository class
+- Service class
+- Controller class
+- 테스트 코드도 변환 및 보완하면서 정상동작 확인
+
 ### lombok 대신 data class
 
 - 컴파일러가 `equals()`, `hashCode()`, `toString()`, `copy()`, `componentN()` 메서드를 자동 생성
@@ -166,30 +175,49 @@ gradle version 설정은 `gradle > wrapper > gradle-wrapper.properties`에서 �
 ䷿ AS-IS) 
 
 ```java
-@Document(collection = "posts")
+@Slf4j
 @Getter
+@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Post {
-    public static final Post EMPTY =
-            new Post("", "", "", "", "", "", "", Collections.EMPTY_LIST, false, "");
-
-    private String id;
+public class SavePostRequest {
     private String subject;
     private String title;
     private String url;
-
     private String category;
     private String writer;
     private String date;
     List<String> tags;
-
-    private boolean shared;
     private String createdDt;
 
-    public void share() {
-        this.shared = true;
+    public boolean isLatestDatePost(final String latestPostDate) {
+        if (StringUtils.isBlank(this.date) || StringUtils.isBlank(latestPostDate)) {
+            return true;
+        }
+
+        try {
+            final LocalDate latest = LocalDate.parse(latestPostDate, DateUtils.CREATED_FORMATTER);
+            final LocalDate date = LocalDate.parse(this.date, DateUtils.CREATED_FORMATTER);
+            return date.isAfter(latest);
+        } catch (Exception e) {
+            log.error("Error parsing the date. date: {}, message: {}", this.date, e.getMessage(), e);
+            return false;
+        }
+    }
+
+    public Post toPost() {
+        return Post.builder()
+                .subject(this.subject)
+                .title(this.title)
+                .category(this.category)
+                .writer(this.writer)
+                .date(this.date)
+                .tags(this.tags)
+                .url(this.url)
+                .shared(false)
+                .createdDt(this.createdDt)
+                .build();
     }
 }
 ```
@@ -197,22 +225,43 @@ public class Post {
 ䷾ TO-BE)
 
 ```kotlin
-@Document(collection = "posts")
-data class Post(
-    val id: String = "",
-    val subject: String = "",
-    val title: String = "",
-    val url: String = "",
-    val category: String = "",
-    val writer: String = "",
-    val date: String = "",
-    var tags: List<String> = emptyList(),
-    var shared: Boolean = false,
-    val createdDt: String = "",
+private val logger = KotlinLogging.logger {}
+
+data class SavePostRequest(
+    val subject: String,
+    val title: String,
+    val url: String,
+    val category: String,
+    val writer: String,
+    val date: String,
+    var tags: List<String>,
+    val createdDt: String,
 ) {
-    fun share() {
-        shared = true
+
+    fun isLatestDatePost(latestPostDate: String): Boolean {
+        if (date.isBlank() || latestPostDate.isBlank()) return true
+
+        return try {
+            val latest = LocalDate.parse(latestPostDate, DateUtils.CREATED_FORMATTER)
+            val parsedDate = LocalDate.parse(date, DateUtils.CREATED_FORMATTER)
+            parsedDate.isAfter(latest)
+        } catch (e: Exception) {
+            logger.error { "Error parsing the date. date: $date, message: ${e.message}" }
+            false
+        }
     }
+
+    fun toPost(): Post = Post(
+        subject = this.subject,
+        title = this.title,
+        category = this.category,
+        writer = this.writer,
+        date = this.date,
+        tags = this.tags,
+        url = this.url,
+        shared = false,
+        createdDt = this.createdDt,
+    )
 }
 ```
 
