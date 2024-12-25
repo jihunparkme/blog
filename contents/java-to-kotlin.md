@@ -470,6 +470,49 @@ fun createPost(
 
 👉🏻 `StringSpec`
 
+#### Kotest
+
+✅ `Kotest`
+
+- 코틀린다운 테스트를 위해 Kotest 라이브러리 활용
+- Kotlin에서 Kotest가 가장 많이 사용
+
+```kts
+testImplementation("io.kotest:kotest-runner-junit5:5.9.1")
+testImplementation("io.kotest.extensions:kotest-extensions-spring:1.3.0")
+```
+
+✅ `StringSpec`
+
+- 단위 테스트 작성 시 유용한 스펙
+
+```kotlin
+class SavePostRequestTest : StringSpec({
+    "latest post should be return true" {
+        val release = SavePostRequest(
+            date = "2024-04-30"
+        )
+        assertSoftly(release) {
+            release.isLatestDatePost("2024-04-29").shouldBeTrue()
+            release.isLatestDatePost("2024-04-26").shouldBeTrue()
+        }
+    }
+
+    "not latest post should be return false" {
+        val release = SavePostRequest(
+            date = "2024-04-30"
+        )
+        assertSoftly(release) {
+            release.isLatestDatePost("2024-04-30").shouldBeFalse()
+            release.isLatestDatePost("2024-04-31").shouldBeFalse()
+        }
+    }
+})
+```
+
+✅ `BehaviorSpec`
+
+✅ `ExpectSpec`
 
 ## Reference
 
