@@ -165,7 +165,7 @@ gradle version 설정은 `gradle > wrapper > gradle-wrapper.properties`에서 �
 - Repository class
 - Service class
 - Controller class
-- 테스트 코드도 변환 및 보완하면서 정상동작 확인
+- 테스트 코드도 변환 및 보완하면서 정상동작 확인 (Test 파트 참고)
 
 ### lombok 대신 data class
 
@@ -432,6 +432,44 @@ class PostsSchedulerService(
 
 - `Unnecessary non-null assertion (!!) ...` 불필요한 non-null assertion 제거
 - Kotlin은 Java로부터 변환될 때 null 허용을 기본으로 하고 있다보니 `?` 키워드를 가급적 모두 제거하고 필요 시 추가하기
+
+## Test
+
+### 단위테스트
+
+✅ `Fixtures`
+
+- 테스트 픽스처(테스트를 위한 전재 조건)를 반환하는 팩토리함수
+
+```kotlin
+createPost(title = "post01")
+createPost(subject = "subject01")
+
+...
+
+fun createPost(
+    id: String = "",
+    subject: String = "",
+    title: String = "",
+    url: String = "",
+    category: String = "",
+    writer: String = "",
+    date: String = "",
+    tags: List<String> = emptyList(),
+    shared: Boolean = false,
+    createdDt: String = "",
+): Post {
+    return Post(id, subject, title, url, category, writer, date, tags, shared, createdDt)
+}
+```
+
+✅ `테스트 확장함수`
+
+- 확장함수를 사용하여 값을 더 쉽게 표현
+- 확장함수로 검증 코드의 가독성을 향상
+
+👉🏻 `StringSpec`
+
 
 ## Reference
 
