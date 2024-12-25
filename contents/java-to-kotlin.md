@@ -484,7 +484,9 @@ testImplementation("io.kotest.extensions:kotest-extensions-spring:1.3.0")
 
 ✅ `StringSpec`
 
-- 단위 테스트 작성 시 유용한 스펙
+- 테스트를 단순하고 직관적으로 작성 가능
+- 각 테스트가 독립적으로 실행
+- 주로 `독립적인 단위 테스트`나, `테스트를 선언적`으로 나열하는 데 적합
 
 ```kotlin
 class SavePostRequestTest : StringSpec({
@@ -511,6 +513,42 @@ class SavePostRequestTest : StringSpec({
 ```
 
 ✅ `BehaviorSpec`
+
+- `BDD`(Behavior-Driven Development) 스타일로 작성된 테스트
+- 테스트를 `행동 단위로 그룹화`하며, Given, When, Then의 구조를 따름
+- 계층적으로 테스트를 구성할 수 있어 복잡한 시나리오 테스트에 적합
+
+```kotlin
+class PostsSchedulerServiceTest : BehaviorSpec({
+    val postsRepository = mockk<PostsRepository>()
+
+    val postsSchedulerService = PostsSchedulerService(postsRepository)
+
+    Given("특정 카테고리의 게시물이 존재하는 경우") {
+        val post = listOf(createPost(date = "2024-12-25"))
+
+        every { postsRepository.findByCategoryOrderByDateDescLimitOne(any()) } returns post
+
+        When("가장 마지막으로 수집된 게시을 조회하여") {
+            Then("게시일을 확인할 수 있다.") {
+                val lastPost = postsSchedulerService.findLastPost(JavaBlogsSubject.INSIDE.value)
+                lastPost.date shouldBe "2024-12-25"
+            }
+        }
+    }
+
+    Given("특정 카테고리의 게시물이 존재하지 않는 경우") {
+        every { postsRepository.findByCategoryOrderByDateDescLimitOne(any()) } returns emptyList()
+
+        When("기본 엔티티를 리턴하여") {
+            Then("기본 게시일을 확인할 수 있다.") {
+                val lastPost = postsSchedulerService.findLastPost(JavaBlogsSubject.INSIDE.value)
+                lastPost.date shouldBe ""
+            }
+        }
+    }
+})
+```
 
 ✅ `ExpectSpec`
 
