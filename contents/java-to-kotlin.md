@@ -552,6 +552,13 @@ class PostsSchedulerServiceTest : BehaviorSpec({
 
 ✅ `ExpectSpec`
 
+- `예상`(expectation) 기반의 테스트
+- 테스트 계층을 구성할 수 있고, 명확한 테스트 시나리오와 결과를 나타내는 데 유리
+- 기대치를 중심으로 `context`와 `expect` 블록을 사용해 테스트를 구성
+
+```kotlin
+```
+
 ## Reference
 
 > [자바 프로젝트 3개 코틀린 점진적 전환기(feat. lombok 됩니다.)](https://tech.kakaopay.com/post/kotlin-migration/)
