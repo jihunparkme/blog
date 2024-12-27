@@ -559,6 +559,44 @@ class PostsSchedulerServiceTest : BehaviorSpec({
 ```kotlin
 ```
 
+## ktlint
+
+> Kotlin 코드 스타일을 자동으로 검사하고 포맷팅하는 플러그인
+
+`ktlint`를 제공하는 여러 도구 중 [JLLeitschuh/ktlint-gradle](https://github.com/JLLeitschuh/ktlint-gradle) 이 주로 사용되는 것 같습니다.
+
+```kts
+id("org.jlleitschuh.gradle.ktlint") version "12.1.1"
+```
+
+[Standard rules](https://pinterest.github.io/ktlint/latest/rules/standard/)을 `enable` 처리할 수 있는데 `pinterest`에서 제공하는 `ktlint` 문서를 참고할 수 있습니다.
+- 커스텀한 규칙은 `.editorconfig` 파일에서 설정할 수 있습니다.
+
+**`.editorconfig`**
+
+```yml
+root = true
+
+[*]
+insert_final_newline = true
+
+[*.{kt,kts}]
+# A multiline expression should start on a new line
+ktlint_standard_string-template-indent=disabled
+ktlint_standard_multiline-expression-wrapping=disabled
+
+# Newline expected before closing parenthesis
+# Newline expected before expression body
+# First line of body expression fits on same line as function signature
+# ...
+ktlint_standard_function-signature=disabled
+
+# Parameter should start on a newline
+ktlint_standard_parameter-list-wrapping=disabled
+```
+
+
+
 ## Reference
 
 > [자바 프로젝트 3개 코틀린 점진적 전환기(feat. lombok 됩니다.)](https://tech.kakaopay.com/post/kotlin-migration/)
