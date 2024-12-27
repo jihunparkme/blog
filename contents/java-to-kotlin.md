@@ -595,7 +595,35 @@ ktlint_standard_function-signature=disabled
 ktlint_standard_parameter-list-wrapping=disabled
 ```
 
+### Apply IDE
 
+해당 프로젝트에만 적용
+
+```bash
+$ ./gradlew ktlintApplyToIdea
+```
+
+IntelliJ를 사용하는 모든 프로젝트에 적용
+
+```bash
+$ ./gradlew ktlintApplyToIdeaGlobally
+```
+
+수동으로 ktlint를 이용하여 컨벤션 체크
+- 또는 `Tasks` → `verification` → `ktlintCheck`
+
+```bash
+$ ./gradlew clean ktlintCheck
+```
+
+Git hook을 통해 ktlint 설정
+- 커밋 전에 ktlintCheck 테스트 실행
+- 등록한 hook을 삭제하고 싶다면, hook 경로(.git/hooks)에서 `pre-commit` 삭제
+
+```bash
+$ mkdir .git/hooks
+$ ./gradlew addKtlintCheckGitPreCommitHook
+```
 
 ## Reference
 
