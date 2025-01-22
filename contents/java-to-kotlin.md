@@ -557,6 +557,26 @@ class PostsSchedulerServiceTest : BehaviorSpec({
 - 기대치를 중심으로 `context`와 `expect` 블록을 사용해 테스트를 구성
 
 ```kotlin
+@RepositoryTest
+class RepositoryTest(
+    private val repository: Repository
+) : ExpectSpec({
+    context("A 조회") {
+        val now = LocalDateTime.now()
+        val codes = repository.saveAll(
+            listOf(
+                code(EMAIL, createdDateTime = now),
+                code(EMAIL, createdDateTime = now.plusSeconds(1L)),
+                code(EMAIL, createdDateTime = now.plusSeconds(2L))
+            )
+        )
+
+        expect("가장 최근에 생성된 A를 조회한다") {
+            val actual = repository.findFirstByA(EMAIL)
+            actual shouldBe codes.last()
+        }
+    }
+})
 ```
 
 ## ktlint
