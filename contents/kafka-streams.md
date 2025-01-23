@@ -64,4 +64,8 @@
 
 ## KStream
 
+> 레코드의 흐름을 표현한 것으로 메시지 키와 메시지 값으로 구성
 
+`KStream`으로 데이터를 조회하면 **토픽에 존재하는(또는 KStream에 존재하는) 모든 레코드**가 출력
+
+![Result](https://github.com/jihunparkme/blog/blob/main/img/kafka-streams/kstream-example.png?raw=true 'Result')
