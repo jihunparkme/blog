@@ -100,22 +100,30 @@ repositories {
     mavenCentral()
 }
 
+val springmockk = project.findProperty("springmockk")
+val kotestRunner = project.findProperty("kotest.runner.junit5")
+val kotestAssertions = project.findProperty("kotest.assertions")
+val kotestExtensions = project.findProperty("kotest-extensions")
+val jsoup = project.findProperty("jsoup")
+val kotlinLogging = project.findProperty("kotlin.logging")
+
 dependencies {
     // web
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
     implementation("org.springframework.boot:spring-boot-starter-mail")
     implementation("org.springframework.boot:spring-boot-starter-validation")
+    implementation("org.springframework.boot:spring-boot-starter-hateoas")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
 
     // data
     implementation("org.springframework.boot:spring-boot-starter-data-mongodb")
 
     // Utility libraries
-    implementation("org.jsoup:jsoup:1.17.1")
+    implementation("org.jsoup:jsoup:$jsoup")
     implementation("org.apache.commons:commons-lang3")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
-    implementation("io.github.microutils:kotlin-logging-jvm:3.0.5")
+    implementation("io.github.microutils:kotlin-logging-jvm:$kotlinLogging")
 
     // Spring Boot Devtools
     compileOnly("org.springframework.boot:spring-boot-devtools")
@@ -125,9 +133,10 @@ dependencies {
         exclude(group = "org.junit.vintage", module = "junit-vintage-engine")
         exclude(group = "org.mockito")
     }
-    testImplementation("com.ninja-squad:springmockk:2.0.3")
-    testImplementation("io.kotest:kotest-runner-junit5:5.4.2")
-    testImplementation("io.kotest.extensions:kotest-extensions-spring:1.1.2")
+    testImplementation("com.ninja-squad:springmockk:$springmockk")
+    testImplementation("io.kotest:kotest-runner-junit5:$kotestRunner")
+    testImplementation("io.kotest.extensions:kotest-extensions-spring:$kotestExtensions")
+    testImplementation("io.kotest:kotest-assertions-core:$kotestAssertions")
 }
 
 kotlin {
@@ -142,6 +151,19 @@ tasks.withType<Test> {
 }
 ```
 
+버전을 따로 분리해서 관리하고 싶다면 `gradle.properties` 파일을 활용할 수 있습니다.
+
+```properties
+kotlin.logging = 3.0.5
+
+jsoup = 1.17.1
+
+springmockk = 4.0.2
+kotest.runner.junit5 = 5.9.1
+kotest.assertions = 5.9.1
+kotest-extensions = 1.3.0
+```
+
 ## Minimum Gradle version
 
 코틀린 설정을 완료했다면 Gradle도 버전에 맞게 올려줍시다!
@@ -154,11 +176,17 @@ Kotlin version `2.1.0`으로 설정했으니 Gradle version `8.11`로 사용할 
 
 gradle version 설정은 `gradle > wrapper > gradle-wrapper.properties`에서 수정할 수 있습니다.
 
+```properties
+...
+distributionUrl=https\://services.gradle.org/distributions/gradle-8.11-bin.zip
+...
+```
+
 ## Java to Kotlin
 
 먼저 `java`에서 적용되던 `lombok`과의 이별을 해야 할 때입니다.
 
-전반적인 전환 순서는 컴파일 오류가 발생하는 lombok을 없애면서 변환하게 되었는데, 대략적으로 아래 순서로 진행하게 되었던 것 같습니다.
+전반적인 전환 순서는 컴파일 오류가 발생하는 lombok을 없애면서 전환하게 되었는데, 대략적으로 아래 순서로 진행하게 되었던 것 같습니다.
 - DTO class
 - Util class
 - Entity class
@@ -302,57 +330,98 @@ enum class PostSubjects(val value: String) {
 }
 ```
 
-### Controller
+### Util
 
-- 아래 코드 기준으로는 `@RequiredArgsConstructor` 제외하고는 크게 달라지는 점이 없어 보네요.
+- Util 클래스는 object 타입으로 활용할 수 있습니다.
 
 ䷿ AS-IS) 
 
 ```java
-@RestController
-@RequestMapping("/posts")
-@RequiredArgsConstructor
-public class PostsController {
+@Slf4j
+public class DateUtils {
 
-    private final PostsService postsService;
+    public final static DateTimeFormatter ENGLISH_FORMATTER = DateTimeFormatter.ofPattern("[MMMM dd, yyyy][MMMM d, yyyy][MMM dd, yyyy][MMM d, yyyy]", Locale.ENGLISH);
+    public final static DateTimeFormatter CREATED_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
-    @GetMapping("/spring")
-    public ResponseEntity springScroll(
-            @RequestParam(value = "categories", required = false) final List<String> categories,
-            @RequestParam(value = "page", required = false, defaultValue = "1") final int page,
-            @RequestParam(value = "size", required = false, defaultValue = "10") final int size) {
-
-        final PageRequest pageable = PageRequest.of(page, size,
-                Sort.by("createdDt").descending().and(Sort.by("date").descending()));
-        final Page<Post> releasePage = postsService.findAllRelease(PostSubjects.SPRING, pageable, categories);
-        return BasicResponse.ok(releasePage);
+    public static String getFormattedDate(final String date) {
+        try {
+            final LocalDate localDate = LocalDate.parse(date, ENGLISH_FORMATTER);
+            return localDate.format(CREATED_FORMATTER);
+        } catch (DateTimeParseException e) {
+            log.error("DateTimeParseException. {}", date);
+            return StringUtils.EMPTY;
+        }
     }
-    //...
 }
 ```
 
 ䷾ TO-BE)
 
 ```kotlin
-@RestController
-@RequestMapping("/posts")
-class PostsController(
-    private val postsService: PostsService
-) {
-    @GetMapping("/spring")
-    fun springScroll(
-        @RequestParam(value = "categories", required = false) categories: List<String>?,
-        @RequestParam(value = "page", required = false, defaultValue = "1") page: Int,
-        @RequestParam(value = "size", required = false, defaultValue = "10") size: Int
-    ): ResponseEntity<*> {
-        val pageable = PageRequest.of(
-            page, size,
-            Sort.by("createdDt").descending().and(Sort.by("date").descending())
-        )
-        val releasePage = postsService.findAllRelease(PostSubjects.SPRING, pageable, categories)
-        return BasicResponse.ok(releasePage)
+object DateUtils {
+    val ENGLISH_FORMATTER: DateTimeFormatter =
+        DateTimeFormatter.ofPattern("[MMMM dd, yyyy][MMMM d, yyyy][MMM dd, yyyy][MMM d, yyyy][d MMMM yyyy][d MMM yyyy", Locale.ENGLISH)
+
+    val CREATED_FORMATTER: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+
+    fun parseEnglishDateFormat(date: String): String = try {
+        LocalDate.parse(date, ENGLISH_FORMATTER).format(CREATED_FORMATTER)
+    } catch (e: DateTimeParseException) {
+        logger.error(e) { "Failed to parse date: $date" }
+        today()
     }
-    //...
+
+    fun today(): String =
+        LocalDate.now().format(CREATED_FORMATTER)
+}
+```
+
+### Repository
+
+- Repository 쪽은 기본 문법이 변경된 것 말고는 크게 달라진 부분이 없어 보입니다.
+
+䷿ AS-IS) 
+
+```java
+public interface PostsRepository extends MongoRepository<Post, String> {
+
+    @Aggregation(pipeline = {
+            "{ '$match': { 'category' : ?0 } }",
+            "{ '$sort' : { 'date' : -1 } }",
+            "{ '$limit' : 1 }"
+    })
+    List<Post> findByCategoryOrderByDateDescLimitOne(String category);
+
+    Page<Post> findBySubject(String subject, PageRequest pageable);
+
+    Page<Post> findBySubjectAndCategoryIn(String subject, List<String> category, PageRequest pageable);
+
+    List<Post> findBySharedFalse();
+
+    List<Post> findByTitle(String title);
+}
+```
+
+䷾ TO-BE)
+
+```kotlin
+interface PostsRepository : MongoRepository<Post, String> {
+    @Aggregation(
+        pipeline = [
+            "{ '\$match': { 'category' : ?0 } }",
+            "{ '\$sort' : { 'date' : -1 } }",
+            "{ '\$limit' : 1 }",
+        ],
+    )
+    fun findByCategoryOrderByDateDescLimitOne(category: String): List<Post>
+
+    fun findBySubject(subject: String, pageable: PageRequest): Page<Post>
+
+    fun findBySubjectAndCategoryIn(subject: String, category: List<String>?, pageable: PageRequest): Page<Post>
+
+    fun findBySharedFalse(): List<Post>
+
+    fun findByTitle(title: String): List<Post>
 }
 ```
 
@@ -428,6 +497,60 @@ class PostsSchedulerService(
 }
 ```
 
+### Controller
+
+- 아래 코드 기준으로는 `@RequiredArgsConstructor` 제외하고는 크게 달라지는 점이 없어 보네요.
+
+䷿ AS-IS) 
+
+```java
+@RestController
+@RequestMapping("/posts")
+@RequiredArgsConstructor
+public class PostsController {
+
+    private final PostsService postsService;
+
+    @GetMapping("/spring")
+    public ResponseEntity springScroll(
+            @RequestParam(value = "categories", required = false) final List<String> categories,
+            @RequestParam(value = "page", required = false, defaultValue = "1") final int page,
+            @RequestParam(value = "size", required = false, defaultValue = "10") final int size) {
+
+        final PageRequest pageable = PageRequest.of(page, size,
+                Sort.by("createdDt").descending().and(Sort.by("date").descending()));
+        final Page<Post> releasePage = postsService.findAllRelease(PostSubjects.SPRING, pageable, categories);
+        return BasicResponse.ok(releasePage);
+    }
+    //...
+}
+```
+
+䷾ TO-BE)
+
+```kotlin
+@RestController
+@RequestMapping("/posts")
+class PostsController(
+    private val postsService: PostsService
+) {
+    @GetMapping("/spring")
+    fun springScroll(
+        @RequestParam(value = "categories", required = false) categories: List<String>?,
+        @RequestParam(value = "page", required = false, defaultValue = "1") page: Int,
+        @RequestParam(value = "size", required = false, defaultValue = "10") size: Int
+    ): ResponseEntity<*> {
+        val pageable = PageRequest.of(
+            page, size,
+            Sort.by("createdDt").descending().and(Sort.by("date").descending())
+        )
+        val releasePage = postsService.findAllRelease(PostSubjects.SPRING, pageable, categories)
+        return BasicResponse.ok(releasePage)
+    }
+    //...
+}
+```
+
 ### warning
 
 - `Unnecessary non-null assertion (!!) ...` 불필요한 non-null assertion 제거
@@ -470,7 +593,7 @@ fun createPost(
 
 👉🏻 `StringSpec`
 
-#### Kotest
+### Kotest
 
 ✅ `Kotest`
 
@@ -579,6 +702,8 @@ class RepositoryTest(
 })
 ```
 
+예제를 만들기 위해 약간의 억지로 테스트코드가 생성되었지만 참고하는데 도움이 되었으면 좋겠습니다.
+
 ## ktlint
 
 > Kotlin 코드 스타일을 자동으로 검사하고 포맷팅하는 플러그인
@@ -595,6 +720,8 @@ id("org.jlleitschuh.gradle.ktlint") version "12.1.1"
 **`.editorconfig`**
 
 ```yml
+# Standard rules
+# https://pinterest.github.io/ktlint/latest/rules/standard/
 root = true
 
 [*]
@@ -613,6 +740,9 @@ ktlint_standard_function-signature=disabled
 
 # Parameter should start on a newline
 ktlint_standard_parameter-list-wrapping=disabled
+
+# Exceeded max line length (140)
+ktlint_standard_max-line-length=disabled
 ```
 
 ### Apply IDE
