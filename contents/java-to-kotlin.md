@@ -84,7 +84,7 @@ plugins {
     kotlin("plugin.jpa") version kotlinVersion
     id("org.springframework.boot") version "3.4.0"
     id("io.spring.dependency-management") version "1.1.6"
-    id("org.jlleitschuh.gradle.ktlint") version "12.1.0" // Kotlin 코드 스타일을 자동으로 검사하고 포맷팅하는 도구
+    id("org.jlleitschuh.gradle.ktlint") version "12.1.0" // Kotlin 코드 스타일을 자동으로 검사하고 포맷팅 하는 도구
 }
 
 group = "com"
@@ -554,7 +554,7 @@ class PostsController(
 ### warning
 
 - `Unnecessary non-null assertion (!!) ...` 불필요한 non-null assertion 제거
-- Kotlin은 Java로부터 변환될 때 null 허용을 기본으로 하고 있다보니 `?` 키워드를 가급적 모두 제거하고 필요 시 추가하기
+- Kotlin은 Java로부터 변환될 때 null 허용을 기본으로 하고 있다 보니 `?` 키워드를 가급적 모두 제거하고 필요시 추가하기
 
 ## Test
 
@@ -562,7 +562,7 @@ class PostsController(
 
 ✅ `Fixtures`
 
-- 테스트 픽스처(테스트를 위한 전재 조건)를 반환하는 팩토리함수
+- 테스트 픽스처(테스트를 위한 전제 조건)를 반환하는 팩토리함수
 
 ```kotlin
 createPost(title = "post01")
@@ -706,7 +706,7 @@ class RepositoryTest(
 
 ## ktlint
 
-> Kotlin 코드 스타일을 자동으로 검사하고 포맷팅하는 플러그인
+> Kotlin 코드 스타일을 자동으로 검사하고 포맷팅 하는 플러그인
 
 `ktlint`를 제공하는 여러 도구 중 [JLLeitschuh/ktlint-gradle](https://github.com/JLLeitschuh/ktlint-gradle) 이 주로 사용되는 것 같습니다.
 
