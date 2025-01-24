@@ -56,7 +56,7 @@
 - 메시지 값의 종류에 따라 토픽을 가변적으로 전송
 - 일정한 시간 간격으로 데이터 처리
 
-# 스트림즈 DSL
+# Streams DSL
 
 스트림즈DSL에는 레코드의 흐름을 추상화한 3가지 개념인 `KStream`, `KTable`, `GlobalKTable`
 
@@ -88,3 +88,30 @@
   - `co-partitioning`: 조인을 하는 2개 데이터의 파티션 개수가 동일하고 파티셔닝 전략을 동일하게 맞추는 작업
 
 ![Result](https://github.com/jihunparkme/blog/blob/main/img/kafka-streams/globalKTable.png?raw=true 'Result')
+
+## 주요 옵션
+
+> Streams DSL 애플리케이션을 실행할 때 설정해야 하는 필수 옵션과 선택 옵션
+>
+> [Kafka Streams Configs](https://kafka.apache.org/documentation/#streamsconfigs)
+
+**👉🏻 필수 옵션**
+- `bootstrap.servers`:
+  - 프로듀서가 데이터를 전송할 대상 카프카 클러스터에 속한 브로커의 호스트 이름:포트 1개 이상 작성
+  - 2개 이상 브로커 정보를 입력하여 일부 브로커에 이슈가 발생하더라도 접속하는 데에 이슈가 없도록 설정 가능
+- `application.id`:
+  - 스트림즈 애플리케이션을 구분하기 위한 고유한 아이디 설정
+  - 다른 로직을 가진 스트림즈 애플리케이션들은 서로 다른 application.id 값을 가져야 함
+
+**👉🏻 선택 옵션**
+- `default.key.serde`:
+  - 레코드의 메시지 키를 직렬화, 역직렬화하는 클래스 지정
+  - default. 바이트 직렬/역직렬화 클래스. Serdes.ByteArray().getClass().getName()
+- `default.value.serde`:
+  - 레코드의 메시지 값을 직렬화, 역직렬화하는 클래스를 지정
+  - default. 바이트 직렬/역직렬화 클래스. Serdes.ByteArray().getClass().getName()
+- `num.stream.threads`:
+  - 스트림 프로세싱 실행 시 실행될 스레드 개수 지정(default: 1)
+- `state.dir`:
+  - rocksDB 저장소가 위치할 디렉토리 지정
+  - default. /tmp/kafka-streams
