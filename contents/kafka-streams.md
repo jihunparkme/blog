@@ -195,3 +195,96 @@ docker exec -it kafka /bin/bash
 --partitions 3 \
 --topic stream_log
 ```
+
+### strem(), to()
+
+> 특정 토픽을 KStream 형태로 가져오려면 Streams DSL의 `stream()` 메서드를 사용
+> 
+> KStream 데이터를 특정 토픽으로 저장하려면 Streams DSL의 `to()` 메서드를 사용
+
+![Result](https://github.com/jihunparkme/blog/blob/main/img/kafka-streams/stream-to.png?raw=true 'Result')
+
+📖 **단순하게 소스 프로세서, 싱크 프로세스로 이루어진 토폴로지를 Streams DSL로 구현하는 예제**
+
+[simple-kafka-streams](https://github.com/bjpublic/apache-kafka-with-java/tree/master/Chapter3/3.5%20kafka-streams/simple-kafka-streams)
+
+📄 **properties**
+
+```gradle
+implementation 'org.apache.kafka:kafka-clients:2.5.0'
+implementation 'org.apache.kafka:kafka-streams:2.5.0'
+```
+
+📄 **애플리케이션 실행**
+
+```java
+public class SimpleStreamApplication {
+    /**
+     * 애플리케이션 아이디 값 기준으로 병렬처리 수행
+     * - 다른 스트림즈 애플리케이션을 운영한다면 다른 아이디를 사용
+     */
+    private static String APPLICATION_NAME = "streams-application";
+    /** 스트림즈 애플리케이션과 연동할 카프카 클러스터 정보 */
+    private static String BOOTSTRAP_SERVERS = "localhost:9092";
+    private static String STREAM_LOG = "stream_log";
+    private static String STREAM_LOG_COPY = "stream_log_copy";
+
+    public static void main(String[] args) {
+
+        Properties props = new Properties();
+        props.put(StreamsConfig.APPLICATION_ID_CONFIG, APPLICATION_NAME);
+        props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVERS);
+        /** 스트림 처리를 위해 메시지 키/값의 역직렬화, 직렬화 방식 지정 */
+        props.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass());
+        props.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass());
+
+        /** 스트림 토폴로지를 정의하기 위한 용도 */
+        StreamsBuilder builder = new StreamsBuilder();
+        /**
+         * 최초의 토픽 데이터를 가져오는 소스 프로세서
+         * - KStream 생성 -> stream()
+         * - KTable 생성 -> table()
+         * - GlobalKTable 생성 -> globalTable()
+         * */
+        KStream<String, String> stream = builder.stream(STREAM_LOG);
+        stream.foreach((k, v) -> System.out.println(k + ": " + v));
+
+        /**
+         * 싱크 프로세서
+         * - 토픽을 담은 KStream 객체를 다른 토픽으로 전송하기 위한 to()
+         */
+        stream.to(STREAM_LOG_COPY);
+
+        /**
+         * StreamsBuilder로 정의한 토폴로이제 대한 정보와 스트림즈 실행을 위한 기본 옵션을 파라미터로 KafkaStreams 인스턴스 생성
+         * 토픽(stream_log)의 데이터를 다른 토픽(stream_log_copy)으로 전달
+         */
+        KafkaStreams streams = new KafkaStreams(builder.build(), props);
+        streams.start();
+    }
+}
+```
+
+📄 **프로듀스 및 컨슘으로 확인**
+- stream_log 토픽의 데이터를 stream_log_copy 토픽으로 전송
+- 데이터 처리를 위해서 스트림 프로세서가 추가
+
+```bash
+# data produce
+/bin/kafka-console-producer --bootstrap-server kafka:9092 \
+--topic stream_log
+> hello
+> my
+> name
+> is
+> aaron
+
+# data consume (--from-beginning 토픽의 모든 데이터를 확인)
+/bin/kafka-console-consumer --bootstrap-server kafka:9092 \
+--topic stream_log_copy --from-beginning
+hello
+my
+name
+is
+aaron
+```
