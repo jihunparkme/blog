@@ -204,14 +204,11 @@ docker exec -it kafka /bin/bash
 
 ![Result](https://github.com/jihunparkme/blog/blob/main/img/kafka-streams/stream-to.png?raw=true 'Result')
 
-📖 **단순하게 소스 프로세서, 싱크 프로세스로 이루어진 토폴로지를 Streams DSL로 구현하는 예제**
-
-[simple-kafka-streams](https://github.com/bjpublic/apache-kafka-with-java/tree/master/Chapter3/3.5%20kafka-streams/simple-kafka-streams)
+> 📖 **단순하게 소스 프로세서, 싱크 프로세스로 이루어진 토폴로지를 Streams DSL로 구현하는 예제**
 
 📄 **properties**
 
 ```gradle
-implementation 'org.apache.kafka:kafka-clients:2.5.0'
 implementation 'org.apache.kafka:kafka-streams:2.5.0'
 ```
 
@@ -219,6 +216,7 @@ implementation 'org.apache.kafka:kafka-streams:2.5.0'
 
 ```java
 public class SimpleStreamApplication {
+
     /**
      * 애플리케이션 아이디 값 기준으로 병렬처리 수행
      * - 다른 스트림즈 애플리케이션을 운영한다면 다른 아이디를 사용
@@ -287,4 +285,66 @@ my
 name
 is
 aaron
+```
+
+### filter()
+
+> 메시지 키/값을 필터링하여 특정 조건에 맞는 데이터를 골라낼 때는 `filter()` 메서드를 사용
+
+![Result](https://github.com/jihunparkme/blog/blob/main/img/kafka-streams/filter.png?raw=true 'Result')
+
+📄 **애플리케이션 실행**
+- KStream 인스턴스를 생성하고 싶지 않다면, fluent interface style을 적용해볼 수 있다.
+- `streamLog.filter((key, value) -> value.length() > 5).to(STREAM_LOG_FILTER);`
+
+```java
+public class StreamsFilter {
+
+    private static String APPLICATION_NAME = "streams-filter-application";
+    private static String BOOTSTRAP_SERVERS = "localhost:9092";
+    private static String STREAM_LOG = "stream_log";
+    private static String STREAM_LOG_FILTER = "stream_log_filter";
+
+    public static void main(String[] args) {
+
+        Properties props = new Properties();
+        props.put(StreamsConfig.APPLICATION_ID_CONFIG, APPLICATION_NAME);
+        props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVERS);
+        props.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass());
+        props.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass());
+
+        StreamsBuilder builder = new StreamsBuilder();
+        /** 소스 프로세서 */
+        KStream<String, String> streamLog = builder.stream(STREAM_LOG);
+
+        /** 스트림 프로세서 */
+        KStream<String, String> filteredStream = streamLog.filter(
+                (key, value) -> value.length() > 5);
+        filteredStream.foreach((k, v) -> System.out.println(k + ": " + v));
+
+        /** 싱크 프로세서 */
+        filteredStream.to(STREAM_LOG_FILTER);
+
+        KafkaStreams streams;
+        streams = new KafkaStreams(builder.build(), props);
+        streams.start();
+
+    }
+}
+```
+
+📄 **프로듀스 및 컨슘으로 확인**
+- stream_log_filter 토픽에 5글자가 초과된 데이터만 필터링되어 저장
+
+```bash
+/bin/kafka-console-producer --bootstrap-server kafka:9092 --tc stream_log
+>hello
+>streams
+>kafka
+>world
+>monday
+
+/bin/kafka-console-consumer --bootstrap-server kafka:9092 --topic stream_log_filter
+streams
+monday
 ```
