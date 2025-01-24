@@ -76,3 +76,15 @@
 - `KTable`로 데이터를 조회하면 **메시지 키를 기준으로 가장 최신에 추가된 레코드의 데이터가 출력**
 
 ![Result](https://github.com/jihunparkme/blog/blob/main/img/kafka-streams/ktable.png?raw=true 'Result')
+
+## GlobalKTable
+
+> `GlobalKTable`은 `KTable`과 동일하게 메시지 키를 기준으로 묶어서 사용
+
+- `KTable`로 선언된 토픽은 1개 파티션이 1개 태스크에 할당되어 사용
+- `GlobalKTable`로 선언된 토픽은 모든 파티션 데이터가 각 태스크에 할당되어 사용
+- 사용 사례로는 `KStream`과 `KTable`이 데이터 조인을 수행할 때
+  - KStream 과 KTable 을 조인하려면 반드시 co-partitioning 되어 있어야 함
+  - `co-partitioning`: 조인을 하는 2개 데이터의 파티션 개수가 동일하고 파티셔닝 전략을 동일하게 맞추는 작업
+
+![Result](https://github.com/jihunparkme/blog/blob/main/img/kafka-streams/globalKTable.png?raw=true 'Result')
