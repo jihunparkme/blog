@@ -13,8 +13,7 @@
 
 ## 병렬처리
 
-> 카프카 스트림즈는 컨슈머 스레드를 늘리는 방법과 동일하게 병렬처리를 위해 **파티션**과 **스트림즈 스레드**(또는 프로세스) 개수를 늘려 처리량 향상
-
+카프카 스트림즈는 컨슈머 스레드를 늘리는 방법과 동일하게 병렬처리를 위해 **파티션**과 **스트림즈 스레드**(또는 프로세스) 개수를 늘려 처리량 향상
 - 실제 운영 환경에서는 장애가 발생하더라도 안정적으로 운영할 수 있도록 2개 이상의 서버로 구성하여 스트림즈 애플리케이션을 운영
 
 ![Result](https://github.com/jihunparkme/blog/blob/main/img/kafka-streams/parallel-stream.png?raw=true 'Result')
@@ -43,11 +42,10 @@
 
 ## 개발 방법
 
-> 스트림즈 개발 방법은 두 가지
-> 
-> - Streams Domain Specific Language
-> 
-> - processor API
+스트림즈 개발 방법은 두 가지를 제공
+
+- Streams Domain Specific Language 
+- processor API
 
 👉🏻 스트림즈DSL로 구현하는 데이터 처리 예시
 - 메시지 값을 기반으로 토픽 분기 처리
@@ -69,3 +67,12 @@
 `KStream`으로 데이터를 조회하면 **토픽에 존재하는(또는 KStream에 존재하는) 모든 레코드**가 출력
 
 ![Result](https://github.com/jihunparkme/blog/blob/main/img/kafka-streams/kstream-example.png?raw=true 'Result')
+
+## KTable
+
+> KTable은 KStream과 다르게 메시지 키를 기준으로 묶어서 사용
+
+`KStream`은 토픽의 모든 레코드를 조회할 수 있지만 `KTable`은 유니크한 메시지 키를 기준으로 가장 최신 레코드를 사용
+- `KTable`로 데이터를 조회하면 **메시지 키를 기준으로 가장 최신에 추가된 레코드의 데이터가 출력**
+
+![Result](https://github.com/jihunparkme/blog/blob/main/img/kafka-streams/ktable.png?raw=true 'Result')
