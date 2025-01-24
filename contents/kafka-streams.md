@@ -56,6 +56,8 @@
 - 메시지 값의 종류에 따라 토픽을 가변적으로 전송
 - 일정한 시간 간격으로 데이터 처리
 
+Streams DSL로 개발하는 방법으로만 진행을 해보려고 한다.
+
 # Streams DSL
 
 스트림즈DSL에는 레코드의 흐름을 추상화한 3가지 개념인 `KStream`, `KTable`, `GlobalKTable`
@@ -348,3 +350,13 @@ public class StreamsFilter {
 streams
 monday
 ```
+
+### KTable, KStream join()
+
+> `KTable`과 `KStream`는 메시지 키를 기준으로 실시간 데이터들을 조인 가능
+
+사용자의 이벤트 데이터를 데이터베이스에 저장하지 않고도 조인하여 스트리밍 처리가 가능
+- KTable은 `이름:주소` 데이터를 가지고, KStream은 `이름:주문정보` 데이터를 가지고 있다면,
+- 사용자가 주문을 했을 때, 이미 토픽에 저장된 KTable과 조인하여 주문정보와 주소가 조합된 데이터를 새로 생성
+
+![Result](https://github.com/jihunparkme/blog/blob/main/img/kafka-streams/join.png?raw=true 'Result')
