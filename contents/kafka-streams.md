@@ -118,7 +118,9 @@
 
 ## 주요 기능
 
-### run kafka
+### docker-compose-kafka
+
+📄 **docker-compose**
 
 ```yml
 version: '3'
@@ -136,7 +138,7 @@ services:
   # kafka
   kafka-1:
     image: confluentinc/cp-kafka:latest
-    container_name: kafka-msa
+    container_name: kafka
     ports:
       - '9092:9092'
 
@@ -165,6 +167,8 @@ services:
       - KAFKA_CLUSTERS_0_ZOOKEEPER=zookeeper-1:32181
 ```
 
+📄 **docker-compose command**
+
 ```bash
 # 백그라운드에서 커맨드 실행
 docker-compose -f docker-compose-kafka.yml up -d
@@ -179,16 +183,15 @@ docker-compose -f docker-compose-kafka.yml start
 docker-compose -f docker-compose-kafka.yml down
 ```
 
-### strem(), to()
+📄 **create topic**
 
-> 특정 토픽을 KStream 형태로 가져오려면 Streams DSL의 `stream()` 메서드를 사용
-> 
-> KStream 데이터를 특정 토픽으로 저장하려면 Streams DSL의 `to()` 메서드를 사용
+```bash
+# 도커 쉘 접속
+docker exec -it kafka /bin/bash
 
-![Result](https://github.com/jihunparkme/blog/blob/main/img/kafka-streams/stream-to.png?raw=true 'Result')
-
-[simple-kafka-streams](https://github.com/bjpublic/apache-kafka-with-java/tree/master/Chapter3/3.5%20kafka-streams/simple-kafka-streams)
-
-```gradle
-implementation 'org.apache.kafka:kafka-clients:2.5.0'
+# 토픽 생성
+/bin/kafka-topics --create \
+--bootstrap-server kafka:9092 \
+--partitions 3 \
+--topic stream_log
 ```
