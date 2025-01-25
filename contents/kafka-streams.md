@@ -360,3 +360,31 @@ monday
 - 사용자가 주문을 했을 때, 이미 토픽에 저장된 KTable과 조인하여 주문정보와 주소가 조합된 데이터를 새로 생성
 
 ![Result](https://github.com/jihunparkme/blog/blob/main/img/kafka-streams/join.png?raw=true 'Result')
+
+**코파티셔닝**
+- `KTable`, `KStream` 조인 시 가장 중요한 것은 코파티셔닝이 되어 있는지 확인하는 것
+  - 코파티셔닝 되어있지 않은 상태에서 조인 시 `topologyException` 발생
+- KTable로 사용할 토픽과 KStream으로 사용할 토픽을 생성할 때 `동일한 파티션 개수`, `동일한 파티셔닝`을 사용하는 것이 중요
+
+📄 **create topic**
+
+```bash
+# 도커 쉘 접속
+docker exec -it kafka /bin/bash
+
+# 토픽 생성
+/bin/kafka-topics --create \
+--bootstrap-server kafka:9092 \
+--partitions 3 \
+--topic address
+
+/bin/kafka-topics --create \
+--bootstrap-server kafka:9092 \
+--partitions 3 \
+--topic order
+
+/bin/kafka-topics --create \
+--bootstrap-server kafka:9092 \
+--partitions 3 \
+--topic order_join
+```
