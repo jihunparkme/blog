@@ -465,4 +465,20 @@ Galaxy send to Newyork
 iPhone send to Seoul
 ```
 
- ![Result](https://github.com/jihunparkme/blog/blob/main/img/kafka-streams/join-result.png?raw=true 'Result')
+![Result](https://github.com/jihunparkme/blog/blob/main/img/kafka-streams/join-result.png?raw=true 'Result')
+
+⚠️ 만일, 사용자 주소가 변경되는 경우
+- KTable은 동일한 메시지 키가 들어올 경우 가장 마지막 레코드를 유효한 데이터로 보므로 가장 최근에 바뀐 주소로 조인을 수행
+
+```bash
+# 이름:주소
+/bin/kafka-console-producer --bootstrap-server kafka:9092 --topic address --property "parse.key=true" --property "key.separator=:"
+>jihun:LA
+
+# 이름:주문
+/bin/kafka-console-producer --bootstrap-server kafka:9092 --topic order --property "parse.key=true" --property "key.separator=:"
+>jihun:G-Wagon
+
+/bin/kafka-console-consumer --bootstrap-server kafka:9092 --topic order_join --from-beginning
+G-Wagon send to LA
+```
