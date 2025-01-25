@@ -118,9 +118,9 @@ Streams DSL로 개발하는 방법으로만 진행을 해보려고 한다.
   - rocksDB 저장소가 위치할 디렉토리 지정
   - default. /tmp/kafka-streams
 
-## 주요 기능
+# Streams DSL 주요 기능
 
-### docker-compose-kafka
+## Run Kafka
 
 📄 **docker-compose**
 
@@ -198,7 +198,7 @@ docker exec -it kafka /bin/bash
 --topic stream_log
 ```
 
-### strem(), to()
+## strem(), to()
 
 > 특정 토픽을 KStream 형태로 가져오려면 Streams DSL의 `stream()` 메서드를 사용
 > 
@@ -277,7 +277,7 @@ public class SimpleStreamApplication {
 > my
 > name
 > is
-> aaron
+> jihun
 
 # data consume (--from-beginning 토픽의 모든 데이터를 확인)
 /bin/kafka-console-consumer --bootstrap-server kafka:9092 \
@@ -286,10 +286,10 @@ hello
 my
 name
 is
-aaron
+jihun
 ```
 
-### filter()
+## filter()
 
 > 메시지 키/값을 필터링하여 특정 조건에 맞는 데이터를 골라낼 때는 `filter()` 메서드를 사용
 
@@ -339,7 +339,7 @@ public class StreamsFilter {
 - stream_log_filter 토픽에 5글자가 초과된 데이터만 필터링되어 저장
 
 ```bash
-/bin/kafka-console-producer --bootstrap-server kafka:9092 --tc stream_log
+/bin/kafka-console-producer --bootstrap-server kafka:9092 --topic stream_log
 >hello
 >streams
 >kafka
@@ -351,7 +351,7 @@ streams
 monday
 ```
 
-### KTable, KStream join()
+## KTable, KStream join()
 
 > `KTable`과 `KStream`는 메시지 키를 기준으로 실시간 데이터들을 조인 가능
 
@@ -373,6 +373,7 @@ monday
 docker exec -it kafka /bin/bash
 
 # 토픽 생성
+# 파티션: 3개, 파티셔닝 전략: 기본
 /bin/kafka-topics --create \
 --bootstrap-server kafka:9092 \
 --partitions 3 \
@@ -387,4 +388,81 @@ docker exec -it kafka /bin/bash
 --bootstrap-server kafka:9092 \
 --partitions 3 \
 --topic order_join
+
+# 생성 토픽 확인
+/bin/kafka-topics --bootstrap-server kafka:9092 --describe --topic address
 ```
+
+📄 **properties**
+
+```gradle
+implementation 'org.apache.kafka:kafka-streams:3.5.1'
+implementation 'org.rocksdb:rocksdbjni:8.1.1' // Apple Silicon 지원 RocksDB
+```
+
+📄 **애플리케이션 실행**
+
+```java
+public class KStreamJoinKTable {
+    private static String APPLICATION_NAME = "order-join-application";
+    private static String BOOTSTRAP_SERVERS = "localhost:9092";
+    private static String ADDRESS_TABLE = "address";
+    private static String ORDER_STREAM = "order";
+    private static String ORDER_JOIN_STREAM = "order_join";
+
+    public static void main(String[] args) {
+
+        Properties props = new Properties();
+        props.put(StreamsConfig.APPLICATION_ID_CONFIG, APPLICATION_NAME);
+        props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVERS);
+        props.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass());
+        props.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass());
+
+        StreamsBuilder builder = new StreamsBuilder();
+        /**
+         * 소스 프로세서
+         * - address -> table()
+         * - order -> stream()
+         */
+        KTable<String, String> addressTable = builder.table(ADDRESS_TABLE);
+        KStream<String, String> orderStream = builder.stream(ORDER_STREAM);
+
+        /** 스트림 프로세서 */
+        orderStream.join(
+                // join()을 수행할 KTable 인스턴스
+                addressTable,
+                // KStream, KTable 에서 동일한 메시지 키를 가진 데이터 발견 경우 각각의 메시지 값을 조합해서 만들 데이터 정의
+                (order, address) -> {
+                    System.out.println(order + " send to " + address);
+                    return order + " send to " + address;
+                })
+                /** 싱크 프로세서 */
+                .to(ORDER_JOIN_STREAM);
+
+        KafkaStreams streams;
+        streams = new KafkaStreams(builder.build(), props);
+        streams.start();
+    }
+}
+```
+
+📄 **프로듀스 및 컨슘으로 확인**
+- `KTable`에 존재하는 메시지 키를 기준으로 `KStream`이 데이터를 조인하여 `order_join` 토픽에서는 물품과 주소 데이터가 조인
+
+```bash
+# 이름:주소
+/bin/kafka-console-producer --bootstrap-server kafka:9092 --topic address --property "parse.key=true" --property "key.separator=:"
+>jihun:Seoul
+>gildong:Newyork
+
+# 이름:주문
+/bin/kafka-console-producer --bootstrap-server kafka:9092 --topic order --property "parse.key=true" --property "key.separator=:"
+>gildong:Galaxy
+>jihun:iPhone
+
+/bin/kafka-console-consumer --bootstrap-server kafka:9092 --topic order_join --from-beginning
+Galaxy send to Newyork
+iPhone send to Seoul
+```
+
+ ![Result](https://github.com/jihunparkme/blog/blob/main/img/kafka-streams/join-result.png?raw=true 'Result')
