@@ -503,6 +503,21 @@ docker exec -it kafka /bin/bash
 --bootstrap-server kafka:9092 \
 --partitions 2 \
 --topic address_v2
+
+/bin/kafka-console-producer --bootstrap-server kafka:9092 --topic address_v2 --property "parse.key=true" --property "key.separator=:"
+>
+>
+
+/bin/kafka-console-producer --bootstrap-server kafka:9092 --topic order --property "parse.key=true" --property "key.separator=:"
+>
+>
+
+/bin/kafka-console-consumer --bootstrap-server kafka:9092 --topic order_join --from-beginning
+
 ```
 
 ![Result](https://github.com/jihunparkme/blog/blob/main/img/kafka-streams/GlobalKTable-join.png?raw=true 'Result')
+
+```java
+```
+
