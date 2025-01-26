@@ -482,3 +482,27 @@ iPhone send to Seoul
 /bin/kafka-console-consumer --bootstrap-server kafka:9092 --topic order_join --from-beginning
 G-Wagon send to LA
 ```
+
+## GlobalKTable, KStream join()
+
+코파티셔닝되어 있지 않은 토픽을 조인해야 할 때 두 가지 방법
+- 1️⃣ 리파티셔닝 수행 후 코파티셔닝 된 상태로 조인 처리를 하는 것
+- 2️⃣ KTable로 사용하는 토픽을 GlobalKTable로 선언하여 사용하는 것
+
+2️⃣ GlobalKTable로 선언하여 사용하는 방법
+- address_v2 : 두 개의 파티션
+- order : 세 개의 파티션
+
+📄 **create topic**
+
+```bash
+# 도커 쉘 접속
+docker exec -it kafka /bin/bash
+
+/bin/kafka-topics --create \
+--bootstrap-server kafka:9092 \
+--partitions 2 \
+--topic address_v2
+```
+
+![Result](https://github.com/jihunparkme/blog/blob/main/img/kafka-streams/GlobalKTable-join.png?raw=true 'Result')
