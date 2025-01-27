@@ -460,9 +460,10 @@ public class KStreamJoinKTable {
 >gildong:Galaxy
 >jihun:iPhone
 
-/bin/kafka-console-consumer --bootstrap-server kafka:9092 --topic order_join --from-beginning
-Galaxy send to Newyork
-iPhone send to Seoul
+/bin/kafka-console-consumer --bootstrap-server kafka:9092 --topic order_join --property print.key=true --property key.separator=":" --from-beginning
+
+gildong:Galaxy send to Newyork
+jihun:iPhone send to Seoul
 ```
 
 ![Result](https://github.com/jihunparkme/blog/blob/main/img/kafka-streams/join-result.png?raw=true 'Result')
@@ -504,16 +505,28 @@ docker exec -it kafka /bin/bash
 --partitions 2 \
 --topic address_v2
 
-/bin/kafka-console-producer --bootstrap-server kafka:9092 --topic address_v2 --property "parse.key=true" --property "key.separator=:"
->
->
+/bin/kafka-console-producer --bootstrap-server kafka:9092 \
+--topic address_v2 \
+--property "parse. key=true" \
+--property "key.separator=:"
+>jihun:Seoul
+>gildong:Busan
 
-/bin/kafka-console-producer --bootstrap-server kafka:9092 --topic order --property "parse.key=true" --property "key.separator=:"
->
->
+/bin/kafka-console-producer --bootstrap-server kafka:9092 \
+--topic order \
+--property "parse.key=true" \
+--property "key.separator=:"
+>gildong:Porsche
+>jihun:G-Wagon
 
-/bin/kafka-console-consumer --bootstrap-server kafka:9092 --topic order_join --from-beginning
+/bin/kafka-console-consumer --bootstrap-server kafka:9092 \
+--topic order_join \
+--property print.key=true \
+--property key.separator=":" \
+--from-beginning
 
+gildong:Porsche send to Busan
+jihun:G-Wagon send to Seoul
 ```
 
 ![Result](https://github.com/jihunparkme/blog/blob/main/img/kafka-streams/GlobalKTable-join.png?raw=true 'Result')
