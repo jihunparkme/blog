@@ -583,5 +583,4 @@ public class KStreamJoinGlobalKTable {
 }
 ```
 
-
-
+> [Streams DSL Doc.](https://kafka.apache.org/documentation/streams/developer-guide/dsl-api.html)
