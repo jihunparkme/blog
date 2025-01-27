@@ -536,6 +536,51 @@ GlobalKTable에 존재하는 메시지 키를 기준으로 KStream이 데이터�
 ![Result](https://github.com/jihunparkme/blog/blob/main/img/kafka-streams/GlobalKTable-join.png?raw=true 'Result')
 
 ```java
+public class KStreamJoinGlobalKTable {
+    private static String APPLICATION_NAME = "global-table-join-application";
+    private static String BOOTSTRAP_SERVERS = "localhos t:9092";
+    private static String ADDRESS_GLOBAL_TABLE = "address_v2";
+    private static String ORDER_STREAM = "order";
+    private static String ORDER_JOIN_STREAM = "order_join";
+
+    public static void main(String[] args) {
+
+        Properties props = new Properties();
+        props.put(StreamsConfig.APPLICATION_ID_CONFIG, APPLICATION_NAME);
+        props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVERS);
+        props.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass());
+        props.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass());
+
+        StreamsBuilder builder = new StreamsBuilder();
+        /**
+         * 소스 프로세서
+         * - address_v2 Topic: GlobalKTable 정
+         * - order Topic: KStream 생성
+         */
+        GlobalKTable<String, String> addressGlobalTable = builder.globalTable(ADDRESS_GLOBAL_TABLE);
+        KStream<String, String> orderStream = builder.stream(ORDER_STREAM);
+
+        /**
+         * 스트림 프로세서
+         * - 조인을 위해 KStream 에 정의된 join() 사용
+         */
+        orderStream.join(addressGlobalTable, // 조인을 수행할 GlobalKTable 인스턴스
+                        // GlobalKTable 은 KTable 조인과 다르게 레코드를 매칭할 때
+                        // KStream 의 메시지 키와 메시지 값 둘 다 사용 가능
+                        (orderKey, orderValue) -> orderKey,
+                        // 주문 물품과 주소를 조합하여 String 타입으로 생성
+                        (order, address) -> order + " send to " + address)
+                /**
+                 * 싱크 프로세서
+                 * - 조인을 통해 생성된 데이터를 토픽에 저장
+                 */
+                .to(ORDER_JOIN_STREAM);
+
+        KafkaStreams streams;
+        streams = new KafkaStreams(builder.build(), props);
+        streams.start();
+    }
+}
 ```
 
 
