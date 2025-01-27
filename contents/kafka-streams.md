@@ -529,6 +529,10 @@ gildong:Porsche send to Busan
 jihun:G-Wagon send to Seoul
 ```
 
+GlobalKTable에 존재하는 메시지 키를 기준으로 KStream이 데이터를 조인
+- KTable과 크게 다르지 않아 보이지만, GlobalKTable로 선언한 토픽은 토픽에 존재하는 모든 데이터를 태스크마다 저장하고 조인 처리를 수행
+- 조인 수행 시 KStream 메시지 키 뿐만 아니라 메시지 값을 기준으로도 매칭하여 조인 가능
+
 ![Result](https://github.com/jihunparkme/blog/blob/main/img/kafka-streams/GlobalKTable-join.png?raw=true 'Result')
 
 ```java
