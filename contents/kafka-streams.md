@@ -584,3 +584,8 @@ public class KStreamJoinGlobalKTable {
 ```
 
 > [Streams DSL Doc.](https://kafka.apache.org/documentation/streams/developer-guide/dsl-api.html)
+
+# Streams 프로젝트
+
+서버 지표 수집 파이프라인 생성과 카프카 스트림즈 활용
+
