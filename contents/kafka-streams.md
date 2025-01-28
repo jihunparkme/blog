@@ -587,5 +587,17 @@ public class KStreamJoinGlobalKTable {
 
 # Streams 프로젝트
 
-서버 지표 수집 파이프라인 생성과 카프카 스트림즈 활용
+📦 **서버 지표 수집 파이프라인 생성과 카프카 스트림즈 활용**
+- 서버의 지표들(CPU, memory, network, disk)을 카프카로 수집하는 데이터 파이프라인을 만들고, 적재된 데이터를 실시간으로 처리하기
+- 카프카로 변화하는 데이터양에 유연하게 대응(클러스터 스케일 아웃, 파티션 추가)하여 스트리밍 데이터를 처리해 보자.
+
+👉🏻 **요구사항**
+
+- 서버 지표 수집은 `metricbeat` 활용하고 카프카로 전송
+  - 서버 지표 수집에 특화된 경량 에잉전트(CPU, memory, network ..)
+  - 서버 모니터링에 필요한 모든 지표를 수집하도록 지원
+  - 참고. [elastic metricbeat](https://www.elastic.co/kr/beats/metricbeat)
+- `Kafka Streams`로 서버 지표 데이터를 실시간으로 처리
+  - 
+
 
