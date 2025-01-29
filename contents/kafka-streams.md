@@ -702,17 +702,41 @@ docker exec -it kafka /bin/bash
 --partitions 3 \
 --topic metric.cpu.alert
 
+# 생성된 토픽 확인
 /bin/kafka-topics \
 --bootstrap-server kafka:9092 \
 --describe --topic metric.all
 ```
 
-
-
-
 ### 로컬 메트릭비트 설치 및 설정
 
+```bash
+# metricbeat 설치
+$ brew install metricbeat
 
+# 설치 경로 확인
+$ brew info metricbeat
+
+# 설치 경로로 이동
+$ cd /opt/homebrew/Cellar/metricbeat/8.17.1/bin
+# metricbeat 바이너리 파일 확인
+$ ls
+
+# metricbeat에 수집할 지표에 대한 정보, 수집한 지표를 저장할 위치 선언을 위한 설정 파일 생성
+$ vi metricbeat.yml
+
+metricbeat.modules:
+- module: system
+  metricsets:
+    - cpu
+    - memory
+  enabled: true
+  period: 10s
+
+output.kafka:
+  hosts: ["kafka:9092"]
+  topic: 'metric.all'
+```
 
 ### 카프카 스트림즈 개발
 
