@@ -625,3 +625,7 @@ public class KStreamJoinGlobalKTable {
 - **비정상 CPU 지표** 저장
 
 .
+
+3️⃣ **데이터 포맷**
+
+- `metricbeat`가 서버 지표들을 전송할 때 사용하는 포맷은 `JSON`
