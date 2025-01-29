@@ -636,5 +636,24 @@ public class KStreamJoinGlobalKTable {
 - 데이터 수집을 위해 다양한 모듈을 지원
 - 서버 지표 수집은 시스템 모듈을 사용
   - CPU, 메모리, 네트워크, 프로세스 등의 지표 수집 가능
-- 적절한 수집 간격 설정이 필요 (10초 간격으로 진행)
+- 처리량을 고려하여 적절한 수집 간격 설정이 필요 (10초 간격으로 진행)
 
+5️⃣ **카프카 스트림즈**
+
+- 수집된 서버의 지표 데이터를 분기처리하고 필터링
+- 요구사항에 따라 부분별로 토폴로지를 그리고, 요구사항에 맞는 메서드를 탐색
+
+👉🏻 첫 번째, 지표 데이터 분기
+- 지표 토픽 소스를 KStream으로 선언하고 branch() 메서드로 KStream 배열을 리턴받아 데이터를 분기
+
+![Result](https://github.com/jihunparkme/blog/blob/main/img/kafka-streams/example-first.png?raw=true 'Result')
+
+👉🏻 두 번째, CPU 지표 중 전체 사용량이 50%가 넘는 경우에 대해 필터링하고 hostname, timestamp 값 생성
+- 분기로 받은 CPU 토픽 KStream 객체를 필터링하는 데 filter() 메서드를
+- 메시지 값을 변환하는 데는 mapValues() 메서드를 사용
+
+![Result](https://github.com/jihunparkme/blog/blob/main/img/kafka-streams/example-second.png?raw=true 'Result')
+
+정의한 두 개의 토폴로지를 하나의 토폴로지로 그린 결과
+
+![Result](https://github.com/jihunparkme/blog/blob/main/img/kafka-streams/example-combine.png?raw=true 'Result')
