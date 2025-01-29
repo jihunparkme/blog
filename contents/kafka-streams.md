@@ -657,3 +657,62 @@ public class KStreamJoinGlobalKTable {
 정의한 두 개의 토폴로지를 하나의 토폴로지로 그린 결과
 
 ![Result](https://github.com/jihunparkme/blog/blob/main/img/kafka-streams/example-combine.png?raw=true 'Result')
+
+## 기능 구현
+
+🏛️ **아키텍처**
+
+![Result](https://github.com/jihunparkme/blog/blob/main/img/kafka-streams/architecture.png?raw=true 'Result')
+
+TODO
+- 토픽 생성
+- 로컬 메트릭비트 설치 및 설정
+- 카프카 스트림즈 개발
+
+### 토픽 생성
+
+```bash
+docker exec -it kafka /bin/bash
+
+# 서버 전체 지표들을 저장하는 토픽
+/bin/kafka-topics --create \
+--bootstrap-server kafka:9092 \
+--replication-factor 2 \
+--partitions 3 \
+--topic metric.all
+
+# CPU 지표를 저장하논 토픽
+/bin/kafka-topics --create \
+--bootstrap-server kafka:9092 \
+--replication-factor 2 \
+--partitions 3 \
+--topic metric.cpu
+
+# 메모리 지표를 저장하는 토픽
+/bin/kafka-topics --create \
+--bootstrap-server kafka:9092 \
+--replication-factor 2 \
+--partitions 3 \
+--topic metric.memory
+
+# 비정상 CPU 지표 정보를 저장하는 토픽
+/bin/kafka-topics --create \
+--bootstrap-server kafka:9092 \
+--replication-factor 2 \
+--partitions 3 \
+--topic metric.cpu.alert
+
+/bin/kafka-topics \
+--bootstrap-server kafka:9092 \
+--describe --topic metric.all
+```
+
+
+
+
+### 로컬 메트릭비트 설치 및 설정
+
+
+
+### 카프카 스트림즈 개발
+
