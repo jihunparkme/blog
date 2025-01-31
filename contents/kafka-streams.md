@@ -794,6 +794,53 @@ public class MetricJsonUtils {
 ![Result](https://github.com/jihunparkme/blog/blob/main/img/kafka-streams/metric-kafka-streams.png?raw=true 'Result')
 
 ```java
+public class MetricStreams {
 
+    private static KafkaStreams streams;
+
+    public static void main(final String[] args) {
+
+        Runtime.getRuntime().addShutdownHook(new ShutdownThread());
+
+        Properties props = new Properties();
+        props.put(StreamsConfig.APPLICATION_ID_CONFIG, "metric-streams-application");
+        props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "kafka:9092");
+        props.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass());
+        props.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass());
+
+        /** 카프카 스트림즈의 토폴로지 정의를 위한 StreamsBuilder 인스턴스 생성 */
+        StreamsBuilder builder = new StreamsBuilder();
+        KStream<String, String> metrics = builder.stream("metric.all");
+        /**
+         * 메시지 값을 분기처리하기 위해 MetricJsonUtils를 통해 JSON 데이터에 적힌 메트릭 종류 값을 토대로 KStream을 두 갈래로 분기
+         * - 분기 작업에는 branch() 사용
+         * - KStream의 0번 배열에는 CPU, 1번 배열에는 메모리 데이터
+         */
+        KStream<String, String>[] metricBranch = metrics.branch(
+                (key, value) -> MetricJsonUtils.getMetricName(value).equals("cpu"),
+                (key, value) -> MetricJsonUtils.getMetricName(value).equals("memory")
+        );
+        metricBranch[0].to("metric.cpu");
+        metricBranch[1].to("metric.memory");
+
+        /** 분기된 데이터 중 전체 CPU 사용량이 50%가 넘어갈 경우 필터링 */
+        KStream<String, String> filteredCpuMetric = metricBranch[0]
+                .filter((key, value) -> MetricJsonUtils.getTotalCpuPercent(value) > 0.5);
+
+        /** 전체 CPU 사용량의 50%가 넘는 데이터의 host, timestamp 값 조합을 전달 */
+        filteredCpuMetric.mapValues(value -> MetricJsonUtils.getHostTimestamp(value)).to("metric.cpu.alert");
+
+        /** StreamsBuilder 인스턴스로 정의된 토폴로지와 스트림즈 설정값을 토대로 KafkaStreams 인스턴스를 생성하고 실행 */
+        streams = new KafkaStreams(builder.build(), props);
+        streams.start();
+    }
+
+    static class ShutdownThread extends Thread {
+        public void run() {
+            /** Kafka Stream의 안전한 종료를 위해 셧다운 훅을 받을 경우 close() 메서드 호출로 안전하게 종료 */
+            streams.close(); 
+        }
+    }
+}
 ```
 
