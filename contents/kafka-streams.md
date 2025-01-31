@@ -710,6 +710,8 @@ docker exec -it kafka /bin/bash
 
 ### 로컬 메트릭비트 설치 및 설정
 
+https://www.elastic.co/guide/en/beats/metricbeat/8.17/metricbeat-module-system.html
+
 ```bash
 # metricbeat 설치
 $ brew install metricbeat
@@ -722,8 +724,11 @@ $ cd /opt/homebrew/Cellar/metricbeat/8.17.1/bin
 # metricbeat 바이너리 파일 확인
 $ ls
 
-# metricbeat에 수집할 지표에 대한 정보, 수집한 지표를 저장할 위치 선언을 위한 설정 파일 생성
-$ vi metricbeat.yml
+# metricbeat에 수집할 지표에 대한 정보
+# 기존 설정 파일 백업
+$ mv /opt/homebrew/etc/metricbeat/metricbeat.yml /opt/homebrew/etc/metricbeat/metricbeat.yml.bak
+# 수집한 지표를 저장할 위치 선언을 위한 설정 파일 생성
+$ vi /opt/homebrew/etc/metricbeat/metricbeat.yml
 
 metricbeat.modules:
 - module: system
@@ -733,9 +738,22 @@ metricbeat.modules:
   enabled: true
   period: 10s
 
+output.elasticsearch:
+  enabled: false
+
 output.kafka:
-  hosts: ["kafka:9092"]
-  topic: 'metric.all'
+  enabled: true
+  hosts: ["localhost:9092"]
+  topic: "metric.all"
+
+# 출력 결과가 카프카로 전송되고 있는지 확인
+$ metricbeat test output
+
+Kafka: localhost:9092...
+  parse host... OK
+  dns lookup... OK
+  addresses: ::1, 127.0.0.1
+  dial up... OK
 ```
 
 ### 카프카 스트림즈 개발
@@ -843,4 +861,35 @@ public class MetricStreams {
     }
 }
 ```
+
+## 기능 테스트
+
+👉🏻 **메트릭비트 실행**
+
+```bash
+# 메트릭비트 실행
+$ cd /opt/homebrew/Cellar/metricbeat/8.17.1/bin
+$ ./metricbeat -e
+
+# 지표 데이터 확인
+$ docker exec -it kafka /bin/bash
+$ /bin/kafka-console-consumer --bootstrap-server kafka:9092 \
+--topic metric.all \
+--from-beginning
+
+{"@timestamp":"2025-01-31T07:55:26.555Z","@metadata":{"beat":"metricbeat","type":"_doc","version":"8.17.1"},"service":{"type":"system"},"system":{"cpu":{"idle":{"pct":8.1113,"norm":{"pct":0.8111}},"nice":{"pct":0,"norm":{"pct":0}},"cores":10,"total":{"pct":1.8887,"norm":{"pct":0.1889}},"user":{"norm":{"pct":0.1148},"pct":1.1476},"system":{"pct":0.7411,"norm":{"pct":0.0741}}}},"host":{"cpu":{"usage":0.1889},"name":"Aaronui-MacBookPro.local"},"event":{"dataset":"system.cpu","module":"system","duration":2847417},"ecs":{"version":"8.0.0"},"agent":{"name":"Aaronui-MacBookPro.local","type":"metricbeat","version":"8.17.1","ephemeral_id":"015c51af-55d5-46fc-a1e5-ac64bd6b93ed","id":"6f361009-f091-4d34-94fa-6a80cab9ce87"},"metricset":{"period":10000,"name":"cpu"}}
+...
+```
+
+
+
+
+
+
+
+
+
+👉🏻 **스트림즈 애플리케이션 실행**
+
+
 
