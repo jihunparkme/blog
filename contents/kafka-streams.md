@@ -740,3 +740,60 @@ output.kafka:
 
 ### 카프카 스트림즈 개발
 
+📄 **dependency**
+
+```gradle
+dependencies {
+    // 카프카 컨슈머 API 사용
+    implementation 'org.apache.kafka:kafka-streams:3.5.1'
+    // 자바 객체를 JSON 포맷의 String 타입으로 변환
+    implementation 'com.google.code.gson:gson:2.8.0'
+}
+```
+
+📄 **MetricJsonUtils**
+
+```java
+public class MetricJsonUtils {
+    /**
+     * 전체 CPU 사용량 퍼센티지
+     * system > cpu > total > norm > pct
+     */
+    public static double getTotalCpuPercent(String value) {
+        return new JsonParser().parse(value).getAsJsonObject().get("system").getAsJsonObject().get("cpu")
+                .getAsJsonObject().get("total").getAsJsonObject().get("norm").getAsJsonObject().get("pct").getAsDouble();
+    }
+
+    /**
+     * 메트릭 종류 추출
+     * metricset > name
+     */
+    public static String getMetricName(String value) {
+        return new JsonParser().parse(value).getAsJsonObject().get("metricset").getAsJsonObject().get("name")
+                .getAsString();
+    }
+
+    /**
+     * 호스트 이름과 timestamp 값 조합
+     * hostname: host > name
+     * timestamp : @timestamp
+     */
+    public static String  getHostTimestamp(String value) {
+        JsonObject objectValue = new JsonParser().parse(value).getAsJsonObject();
+        JsonObject result = objectValue.getAsJsonObject("host");
+        result.add("timestamp", objectValue.get("@timestamp"));
+        return result.toString();
+    }
+}
+```
+
+📄 **MetricStreams**
+
+토폴로지와 각 토폴리지에서 사용하는 스트림즈 메서드
+
+![Result](https://github.com/jihunparkme/blog/blob/main/img/kafka-streams/metric-kafka-streams.png?raw=true 'Result')
+
+```java
+
+```
+
