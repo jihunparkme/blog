@@ -2,6 +2,8 @@
 
 [아파치 카프카 애플리케이션 프로그래밍 with 자바](https://product.kyobobook.co.kr/detail/S000001842177) 도서 내용을 바탕으로 간략하게 작성되었습니다.
 
+[apache-kafka-with-java](https://github.com/bjpublic/apache-kafka-with-java)
+
 # 카프카 스트림즈
 
 > 카프카 스트림즈는 토픽에 적재된 데이터를 기반으로 상태기반 또는 비상태기반으로 **실시간 변환하여 다른 토픽에 적재**하는 라이브러리
@@ -599,7 +601,7 @@ public class KStreamJoinGlobalKTable {
   - 참고. [elastic metricbeat](https://www.elastic.co/kr/beats/metricbeat)
 - `Kafka Streams`로 서버 지표 데이터를 실시간으로 처리
   - 별개의 클러스터 없이 독립된 자바 애플리케이션으로써 동작
-  - 필요 시 파이션 개수만큼 스케일 아웃하여 향상된 처리 성능으로 운영 가능
+  - 필요시 파이션 개수만큼 스케일 아웃하여 향상된 처리 성능으로 운영 가능
 
 ## 정책 및 기능 정의
 
@@ -644,7 +646,7 @@ public class KStreamJoinGlobalKTable {
 - 요구사항에 따라 부분별로 토폴로지를 그리고, 요구사항에 맞는 메서드를 탐색
 
 👉🏻 첫 번째, 지표 데이터 분기
-- 지표 토픽 소스를 KStream으로 선언하고 branch() 메서드로 KStream 배열을 리턴받아 데이터를 분기
+- 지표 토픽 소스를 KStream으로 선언하고 branch() 메서드로 KStream 배열을 리턴 받아 데이터를 분기
 
 ![Result](https://github.com/jihunparkme/blog/blob/main/img/kafka-streams/example-first.png?raw=true 'Result')
 
