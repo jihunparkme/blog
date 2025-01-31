@@ -822,7 +822,7 @@ public class MetricStreams {
 
         Properties props = new Properties();
         props.put(StreamsConfig.APPLICATION_ID_CONFIG, "metric-streams-application");
-        props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "kafka:9092");
+        props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
         props.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass());
         props.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass());
 
@@ -856,10 +856,11 @@ public class MetricStreams {
     static class ShutdownThread extends Thread {
         public void run() {
             /** Kafka Stream의 안전한 종료를 위해 셧다운 훅을 받을 경우 close() 메서드 호출로 안전하게 종료 */
-            streams.close(); 
+            streams.close();
         }
     }
 }
+
 ```
 
 ## 기능 테스트
@@ -877,19 +878,37 @@ $ /bin/kafka-console-consumer --bootstrap-server kafka:9092 \
 --topic metric.all \
 --from-beginning
 
-{"@timestamp":"2025-01-31T07:55:26.555Z","@metadata":{"beat":"metricbeat","type":"_doc","version":"8.17.1"},"service":{"type":"system"},"system":{"cpu":{"idle":{"pct":8.1113,"norm":{"pct":0.8111}},"nice":{"pct":0,"norm":{"pct":0}},"cores":10,"total":{"pct":1.8887,"norm":{"pct":0.1889}},"user":{"norm":{"pct":0.1148},"pct":1.1476},"system":{"pct":0.7411,"norm":{"pct":0.0741}}}},"host":{"cpu":{"usage":0.1889},"name":"Aaronui-MacBookPro.local"},"event":{"dataset":"system.cpu","module":"system","duration":2847417},"ecs":{"version":"8.0.0"},"agent":{"name":"Aaronui-MacBookPro.local","type":"metricbeat","version":"8.17.1","ephemeral_id":"015c51af-55d5-46fc-a1e5-ac64bd6b93ed","id":"6f361009-f091-4d34-94fa-6a80cab9ce87"},"metricset":{"period":10000,"name":"cpu"}}
+{"@timestamp":"2025-01-31T07:55:26.555Z","@metadata":{"beat":"metricbeat","type":"_doc","version":"8.17.1"},"service":{"type":"system"},"system":{"cpu":{"idle":{"pct":8.1113,"norm":{"pct":0.8111}},"nice":{"pct":0,"norm":{"pct":0}},"cores":10,"total":{"pct":1.8887,"norm":{"pct":0.1889}},"user":{"norm":{"pct":0.1148},"pct":1.1476},"system":{"pct":0.7411,"norm":{"pct":0.0741}}}},"host":{"cpu":{"usage":0.1889},"name":"Aaronui-MacBookPro.local"},"event":{"dataset":"system.cpu","module":"system","duration":2847417},"ecs":{"version":"8.0.0"},"agent":{"name":"Aaronui-MacBookPro.local","type":"metricbeat","version":"8.17.1","ephemeral_id":"abcd-efgh-1234-5678","id":"abcdefghijk-1234567-ababna"},"metricset":{"period":10000,"name":"cpu"}}
 ...
 ```
 
-
-
-
-
-
-
-
-
 👉🏻 **스트림즈 애플리케이션 실행**
+
+```bash
+$ docker exec -it kafka /bin/bash
+
+# 지표 데이터가 분기되어 들어오는 것을 확인
+$ /bin/kafka-console-consumer --bootstrap-server kafka:9092 \
+--topic metric.cpu \
+--from-beginning
+
+{"@timestamp":"2025-01-31T07:55:26.555Z","@metadata":{"beat":"metricbeat","type":"_doc","version":"8.17.1"},"service":{"type":"system"},"system":{"cpu":{"idle":{"pct":8.1113,"norm":{"pct":0.8111}},"nice":{"pct":0,"norm":{"pct":0}},"cores":10,"total":{"pct":1.8887,"norm":{"pct":0.1889}},"user":{"norm":{"pct":0.1148},"pct":1.1476},"system":{"pct":0.7411,"norm":{"pct":0.0741}}}},"host":{"cpu":{"usage":0.1889},"name":"Aaronui-MacBookPro.local"},"event":{"dataset":"system.cpu","module":"system","duration":2847417},"ecs":{"version":"8.0.0"},"agent":{"name":"Aaronui-MacBookPro.local","type":"metricbeat","version":"8.17.1","ephemeral_id":"abcd-efgh-1234-5678","id":"abcdefghijk-1234567-ababna"},"metricset":{"period":10000,"name":"cpu"}}
+...
+
+$ /bin/kafka-console-consumer --bootstrap-server kafka:9092 \
+--topic metric.memory \
+--from-beginning
+
+{"@timestamp":"2025-01-31T07:55:28.919Z","@metadata":{"beat":"metricbeat","type":"_doc","version":"8.17.1"},"event":{"duration":1807750,"dataset":"system.memory","module":"system"},"metricset":{"name":"memory","period":10000},"service":{"type":"system"},"system":{"memory":{"total":17179869184,"used":{"pct":0.9976,"bytes":17138380800},"free":41488384,"actual":{"free":763154432,"used":{"bytes":16416714752,"pct":0.9556}},"swap":{"used":{"bytes":11371479040,"pct":0.8825},"free":1513422848,"total":12884901888}}},"ecs":{"version":"8.0.0"},"host":{"name":"Aaronui-MacBookPro.local"},"agent":{"name":"Aaronui-MacBookPro.local","type":"metricbeat","version":"8.17.1","ephemeral_id":"abcd-efgh-1234-5678","id":"abcdefghijk-1234567-ababna"}}
+...
+
+$ /bin/kafka-console-consumer --bootstrap-server kafka:9092 \
+--topic metric.cpu.alert \
+--from-beginning
+
+{"cpu":{"usage":0.8586},"name":"Aaronui-MacBookPro.local","timestamp":"2025-01-31T08:00:26.557Z"}
+...
+```
 
 
 
