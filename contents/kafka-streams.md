@@ -296,7 +296,7 @@ jihun
 ![Result](https://github.com/jihunparkme/blog/blob/main/img/kafka-streams/filter.png?raw=true 'Result')
 
 📄 **애플리케이션 실행**
-- KStream 인스턴스를 생성하고 싶지 않다면, fluent interface style을 적용해볼 수 있다.
+- KStream 인스턴스를 생성하고 싶지 않다면, fluent interface style을 적용해 볼 수 있다.
 - `streamLog.filter((key, value) -> value.length() > 5).to(STREAM_LOG_FILTER);`
 
 ```java
@@ -531,7 +531,7 @@ jihun:G-Wagon send to Seoul
 
 GlobalKTable에 존재하는 메시지 키를 기준으로 KStream이 데이터를 조인
 - KTable과 크게 다르지 않아 보이지만, GlobalKTable로 선언한 토픽은 토픽에 존재하는 모든 데이터를 태스크마다 저장하고 조인 처리를 수행
-- 조인 수행 시 KStream 메시지 키 뿐만 아니라 메시지 값을 기준으로도 매칭하여 조인 가능
+- 조인 수행 시 KStream 메시지 키뿐만 아니라 메시지 값을 기준으로도 매칭하여 조인 가능
 
 ![Result](https://github.com/jihunparkme/blog/blob/main/img/kafka-streams/GlobalKTable-join.png?raw=true 'Result')
 
