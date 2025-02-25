@@ -1,9 +1,5 @@
 # 
 
-## EC2
-
-https://data-make.tistory.com/771
-
 ## JIB를 활용해 도커 허브에 이미지 빌드/푸시하고 실행하기
 
 일반적으로 도커에 이미지를 빌드하기 위해 `Docker`, `Dockerfile`이 필요한데
@@ -69,25 +65,30 @@ BUILD SUCCESSFUL in 16s
 > 
 > https://hub.docker.com/repositories/{DOCKER-HUB-USERNAME}
 
-## 도커 허브에 올린 이미지 실행하기
+### 도커 허브에 올린 이미지 실행하기
 
 ```bash
 # pull image
 $ docker pull jihunparkme/my-project
 
 # docker run
-$ docker run -itd -p 8080:8080 -e SPRING_PROFILES_ACTIVE=prod --name tvoj jihunparkme/my-project
+$ docker run -itd -p 8080:8080 -e SPRING_PROFILES_ACTIVE=prod --name my-project jihunparkme/my-project
 
 # CONTAINER ID 확인
 $ docker ps 
 
 # 로그 확인
-$ docker logs -f ${CONTAINER ID}
+$ docker logs -f ${CONTAINER ID} or ${NAMES}
 ```
 
+## EC2
+
+https://data-make.tistory.com/771
 
 
+## 무중단 배포
 
+https://data-make.tistory.com/773
 
 
 
@@ -98,6 +99,6 @@ $ docker logs -f ${CONTAINER ID}
 
 도메인
 
-## SSL
+## SSL 인증서
 
 https://data-make.tistory.com/783
