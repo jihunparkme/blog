@@ -1,4 +1,4 @@
-# 
+# 하루만에 서비스 배포하기
 
 ## JIB를 활용해 도커 허브에 이미지 빌드/푸시하고 실행하기
 
@@ -86,19 +86,54 @@ $ docker logs -f ${CONTAINER ID} or ${NAMES}
 https://data-make.tistory.com/771
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ## 무중단 배포
 
 https://data-make.tistory.com/773
 
+## 도메인 등록
 
-
-
-
-
-
-
-도메인
+https://jojoldu.tistory.com/270?category=635883
 
 ## SSL 인증서
 
 https://data-make.tistory.com/783
+
+
+## 몽고디비 백업
+
+`mongodb`를 사용할 예정인데 데이터베이스의 백업과 복구도 빠질 수 없는 내용이라고 생각한다.
+
+참고차 백업/복구하는 방법을 알아보자.
+
+👉🏻 **백업하기**
+
+```bash
+mongodump --out ~/mongo_backup --host 127.0.0.1 --port 27017
+```
+- 인증이 필요한 경우: `-u <username> -p <password>`
+- 특정 데이터베이스: `--db <dbname>`
+- 특정 컬렉션: `--collection <collectionName>`
+
+👉🏻 **복구하기**
+
+```bash
+mongorestore --host 127.0.0.1 --port 27017 <dump data가 있는 디렉토리>
+```
+- 인증이 필요한 경우: `-u <username> -p <password>`
+- 복구 전 드랍시킬 데이터베이스: `--drop <drop db name>`
+- 특정 데이터베이스: `--db <dbname>`
+- 특정 컬렉션: `--collection <collectionName>`
