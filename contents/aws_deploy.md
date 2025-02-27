@@ -108,6 +108,8 @@ https://data-make.tistory.com/771
 
 
 
+
+
 ## 무중단 배포
 
 https://data-make.tistory.com/773
@@ -145,3 +147,10 @@ mongorestore --host 127.0.0.1 --port 27017 <dump data가 있는 디렉토리>
 - 복구 전 드랍시킬 데이터베이스: `--drop <drop db name>`
 - 특정 데이터베이스: `--db <dbname>`
 - 특정 컬렉션: `--collection <collectionName>`
+
+👉🏻 **원격지 서버로 파일 전송하기**
+
+```bash
+sudo apt-get update
+sudo apt-get install openssh-server
+```
