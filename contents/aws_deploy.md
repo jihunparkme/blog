@@ -91,7 +91,12 @@ $ docker logs -f ${CONTAINER ID} or ${NAMES}
 
 ## EC2
 
-https://data-make.tistory.com/771
+AWS EC2 Free Tier 구축은 아래 글(이전 포스팅)에서 RDS 부분만 제외하고 참고하기
+- [AWS EC2 & RDS Free Tier 구축](https://data-make.tistory.com/771)
+
+## 서비스 실행
+
+EC2의 기본적인 설정은 생각보다 간단했습니다.
 
 
 
