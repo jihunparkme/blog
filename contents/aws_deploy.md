@@ -94,10 +94,61 @@ $ docker logs -f ${CONTAINER ID} or ${NAMES}
 AWS EC2 Free Tier 구축은 아래 글(이전 포스팅)에서 RDS 부분만 제외하고 참고하기
 - [AWS EC2 & RDS Free Tier 구축](https://data-make.tistory.com/771)
 
-## 서비스 실행
+### Docker
 
-EC2의 기본적인 설정은 생각보다 간단했습니다.
+EC2의 기본적인 설정은 생각보다 간단(?)했습니다.
 
+이제 빌드한 이미지로 서비스를 띄워볼 차례입니다.
+
+👉🏻 **Install Docker**
+
+```bash
+# Install
+$ sudo yum update -y # 인스턴스에 있는 패키지 업데이트
+$ sudo yum install -y docker # docker 설치
+$ docker -v # 버전 확인
+
+# Setting
+$ sudo systemctl enable docker.service # 재부팅 시 docker 자동 실행 설정
+
+# Start
+$ sudo systemctl start docker.service # docker 서비스 실행
+$ systemctl status docker.service # docker 서비스 상태 확인
+```
+
+👉🏻 **Docker Login Using PAT(Personal Access Token)**
+- 가급적 암호를 직접적으로 사용하는 것은 선호하지 않으므로 전용 PAT를 발급받아서 사용하려고 합니다.
+- [Account Settings](https://app.docker.com/settings/account-information) 접속
+  - Personal access tokens 메뉴 클릭
+  - Create new token 클릭
+  - 서버에서는 읽기 권한만 필요하므로 Access permissions는 Read-only 로 진행
+
+### Mongodb(Docker)
+
+
+
+
+
+### 이미지 실행
+
+이미지 실행은 [JIB설정-이미지 실행] 파트에서 다룬 것과 같이 이미지를 가져온 후 실행해 주면 됩니다.
+
+```bash
+# Docker login
+docker login -u ${username}
+
+# pull image
+$ docker pull jihunparkme/my-project
+
+# docker run
+$ docker run -itd -p 8080:8080 -e SPRING_PROFILES_ACTIVE=prod --name my-project jihunparkme/my-project
+
+# CONTAINER ID 확인
+$ docker ps 
+
+# 로그 확인
+$ docker logs -f ${CONTAINER ID} or ${NAMES}
+```
 
 
 
