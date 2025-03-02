@@ -136,7 +136,23 @@ $ systemctl status docker.service # docker 서비스 상태 확인
 >
 > `/var/run/docker.sock` 파일의 권한을 변경하여 그룹 내 다른 사용자도 접근 가능하도록 변경이 필요합니다.
 >
-> sudo chmod 666 /var/run/docker.sock
+> `sudo chmod 666 /var/run/docker.sock`
+
+⚠️ **도커 명령어 참고**
+
+```bash
+# 컨테이너 중지
+$ docker stop ${NAMES}
+
+# 컨테이너 시작
+$ docker start ${NAMES}
+
+# 컨테이너 재시작
+$ docker restart ${NAMES}
+
+# 컨테이너 접속
+$ docker exec -it ${NAMES} bash
+```
 
 ### Mongodb(Docker)
 
@@ -156,23 +172,7 @@ docker run -itd -p 27017:27017 --restart=always --name mongodb -v ~/data:/data/d
 docker ps
 ```
 
-⚠️ **도커 명령어 참고**
-
-```bash
-# 컨테이너 중지
-$ docker stop ${NAMES}
-
-# 컨테이너 시작
-$ docker start ${NAMES}
-
-# 컨테이너 재시작
-$ docker restart ${NAMES}
-
-# 컨테이너 접속
-$ docker exec -it ${NAMES} bash
-```
-
-### 이미지 실행
+### Docker run
 
 이미지 실행은 [JIB설정-이미지 실행] 파트에서 다룬 것과 같이 이미지를 가져온 후 실행해 주면 됩니다.
 
@@ -195,7 +195,13 @@ $ docker logs -f ${CONTAINER ID} or ${NAMES}
 
 이제 `http://[탄력적 IP]:8080`로 접속해 보면 성공적으로 서비스가 실행중인 것을 확인할 수 있습니다.
 
-
+> ⚠️ 서비스와 데이터베이스가 모두 컨테이너로 실행될 경우
+>
+> 서비스에서 데이터베이스에 접근하기 위해 서비스에서는 EC2 내부 IP를 명시해야 하는데 
+>
+> EC2에서 아래 명령어를 통해 내부 IP 확인이 가능합니다.
+>
+> `ifconfig | grep "inet "`
 
 
 
