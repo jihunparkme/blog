@@ -94,6 +94,13 @@ $ docker logs -f ${CONTAINER ID} or ${NAMES}
 AWS EC2 Free Tier 구축은 아래 글(이전 포스팅)에서 RDS 부분만 제외하고 참고하기
 - [AWS EC2 & RDS Free Tier 구축](https://data-make.tistory.com/771)
 
+⚠️ 정상적인 설정을 위해 RDS 생성을 제외한 아래 단계들은 반드시 적용이 필요합니다.
+- Set Timezone
+- EC2 프리티어 메모리 부족현상 해결
+- 외부에서 서비스 접속
+
+> Docker에 이미지를 빌드하는 방식을 적용하면서 서버에 자바 설치, 깃허브 연동과 같은 기본 세팅은 불필요하게 되었습니다.
+
 ### Docker
 
 EC2의 기본적인 설정은 생각보다 간단(?)했습니다.
@@ -123,11 +130,47 @@ $ systemctl status docker.service # docker 서비스 상태 확인
   - Create new token 클릭
   - 서버에서는 읽기 권한만 필요하므로 Access permissions는 Read-only 로 진행
 
+> ⚠️ **permission denied while trying to connect to the Docker daemon socket at unix:///var/run/docker.sock**
+>
+> 만일 docker 명령어 사용 시 위 에러가 발생한다면, 
+>
+> `/var/run/docker.sock` 파일의 권한을 변경하여 그룹 내 다른 사용자도 접근 가능하도록 변경이 필요합니다.
+>
+> sudo chmod 666 /var/run/docker.sock
+
 ### Mongodb(Docker)
 
+해당 프로젝트에서는 도커에서 몽고디비를 실행시켜서 사용하려고 합니다.
 
+```bash
+## mongo 이미지 가져오기
+docker pull mongo
 
+## 이미지 목록 확인
+docker images
 
+## mongo 컨테이너 실행
+docker run -itd -p 27017:27017 --restart=always --name mongodb -v ~/data:/data/db mongo
+
+## 실행중인 컨테이너 확인
+docker ps
+```
+
+⚠️ **도커 명령어 참고**
+
+```bash
+# 컨테이너 중지
+$ docker stop ${NAMES}
+
+# 컨테이너 시작
+$ docker start ${NAMES}
+
+# 컨테이너 재시작
+$ docker restart ${NAMES}
+
+# 컨테이너 접속
+$ docker exec -it ${NAMES} bash
+```
 
 ### 이미지 실행
 
@@ -150,10 +193,7 @@ $ docker ps
 $ docker logs -f ${CONTAINER ID} or ${NAMES}
 ```
 
-
-
-
-
+이제 `http://[탄력적 IP]:8080`로 접속해 보면 성공적으로 서비스가 실행중인 것을 확인할 수 있습니다.
 
 
 
