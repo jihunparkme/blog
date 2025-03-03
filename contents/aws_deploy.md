@@ -101,6 +101,10 @@ AWS EC2 Free Tier 구축은 아래 글(이전 포스팅)에서 RDS 부분만 제
 
 > Docker에 이미지를 빌드하는 방식을 적용하면서 서버에 자바 설치, 깃허브 연동과 같은 기본 세팅은 불필요하게 되었습니다.
 
+⚠️ 고정 IP(Elastic IP) 등록
+- [EC2]-[네트워크 및 보안]-[탄력적 IP]
+- 탄력적 IP 주소 할당 ➜ 탄력적 IP 주소 연결 ➜ 생성한 EC2 인스턴스에 연결
+
 ### Docker
 
 EC2의 기본적인 설정은 생각보다 간단(?)했습니다.
@@ -121,6 +125,9 @@ $ sudo systemctl enable docker.service # 재부팅 시 docker 자동 실행 설�
 # Start
 $ sudo systemctl start docker.service # docker 서비스 실행
 $ systemctl status docker.service # docker 서비스 상태 확인
+
+# Docker login
+docker login -u ${username}
 ```
 
 👉🏻 **Docker Login Using PAT(Personal Access Token)**
@@ -160,16 +167,19 @@ $ docker exec -it ${NAMES} bash
 
 ```bash
 ## mongo 이미지 가져오기
-docker pull mongo
+$ docker pull mongo
 
 ## 이미지 목록 확인
-docker images
+$ docker images
 
 ## mongo 컨테이너 실행
-docker run -itd -p 27017:27017 --restart=always --name mongodb -v ~/data:/data/db mongo
+$ docker run -itd -p 27017:27017 --restart=always --name mongodb -v ~/data:/data/db mongo
 
-## 실행중인 컨테이너 확인
-docker ps
+## mongo shell 접속
+$ docker exec -it mongodb mongosh
+
+user> use his_voice # database 생성
+user> db.createCollection("sermons") # collection 셍상
 ```
 
 ### Docker run
@@ -177,9 +187,6 @@ docker ps
 이미지 실행은 [JIB설정-이미지 실행] 파트에서 다룬 것과 같이 이미지를 가져온 후 실행해 주면 됩니다.
 
 ```bash
-# Docker login
-docker login -u ${username}
-
 # pull image
 $ docker pull jihunparkme/my-project
 
@@ -212,9 +219,11 @@ $ docker logs -f ${CONTAINER ID} or ${NAMES}
 
 
 
-## 무중단 배포
 
-https://data-make.tistory.com/773
+
+
+
+
 
 ## 도메인 등록
 
@@ -224,6 +233,17 @@ https://jojoldu.tistory.com/270?category=635883
 
 https://data-make.tistory.com/783
 
+
+
+
+
+
+
+
+
+## 무중단 배포
+
+https://data-make.tistory.com/773
 
 ## 몽고디비 백업
 
