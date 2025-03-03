@@ -209,16 +209,79 @@ $ docker logs -f ${CONTAINER ID} or ${NAMES}
 >
 > `ifconfig | grep "inet "`
 
-
-
-
-
-
-
-
 # 무중단 배포
 
-https://data-make.tistory.com/773
+## Nginx 설정
+
+```bash
+# nginx 설치
+$ sudo yum install -y nginx
+```
+
+👉🏻 **nginx 명령어 참고**
+
+```bash
+# 버전 확인
+$ nginx -version
+
+# 기본 명령어
+$ sudo systemctl start nginx   # nginx 시작
+$ sudo systemctl enable nginx  # 부팅시 자동실행
+$ sudo systemctl status nginx  # 상태 확인
+$ sudo systemctl stop nginx    # nginx 중지
+
+# 실행 중 에러확인.
+$ journalctl -xe
+```
+
+👉🏻 **nginx 설정**
+
+- ✅ 동적 프록시 설정을 위해 service-url 관리 파일 생성
+
+```bash
+$ sudo mkdir /etc/nginx/conf
+$ sudo vi /etc/nginx/conf/service-url.inc
+
+set $service_url http://[Elastic IP]:8080;
+```
+
+- 기본 설정 파일인 `/etc/nginx/nginx.conf` 하단을 보면 `/etc/nginx/conf.d` 경로의 conf 파일들을 include 해주고 있다.
+
+```bash
+$ vi /etc/nginx/nginx.conf
+
+...
+include /etc/nginx/conf.d/*.conf;
+...
+```
+
+- ✅ default.conf 파일 생성
+
+```bash
+# default.conf 파일 생성
+$ sudo vi /etc/nginx/conf.d/default.conf
+
+server {
+	include /etc/nginx/conf/service-url.inc;
+
+	location / {
+		proxy_pass $service_url;
+	}
+}
+
+# nginx 재시작
+$ sudo systemctl restart nginx
+```
+
+nginx 재시작 이후 포트를 제외한 `http://[탄력적 IP]`로 접속이 잘 된다면 nginx 설정이 정상적으로 되었습니다.
+
+## 배포 스크립트
+
+
+
+
+
+
 
 
 
