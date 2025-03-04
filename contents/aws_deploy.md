@@ -357,7 +357,7 @@ $ chmod 755 ~/app/deploy/nonstop-deploy.sh
 $ ~/app/deploy/nonstop-deploy.sh
 ```
 
-스크립트를 실행하면 아래와 같이 무중단 배포가 수행됩니다.
+👉🏻 스크립트를 실행하면 아래와 같이 무중단 배포가 수행됩니다.
 
 ```bash
 ### GREEN => BLUE ###
@@ -381,6 +381,14 @@ set $service_url http://$[ELASTIC IP]:8081;
 green
 ```
 
+👉🏻 alias 등록
+
+```bash
+$ vi ~/.bashrc
+
+# 하단에 alias 추가
+alias deploy="~/app/deploy/nonstop-deploy.sh"
+```
 
 
 
