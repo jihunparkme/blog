@@ -297,26 +297,27 @@ if [ -z $IS_BLUE  ];then # green 이라면
   echo "1 >>> get latest image"
   docker pull jihunparkme/my-project
 
-  echo "2 >>> run blue container"
-  docker run -itd -p 8081:8081 -e SPRING_PROFILES_ACTIVE=prod1 --name blue jihunparkme/my-project
+  echo "2 >>> run blue(8081) container"
+  docker run -itd -p 8081:8080 -p 4041:4040 -e SPRING_PROFILES_ACTIVE=prod1 --name blue jihunparkme/my-project
 
   while [ 1 = 1 ]; do
-    echo "3 >>> blue health check..."
+    echo "3 >>> blue(8081) health check..."
     sleep 3
 
-    REQUEST=$(curl http://127.0.0.1:8081) # blue 포트로 요청
+    response=$(curl -s http://localhost:4041/management/actuator/health)
+    up_count=$(echo $response | grep 'UP' | wc -l)
 
-    if [ -n "$REQUEST" ]; then # 서비스가 정상적으로 실행되었다면 health check 중지
-      echo "blue health check success."
+    if [ $up_count -ge 1 ]; then # 서비스가 정상적으로 실행되었다면 health check 중지
+      echo "blue(8081) health check success."
       break ;
     fi
   done;
 
-  echo "4 >>> reload nginx" 
-  echo "set \$service_url http://[Elastic IP]:8081;" | sudo tee /etc/nginx/conf/service-url.inc
+  echo "4 >>> reload nginx"
+  echo "set \$service_url http://$[ELASTIC IP]:8081;" | sudo tee /etc/nginx/conf/service-url.inc
   sudo nginx -s reload
 
-  echo "5 >>> green container down"
+  echo "5 >>> green(8082) container down"
   docker rm -f green
 
 else
@@ -325,25 +326,27 @@ else
   echo "1 >>> get latest image"
   docker pull jihunparkme/my-project
 
-  echo "2 >>> run green container"
-  docker run -itd -p 8082:8082 -e SPRING_PROFILES_ACTIVE=prod2 --name green jihunparkme/my-project
+  echo "2 >>> run green(8082) container"
+  docker run -itd -p 8082:8080 -p 4042:4040 -e SPRING_PROFILES_ACTIVE=prod2 --name green jihunparkme/my-project
 
   while [ 1 = 1 ]; do
-    echo "3 >>> green health check..."
+    echo "3 >>> green(8082) health check..."
     sleep 3
-  
-    REQUEST=$(curl http://127.0.0.1:8082) # green 포트로 요청
-      if [ -n "$REQUEST" ]; then # 서비스 가능하면 health check 중지
-	    echo "green health check success."
-	    break ;
-	  fi
+
+    response=$(curl -s http://localhost:4042/management/actuator/health)
+    up_count=$(echo $response | grep 'UP' | wc -l)
+
+    if [ $up_count -ge 1 ]; then # 서비스 가능하면 health check 중지
+        echo "green(8082) health check success."
+        break ;
+    fi
   done;
 
-  echo "4 >>> reload nginx" 
-  echo "set \$service_url http://[Elastic IP]:8082;" | sudo tee /etc/nginx/conf/service-url.inc
+  echo "4 >>> reload nginx"
+  echo "set \$service_url http://$[ELASTIC IP]:8082;" | sudo tee /etc/nginx/conf/service-url.inc
   sudo nginx -s reload
 
-  echo "5 >>> blue container down"
+  echo "5 >>> blue(8081) container down"
   docker rm -f blue
 fi
 
@@ -352,6 +355,30 @@ $ chmod 755 ~/app/deploy/nonstop-deploy.sh
 
 # 스크립트 실행
 $ ~/app/deploy/nonstop-deploy.sh
+```
+
+스크립트를 실행하면 아래와 같이 무중단 배포가 수행됩니다.
+
+```bash
+### GREEN => BLUE ###
+1 >>> get latest image
+Using default tag: latest
+latest: Pulling from jihunparkme/my-project
+Digest: sha256:xxx
+Status: Image is up to date for jihunparkme/my-project:latest
+docker.io/jihunparkme/my-project:latest
+2 >>> run blue(8081) container
+xxx
+3 >>> blue(8081) health check...
+3 >>> blue(8081) health check...
+3 >>> blue(8081) health check...
+3 >>> blue(8081) health check...
+3 >>> blue(8081) health check...
+blue(8081) health check success.
+4 >>> reload nginx
+set $service_url http://$[ELASTIC IP]:8081;
+5 >>> green(8082) container down
+green
 ```
 
 
