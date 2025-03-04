@@ -177,8 +177,8 @@ $ docker run -itd -p 27017:27017 --restart=always --name mongodb -v ~/data:/data
 ## mongo shell 접속
 $ docker exec -it mongodb mongosh
 
-user> use his_voice # database 생성
-user> db.createCollection("sermons") # collection 셍상
+user> use database_name # database 생성
+user> db.createCollection("collection_name") # collection 셍상
 ```
 
 ## Docker run
@@ -277,12 +277,82 @@ nginx 재시작 이후 포트를 제외한 `http://[탄력적 IP]`로 접속이 
 
 ## 배포 스크립트
 
+무중단 배포는 Blue/Green 방식으로 적용해 보려고 합니다.
 
+인바운드 8081 8082 오픈
 
+이제 본격적으로 무중단 배포 스크립트를 작성해 보겠습니다.
 
+```bash
+# 배포 스크립트 생성
+$ vi ~/app/deploy/nonstop-deploy.sh
 
+#!/bin/bash
 
+IS_BLUE=$(docker ps | grep blue) # 실행중인 컨테이너가 blue인지 확인
 
+if [ -z $IS_BLUE  ];then # green 이라면
+  echo "### GREEN => BLUE ###"
+
+  echo "1 >>> get latest image"
+  docker pull jihunparkme/my-project
+
+  echo "2 >>> run blue container"
+  docker run -itd -p 8081:8081 -e SPRING_PROFILES_ACTIVE=prod1 --name blue jihunparkme/my-project
+
+  while [ 1 = 1 ]; do
+    echo "3 >>> blue health check..."
+    sleep 3
+
+    REQUEST=$(curl http://127.0.0.1:8081) # blue 포트로 요청
+
+    if [ -n "$REQUEST" ]; then # 서비스가 정상적으로 실행되었다면 health check 중지
+      echo "blue health check success."
+      break ;
+    fi
+  done;
+
+  echo "4 >>> reload nginx" 
+  echo "set \$service_url http://[Elastic IP]:8081;" | sudo tee /etc/nginx/conf/service-url.inc
+  sudo nginx -s reload
+
+  echo "5 >>> green container down"
+  docker rm -f green
+
+else
+  echo "### BLUE => GREEN ###"
+
+  echo "1 >>> get latest image"
+  docker pull jihunparkme/my-project
+
+  echo "2 >>> run green container"
+  docker run -itd -p 8082:8082 -e SPRING_PROFILES_ACTIVE=prod2 --name green jihunparkme/my-project
+
+  while [ 1 = 1 ]; do
+    echo "3 >>> green health check..."
+    sleep 3
+  
+    REQUEST=$(curl http://127.0.0.1:8082) # green 포트로 요청
+      if [ -n "$REQUEST" ]; then # 서비스 가능하면 health check 중지
+	    echo "green health check success."
+	    break ;
+	  fi
+  done;
+
+  echo "4 >>> reload nginx" 
+  echo "set \$service_url http://[Elastic IP]:8082;" | sudo tee /etc/nginx/conf/service-url.inc
+  sudo nginx -s reload
+
+  echo "5 >>> blue container down"
+  docker rm -f blue
+fi
+
+# 스크립트 저장 후 실행 권한 적용
+$ chmod 755 ~/app/deploy/nonstop-deploy.sh
+
+# 스크립트 실행
+$ ~/app/deploy/nonstop-deploy.sh
+```
 
 
 
