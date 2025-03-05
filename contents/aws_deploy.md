@@ -399,6 +399,19 @@ $ deploy
 
 참고. [[Monitoring] Prometheus & Grafana](https://data-make.tistory.com/795)
 
+```bash
+# 도커 컴포즈 설치
+$ sudo curl -L "https://github.com/docker/compose/releases/download/v2.5.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+# 권한 부
+$ sudo chmod +x /usr/local/bin/docker-compose
+# 버전 확인
+$ docker-compose --version
+
+$ mkdir ~/app/monitoring
+$ vi ~/app/monitoring/prometheus.yml
+$ vi ~/app/monitoring/monitoring.yml
+```
+
 ✅ **prometheus.yml**
 
 ```sh
@@ -416,7 +429,7 @@ scrape_configs:
      - targets: ['localhost:8081', 'localhost:8082']
 ```
 
-✅ **docker-compose-monitoring.yml**
+✅ **monitoring.yml**
 
 ```sh
 version: '3'
@@ -424,6 +437,7 @@ version: '3'
 services:
   prometheus:
     image: prom/prometheus:latest
+    restart: always
     container_name: prometheus
     ports:
       - "9090:9090"
@@ -432,6 +446,7 @@ services:
 
   grafana:
     image: grafana/grafana:latest
+    restart: always
     container_name: grafana
     user: "$UID:$GID"
     ports:
@@ -442,7 +457,9 @@ services:
       - prometheus
 ```
 
-
+```bash
+docker-compose -f monitoring.yml up -d
+```
 
 
 
