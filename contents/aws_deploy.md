@@ -388,18 +388,63 @@ $ vi ~/.bashrc
 
 # 하단에 alias 추가
 alias deploy="~/app/deploy/nonstop-deploy.sh"
+
+$ source ~/.bashrc
+
+# deploy alias로 무중단 배포 진행
+$ deploy
+```
+
+## 그라파나
+
+참고. [[Monitoring] Prometheus & Grafana](https://data-make.tistory.com/795)
+
+✅ **prometheus.yml**
+
+```sh
+scrape_configs:
+ - job_name: "prometheus"
+   static_configs:
+     - targets: ["localhost:9090"]
+ - job_name: "spring-actuator" # 수집하는 임의 이름
+   # 수집 경로 지정(1초에 한 번씩 호출해서 메트릭 수집)
+   metrics_path: '/management/actuator/prometheus'
+   # 수집 주기 (10s~1m 권장)
+   scrape_interval: 1s
+   # 수집할 서버 정보(IP, PORT)
+   static_configs:
+     - targets: ['localhost:8081', 'localhost:8082']
+```
+
+✅ **docker-compose-monitoring.yml**
+
+```sh
+version: '3'
+
+services:
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+       - ./prometheus.yml:/etc/prometheus/prometheus.yml
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    user: "$UID:$GID"
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./grafana-data:/var/lib/grafana
+    depends_on:
+      - prometheus
 ```
 
 
 
 
-
-
-
-
-## 그라파나
-
-참고. [[Monitoring] Prometheus & Grafana](https://data-make.tistory.com/795)
 
 
 
