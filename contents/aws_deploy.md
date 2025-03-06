@@ -418,7 +418,7 @@ $ vi ~/app/monitoring/monitoring.yml
 scrape_configs:
  - job_name: "prometheus"
    static_configs:
-     - targets: ["localhost:9090"]
+     - targets: ["$[ELASTIC IP]:9090"]
  - job_name: "spring-actuator" # 수집하는 임의 이름
    # 수집 경로 지정(1초에 한 번씩 호출해서 메트릭 수집)
    metrics_path: '/management/actuator/prometheus'
@@ -426,7 +426,7 @@ scrape_configs:
    scrape_interval: 1s
    # 수집할 서버 정보(IP, PORT)
    static_configs:
-     - targets: ['localhost:8081', 'localhost:8082']
+     - targets: ['$[ELASTIC IP]:4041', '$[ELASTIC IP]:4042']
 ```
 
 ✅ **monitoring.yml**
@@ -458,8 +458,28 @@ services:
 ```
 
 ```bash
-docker-compose -f monitoring.yml up -d
+docker-compose -f ~/app/monitoring/monitoring.yml up -d
 ```
+
+
+인바운드 4041 4042  $[ELASTIC IP] 추가
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
