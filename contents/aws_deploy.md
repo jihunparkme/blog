@@ -75,7 +75,7 @@ BUILD SUCCESSFUL in 16s
 
 ## 컨테이너 실행
 
-로컬에서 푸시한 이미지를 
+로컬에서 푸시한 이미지를 실행해보자
 
 ```bash
 # pull image
@@ -93,19 +93,75 @@ $ docker logs -f ${CONTAINER ID} or ${NAMES}
 
 # EC2
 
-AWS EC2 Free Tier 구축은 아래 글(이전 포스팅)에서 RDS 부분만 제외하고 참고하기
+AWS EC2 Free Tier 구축은 아래 글(이전 포스팅)에서 RDS 부분만 제외하고 참고해 봅시다.
 - [AWS EC2 & RDS Free Tier 구축](https://data-make.tistory.com/771)
 
-⚠️ 정상적인 설정을 위해 RDS 생성을 제외한 아래 단계들은 반드시 적용이 필요합니다.
-- Set Timezone
-- EC2 프리티어 메모리 부족현상 해결
-- 외부에서 서비스 접속
+⚠️ 정상적인 설정을 위해 RDS 생성을 제외한 아래 단계들은 반드시 적용이 필요합니다. 자세한 내용은 글을 참고하시고 간략하게 명령어만 남겨두겠습니다.
 
 > Docker에 이미지를 빌드하는 방식을 적용하면서 서버에 자바 설치, 깃허브 연동과 같은 기본 세팅은 불필요하게 되었습니다.
 
-⚠️ 고정 IP(Elastic IP) 등록
+✅ Set Timezone
+
+```bash
+# check timezone
+$ date
+
+# change timezone
+$ sudo rm /etc/localtime
+$ sudo ln -s /usr/share/zoneinfo/Asia/Seoul /etc/localtime
+```
+
+✅ EC2 프리티어 메모리 부족현상 해결
+
+```bash
+# dd 명령어로 swap 메모리 할당 (128M 씩 16개의 공간, 약 2GB)
+$ sudo dd if=/dev/zero of=/swapfile bs=128M count=16
+
+# swap 파일에 대한 읽기 및 쓰기 권한 업데이트
+$ sudo chmod 600 /swapfile
+
+# Linux 스왑 영역 설정
+$ sudo mkswap /swapfile
+
+# swap 공간에 swap 파일을 추가하여 swap 파일을 즉시 사용할 수 있도록 설정
+$ sudo swapon /swapfile
+
+# 절차가 성공했는지 확인
+$ sudo swapon -s
+
+# /etc/fstab 파일을 수정하여 부팅 시 swap 파일 활성화
+$ sudo vi /etc/fstab
+
+/swapfile swap swap defaults 0 0 # 파일 끝에 추가 후 저장
+
+# 메모리 상태 확인
+$ free -h
+```
+
+✅ 외부에서 서비스 접속
+- 다른 포트도 서비스에 사용한다면 인바운드 탭에서 오픈시켜주면 됩니다.
+
+```text
+AWS EC2 인스턴스 페이지 -> 보안그룹 -> 현재 인스턴스의 보안 그룹 선택 -> 인바운드 탭
+
+인바운드 규칙 편집 버튼을 클릭
+- 유형: 사용자지정(TCP)
+- 포트 범위: 8080
+- 소스: Anywhere(0.0.0.0/0)
+
+[퍼블릭 IPv4 DNS]:8080 주소로 접속 확인
+```
+
+✅ 고정 IP(Elastic IP) 등록
+- 기본적으로 인스턴스를 재가동할 때마다 IP가 변경되는데 고정 IP를 사용해서 IP가 변경되지 않도록 할 수 있습니다.
 - [EC2]-[네트워크 및 보안]-[탄력적 IP]
 - 탄력적 IP 주소 할당 ➜ 탄력적 IP 주소 연결 ➜ 생성한 EC2 인스턴스에 연결
+
+> 📚 Reference.
+>
+> [[AWS] AWS EC2 & RDS Free Tier 구축](https://data-make.tistory.com/771)
+>
+> [스프링부트로 웹 서비스 출시하기 - 4. AWS EC2 & RDS 구축하기](https://jojoldu.tistory.com/259)
 
 ## Docker
 
