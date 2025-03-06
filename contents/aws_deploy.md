@@ -2,6 +2,9 @@
 
 배포를 위한 **JIB**, **AWS EC2**, **Docker**, **Mongodb**, **Grafana**, **도메인 등록**, **SSL 인증서**에 대한 내용을 다룹니다.
 
+⚠️ 본문에서는 각 개념에 대한 자세한 내용을 다루지 않고, 간략한 진행 과정을 다루고 있습니다.<br/>
+따라서 자세한 내용은 각 내용에 첨부된 글을 참고해 주세요.🙇🏻‍♂️
+
 # JIB를 활용한 컨테이너 이미지 빌드/푸시
 
 일반적으로 도커 허브에 이미지를 빌드하기 위해 `Docker`, `Dockerfile`이 필요한데
@@ -75,7 +78,7 @@ BUILD SUCCESSFUL in 16s
 
 ## 컨테이너 실행
 
-로컬에서 푸시한 이미지를 실행해보자
+로컬에서 도커 허브에 업로드한 이미지를 실행해 봅시다
 
 ```bash
 # pull image
@@ -91,7 +94,7 @@ $ docker ps
 $ docker logs -f ${CONTAINER ID} or ${NAMES}
 ```
 
-# EC2
+# AWS EC2
 
 AWS EC2 Free Tier 구축은 아래 글(이전 포스팅)에서 RDS 부분만 제외하고 참고해 봅시다.
 - [AWS EC2 & RDS Free Tier 구축](https://data-make.tistory.com/771)
@@ -163,11 +166,11 @@ AWS EC2 인스턴스 페이지 -> 보안그룹 -> 현재 인스턴스의 보안 
 >
 > [스프링부트로 웹 서비스 출시하기 - 4. AWS EC2 & RDS 구축하기](https://jojoldu.tistory.com/259)
 
-## Docker
+## Docker In EC2
 
 EC2의 기본적인 설정은 생각보다 간단(?)했습니다.
 
-이제 빌드한 이미지로 서비스를 띄워볼 차례입니다.
+이제 도커 허브에 업로드한 이미지로 EC2 인스턴스에 서비스를 실행시켜볼 차례입니다.
 
 👉🏻 **Install Docker**
 
@@ -189,7 +192,7 @@ docker login -u ${username}
 ```
 
 👉🏻 **Docker Login Using PAT(Personal Access Token)**
-- 가급적 암호를 직접적으로 사용하는 것은 선호하지 않으므로 전용 PAT를 발급받아서 사용하려고 합니다.
+- 가급적 암호를 직접적으로 사용하는 것은 권장하지 않으므로 전용 PAT를 발급받아서 사용하려고 합니다.
 - [Account Settings](https://app.docker.com/settings/account-information) 접속
   - Personal access tokens 메뉴 클릭
   - Create new token 클릭
@@ -203,7 +206,7 @@ docker login -u ${username}
 >
 > `sudo chmod 666 /var/run/docker.sock`
 
-⚠️ **도커 명령어 참고**
+📖 **도커 명령어 참고**
 
 ```bash
 # 컨테이너 중지
