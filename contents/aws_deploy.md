@@ -314,7 +314,9 @@ $ sudo vi /etc/nginx/conf/service-url.inc
 set $service_url http://[Elastic IP]:8080;
 ```
 
-- 기본 설정 파일인 `/etc/nginx/nginx.conf` 하단을 보면 `/etc/nginx/conf.d` 경로의 conf 파일들을 include 해주고 있다.
+- ✅ default.conf 파일 생성
+  - 기본 설정 파일인 `/etc/nginx/nginx.conf` 하단을 보면 `/etc/nginx/conf.d` 경로의 conf 파일들을 include 해주고 있다.
+  - 그러므로 해당 경로에 커스텀 설정 파일을 만드려고 한다.
 
 ```bash
 $ vi /etc/nginx/nginx.conf
@@ -322,11 +324,7 @@ $ vi /etc/nginx/nginx.conf
 ...
 include /etc/nginx/conf.d/*.conf;
 ...
-```
 
-- ✅ default.conf 파일 생성
-
-```bash
 # default.conf 파일 생성
 $ sudo vi /etc/nginx/conf.d/default.conf
 
