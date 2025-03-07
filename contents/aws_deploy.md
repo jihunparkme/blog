@@ -345,10 +345,11 @@ nginx 재시작 이후 포트를 제외한 `http://[탄력적 IP]`로 접속이 
 ## 배포 스크립트
 
 무중단 배포는 Blue/Green 방식으로 적용해 보려고 합니다.
-
-인바운드 8081 8082 오픈
+- 포트는 각각 8081/8082 을 사용할 예정이므로 EC2 인스턴스 인바운드 규칙에서 8081/8082 포트를 열어주어야 합니다.
+- [AWS EC2-외부에서 서비스 접속] 탭 참고
 
 이제 본격적으로 무중단 배포 스크립트를 작성해 보겠습니다.
+- 참고로 `actuator`는 4040 포트를 사용하고 있어서 컨테이너 실행 시 해당 포트를 연결해 주기 위한 설정이 포함되어 있습니다.
 
 ```bash
 # 배포 스크립트 생성
@@ -361,17 +362,17 @@ IS_BLUE=$(docker ps | grep blue) # 실행중인 컨테이너가 blue인지 확�
 if [ -z $IS_BLUE  ];then # green 이라면
   echo "### GREEN => BLUE ###"
 
-  echo "1 >>> get latest image"
+  echo "1 >>> get latest image" # 최신 이미지 가져오기
   docker pull jihunparkme/my-project
 
-  echo "2 >>> run blue(8081) container"
+  echo "2 >>> run blue(8081) container" # blue 포트로 서비스 실행
   docker run -itd -p 8081:8080 -p 4041:4040 -e SPRING_PROFILES_ACTIVE=prod1 --name blue jihunparkme/my-project
 
   while [ 1 = 1 ]; do
     echo "3 >>> blue(8081) health check..."
     sleep 3
 
-    response=$(curl -s http://localhost:4041/management/actuator/health)
+    response=$(curl -s http://localhost:4041/actuator/health) # health 체크
     up_count=$(echo $response | grep 'UP' | wc -l)
 
     if [ $up_count -ge 1 ]; then # 서비스가 정상적으로 실행되었다면 health check 중지
@@ -381,13 +382,13 @@ if [ -z $IS_BLUE  ];then # green 이라면
   done;
 
   echo "4 >>> reload nginx"
-  echo "set \$service_url http://$[ELASTIC IP]:8081;" | sudo tee /etc/nginx/conf/service-url.inc
+  echo "set \$service_url http://$[ELASTIC IP]:8081;" | sudo tee /etc/nginx/conf/service-url.inc # 서비스 포트를 변경하기 위해 service-url.inc 파일 수정
   sudo nginx -s reload
 
   echo "5 >>> green(8082) container down"
-  docker rm -f green
+  docker rm -f green # 기존 실행중이던 green 컨테이너 종료 및 삭제
 
-else
+else # GREEN => BLUE 경우와 반대로 동작
   echo "### BLUE => GREEN ###"
 
   echo "1 >>> get latest image"
@@ -400,10 +401,10 @@ else
     echo "3 >>> green(8082) health check..."
     sleep 3
 
-    response=$(curl -s http://localhost:4042/management/actuator/health)
+    response=$(curl -s http://localhost:4042/actuator/health)
     up_count=$(echo $response | grep 'UP' | wc -l)
 
-    if [ $up_count -ge 1 ]; then # 서비스 가능하면 health check 중지
+    if [ $up_count -ge 1 ]; then
         echo "green(8082) health check success."
         break ;
     fi
@@ -449,6 +450,7 @@ green
 ```
 
 👉🏻 alias 등록
+- 매번 번거롭게 쉘 실행 명령어를 작성하지 않고 alias를 등록해서 간편하게 배포를 수행하도록 할 수 있습니다.
 
 ```bash
 $ vi ~/.bashrc
@@ -462,7 +464,7 @@ $ source ~/.bashrc
 $ deploy
 ```
 
-## 그라파나
+## Grafana
 
 
 
@@ -488,7 +490,7 @@ scrape_configs:
      - targets: ["$[ELASTIC IP]:9090"]
  - job_name: "spring-actuator" # 수집하는 임의 이름
    # 수집 경로 지정(1초에 한 번씩 호출해서 메트릭 수집)
-   metrics_path: '/management/actuator/prometheus'
+   metrics_path: '/actuator/prometheus'
    # 수집 주기 (10s~1m 권장)
    scrape_interval: 1s
    # 수집할 서버 정보(IP, PORT)
