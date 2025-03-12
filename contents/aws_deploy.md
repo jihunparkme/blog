@@ -367,6 +367,7 @@ if [ -z $IS_BLUE  ];then # green 이라면
 
   echo "2 >>> run blue(8081) container" # blue 포트로 서비스 실행
   docker run -itd -p 8081:8080 -p 4041:4040 -e SPRING_PROFILES_ACTIVE=prod1 --name blue jihunparkme/my-project
+  docker logs -f blue > /home/ec2-user/logs/blue.log & # docker logs 파일로 저장
 
   while [ 1 = 1 ]; do
     echo "3 >>> blue(8081) health check..."
@@ -396,6 +397,7 @@ else # GREEN => BLUE 경우와 반대로 동작
 
   echo "2 >>> run green(8082) container"
   docker run -itd -p 8082:8080 -p 4042:4040 -e SPRING_PROFILES_ACTIVE=prod2 --name green jihunparkme/my-project
+  docker logs -f green > /home/ec2-user/logs/green.log & # docker logs 파일로 저장
 
   while [ 1 = 1 ]; do
     echo "3 >>> green(8082) health check..."
