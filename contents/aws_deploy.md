@@ -1,10 +1,24 @@
 # 하루만에 서비스 배포하기(JIB, EC2, Docker ..)
 
-배포를 위한 **JIB**, **AWS EC2**, **Docker**, **Mongodb**, **Grafana**, **도메인 등록**, **SSL 인증서**에 대한 내용을 다룹니다.
-
-⚠️ 본문에서는 각 개념에 대한 자세한 내용을 다루지 않고, 전체적인 진행 과정만을 다루고 있습니다.<br/>
+⚠️ 본문에서는 각 개념에 대한 자세한 내용을 다루지 않고, 어느 정도의 이해도가 있다는 전제로 큰 진행 과정만을 다루고 있습니다.<br/>
 따라서 자세한 내용은 각 내용에 첨부된 글을 참고해 주세요.🙇🏻‍♂️<br>
 부족한 내용은 댓글로 남겨주시면 보완하도록 하겠습니다.
+
+다루는 내용
+- **JIB를 활용한 컨테이너 이미지 빌드/푸시**
+- **AWS EC2**
+- **무중단 배포**
+- **모니터링**
+- **도메인 등록**
+- **SSL 인증서**
+
+이해가 필요한 개념
+- **JIB**
+- **AWS EC2**
+- **Docker**
+- **Nginx**
+- **prometheus**
+- **Grafana**
 
 # JIB를 활용한 컨테이너 이미지 빌드/푸시
 
@@ -467,9 +481,9 @@ $ source ~/.bashrc
 $ deploy
 ```
 
-## Grafana
+# 모니터링
 
-Grafana를 활용해 배포한 서비스를 모니터링도 해보려고 합니다.
+`prometheus`, `grafana`를 활용해 배포한 서비스를 모니터링도 해보려고 합니다.
 
 `prometheus`, `grafana`는 여러 설정이 필요하므로 `docker-compose`를 활용하여 실행시키려고 합니다.
 
@@ -556,6 +570,16 @@ docker-compose -f ~/app/monitoring/monitoring.yml up -d
 https://jojoldu.tistory.com/270?category=635883
 
 cloudflare
+
+https://www.cloudflare.com/ko-kr/products/registrar/
+
+
+
+
+
+
+
+
 
 
 
