@@ -2,8 +2,9 @@
 
 배포를 위한 **JIB**, **AWS EC2**, **Docker**, **Mongodb**, **Grafana**, **도메인 등록**, **SSL 인증서**에 대한 내용을 다룹니다.
 
-⚠️ 본문에서는 각 개념에 대한 자세한 내용을 다루지 않고, 간략한 진행 과정을 다루고 있습니다.<br/>
-따라서 자세한 내용은 각 내용에 첨부된 글을 참고해 주세요.🙇🏻‍♂️
+⚠️ 본문에서는 각 개념에 대한 자세한 내용을 다루지 않고, 전체적인 진행 과정만을 다루고 있습니다.<br/>
+따라서 자세한 내용은 각 내용에 첨부된 글을 참고해 주세요.🙇🏻‍♂️<br>
+부족한 내용은 댓글로 남겨주시면 보완하도록 하겠습니다.
 
 # JIB를 활용한 컨테이너 이미지 빌드/푸시
 
@@ -468,19 +469,23 @@ $ deploy
 
 ## Grafana
 
+Grafana를 활용해 배포한 서비스를 모니터링도 해보려고 합니다.
 
+`prometheus`, `grafana`는 여러 설정이 필요하므로 `docker-compose`를 활용하여 실행시키려고 합니다.
 
-
-
+먼저 docker-compose 설치부터 시작해 봅시다.
 
 ```bash
-# 도커 컴포즈 설치
+# docker-compose 설치
 $ sudo curl -L "https://github.com/docker/compose/releases/download/v2.5.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-# 권한 부
+
+# docker-compose 권한 부여
 $ sudo chmod +x /usr/local/bin/docker-compose
+
 # 버전 확인
 $ docker-compose --version
 
+# prometheus, grafana 컨테이너 실행을 위한 설정들이 담긴 yml 파일 작성
 $ mkdir ~/app/monitoring
 $ vi ~/app/monitoring/prometheus.yml
 $ vi ~/app/monitoring/monitoring.yml
@@ -493,13 +498,10 @@ scrape_configs:
  - job_name: "prometheus"
    static_configs:
      - targets: ["$[ELASTIC IP]:9090"]
- - job_name: "spring-actuator" # 수집하는 임의 이름
-   # 수집 경로 지정(1초에 한 번씩 호출해서 메트릭 수집)
-   metrics_path: '/actuator/prometheus'
-   # 수집 주기 (10s~1m 권장)
-   scrape_interval: 1s
-   # 수집할 서버 정보(IP, PORT)
-   static_configs:
+ - job_name: "spring-actuator"
+   metrics_path: '/actuator/prometheus' # 수집 경로
+   scrape_interval: 1s # 수집 주기 (10s~1m 권장)
+   static_configs: # 수집할 actuator 서버 정보(IP, PORT)
      - targets: ['$[ELASTIC IP]:4041', '$[ELASTIC IP]:4042']
 ```
 
@@ -531,39 +533,34 @@ services:
       - prometheus
 ```
 
+✅ **docker-compose up**
+
 ```bash
 docker-compose -f ~/app/monitoring/monitoring.yml up -d
 ```
 
+⚠️ **인바운드 규칙**
 
-인바운드 4041 4042  $[ELASTIC IP] 추가
+> `prometheus`(9090) 포트는 가급적 외부에서 접근할 수 없고, 특정 IP(어드민)만 접근 가능하도록 적절하게 오픈합니다.
+> - `prometheus`가 `actuator` 데이터를 잘 수집할 수 있도록 `actuator` 포트(4041, 4042)도 `ELASTIC IP`에 대한 오픈이 필요합니다.
+> - 추가로, `grafana` 대시보드에 모니터링 데이터를 보여주기 위해 `prometheus` 수집 데이터에 접근할 수 있도록, `ELASTIC IP`에 대한 오픈도 필요합니다.
+> 
+>  `grafana`(3000) 포트도 마찬가지로 외부에서 접근할 수 없고, 특정 IP(어드민)만 접근 가능하도록 적절하게 오픈합니다.
 
+📚 **Reference.**
 
-
-참고. [[Monitoring] Prometheus & Grafana](https://data-make.tistory.com/795)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+>[[Monitoring] Prometheus & Grafana](https://data-make.tistory.com/795)
 
 # 도메인 등록
 
 https://jojoldu.tistory.com/270?category=635883
+
+cloudflare
+
+
+
+
+
 
 # SSL 인증서
 
