@@ -567,11 +567,20 @@ docker-compose -f ~/app/monitoring/monitoring.yml up -d
 
 # 도메인 등록
 
+도메인 구매는 [cloudflare](http://cloudflare.com/)에서 진행하도록 하겠습니다.
+
+
+
+
+
+
+
+
+
+
+
 https://jojoldu.tistory.com/270?category=635883
 
-cloudflare
-
-https://www.cloudflare.com/ko-kr/products/registrar/
 
 
 
