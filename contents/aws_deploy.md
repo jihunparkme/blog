@@ -569,17 +569,24 @@ docker-compose -f ~/app/monitoring/monitoring.yml up -d
 
 도메인 구매는 [cloudflare](http://cloudflare.com/)에서 진행하도록 하겠습니다.
 
+로그인을 하면 [계정 홈] - [도메인 등록] 메뉴에서 도메인을 검색하고, 마음에 드는 도메인을 골랐다면 확인 클릭 후 주소와 결제 정보를 입력하면 도메인 구매가 완료됩니다.
+
+도메인 구매를 완료했다면 DNS 레코드를 추가하여 EC2 서버와 도메인을 연결해야 합니다.
+- [대시보드] - [구매한 도메인 선택] - [DNS] - [레코드]
+
+DNS 레코드 설정을 위한 권장 단계로 아래 레코드 추가를 권장하고 있는데
+- **www**에 대한 A, AAAA 또는 CNAME 레코드를 추가해야 **www.my-domain.com**이(가) 확인됩니다.
+- **루트 도메인**에 대한 A, AAAA 또는 CNAME 레코드를 추가해야 **my-domain.com**이(가) 확인됩니다.
+
+필자는 아래와 같이 레코드를 추가하였다.
+|유형|이름|콘텐츠|설명|
+|---|---|---|---|
+|A|my-domain.com|ELASTIC IP|구매한 도메인 입력 시 EC2 서버로 연결|
+|CNAME|www|my-domain.com|도메인 앞에 www. 이 붙어도 연결되도록 구성|
 
 
 
 
-
-
-
-
-
-
-https://jojoldu.tistory.com/270?category=635883
 
 
 
