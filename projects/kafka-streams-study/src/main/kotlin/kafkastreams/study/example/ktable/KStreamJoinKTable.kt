@@ -1,4 +1,4 @@
-package study.ktable
+package kafkastreams.study.example.ktable
 
 import org.apache.kafka.common.serialization.Serdes
 import org.apache.kafka.streams.KafkaStreams

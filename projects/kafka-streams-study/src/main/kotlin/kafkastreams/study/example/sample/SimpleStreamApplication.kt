@@ -1,4 +1,4 @@
-package study.simple
+package kafkastreams.study.example.sample
 
 import org.apache.kafka.common.serialization.Serdes
 import org.apache.kafka.streams.KafkaStreams

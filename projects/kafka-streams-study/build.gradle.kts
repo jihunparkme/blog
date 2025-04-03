@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "kafka-streams"
-version = "1.0-SNAPSHOT"
+version = "0.0.1-SNAPSHOT"
 
 java {
     toolchain {
@@ -22,7 +22,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
 
-    implementation("org.apache.kafka:kafka-streams:4.0.0")
+    implementation("org.apache.kafka:kafka-streams:3.9.0")
     implementation("org.rocksdb:rocksdbjni:9.10.0")
     implementation("org.slf4j:slf4j-simple:2.0.16")
     implementation("com.google.code.gson:gson:2.12.1")

@@ -1,4 +1,4 @@
-package example.matrix
+package kafkastreams.study.streams.matrix
 
 import org.apache.kafka.common.serialization.Serdes
 import org.apache.kafka.streams.KafkaStreams

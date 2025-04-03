@@ -1,4 +1,4 @@
-package study.globalKTable
+package kafkastreams.study.example.globalKTable
 
 import org.apache.kafka.common.serialization.Serdes
 import org.apache.kafka.streams.KafkaStreams
@@ -7,7 +7,7 @@ import org.apache.kafka.streams.StreamsConfig
 import java.util.Properties
 
 private const val APPLICATION_NAME = "global-table-join-application"
-private const val BOOTSTRAP_SERVERS = "localhos t:9092"
+private const val BOOTSTRAP_SERVERS = "localhost:9092"
 private const val ADDRESS_GLOBAL_TABLE = "address_v2"
 private const val ORDER_STREAM = "order"
 private const val ORDER_JOIN_STREAM = "order_join"

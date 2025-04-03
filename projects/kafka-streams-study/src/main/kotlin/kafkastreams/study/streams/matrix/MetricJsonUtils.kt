@@ -1,4 +1,4 @@
-package example.matrix
+package kafkastreams.study.streams.matrix
 
 import com.google.gson.JsonParser
 
