@@ -1,4 +1,4 @@
-package filter
+package study.filter
 
 import org.apache.kafka.common.serialization.Serdes
 import org.apache.kafka.streams.KafkaStreams
