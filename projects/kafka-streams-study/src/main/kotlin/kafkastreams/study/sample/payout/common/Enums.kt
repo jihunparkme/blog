@@ -10,3 +10,8 @@ enum class PaymentMethodType {
     MONEY,
     PAY,
 }
+
+enum class PaymentActionType {
+    PAYMENT,
+    CANCEL,
+}
