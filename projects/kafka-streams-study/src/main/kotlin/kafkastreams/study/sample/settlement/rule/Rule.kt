@@ -1,7 +1,7 @@
-package kafkastreams.study.sample.payout.rule
+package kafkastreams.study.sample.settlement.rule
 
-import kafkastreams.study.sample.payout.common.PaymentActionType
-import kafkastreams.study.sample.payout.common.PaymentMethodType
+import kafkastreams.study.sample.settlement.common.PaymentActionType
+import kafkastreams.study.sample.settlement.common.PaymentMethodType
 import java.time.LocalDate
 import java.time.LocalDateTime
 

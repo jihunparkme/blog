@@ -1,4 +1,4 @@
-package kafkastreams.study.sample.payout.common
+package kafkastreams.study.sample.settlement.common
 
 enum class PaymentType {
     ONLINE,

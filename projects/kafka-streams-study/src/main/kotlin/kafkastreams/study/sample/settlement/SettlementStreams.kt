@@ -1,6 +1,6 @@
-package kafkastreams.study.sample.payout
+package kafkastreams.study.sample.settlement
 
-import kafkastreams.study.sample.payout.payment.Payment
+import kafkastreams.study.sample.settlement.payment.Payment
 import org.apache.kafka.common.serialization.Serdes
 import org.apache.kafka.streams.StreamsBuilder
 import org.apache.kafka.streams.StreamsConfig
