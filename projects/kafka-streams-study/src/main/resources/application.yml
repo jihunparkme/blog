@@ -6,5 +6,5 @@ kafka:
 logging:
   level:
     root: INFO
-    org.apache.kafka.streams: DEBUG
-    org.apache.kafka.clients: DEBUG
+    org.apache.kafka.streams: INFO
+    org.apache.kafka.clients: INFO
