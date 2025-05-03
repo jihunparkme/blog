@@ -14,21 +14,19 @@ import java.time.LocalDateTime
 import java.util.UUID
 import kotlin.random.Random
 
-private const val TEST_DATA_COUNT: Int = 100
-
 @Service
 class PaymentService(
     private val paymentKafkaTemplate: KafkaTemplate<String, StreamMessage<Payment>>,
     private val kafkaProperties: KafkaProperties,
 ) {
-    fun sendToTopic() {
+    fun sendToTopic(count: Int) {
         val paymentType = randomEnum<PaymentType>()
-        sendPayment(paymentType)
+        sendPayment(count, paymentType)
         sendFinishMessage(paymentType)
     }
 
-    private fun sendPayment(paymentType: PaymentType) {
-        repeat(TEST_DATA_COUNT) {
+    private fun sendPayment(count: Int, paymentType: PaymentType) {
+        repeat(count) {
             val payment = Payment(
                 paymentType = paymentType,
                 amount = Random.nextLong(1000L, 1000000L),
