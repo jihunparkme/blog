@@ -1,5 +1,6 @@
 package kafkastreams.study.sample.settlement.config
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import kafkastreams.study.sample.settlement.common.StreamMessage
 import kafkastreams.study.sample.settlement.payment.Payment
 import org.apache.kafka.clients.producer.ProducerConfig
@@ -17,6 +18,7 @@ import org.springframework.kafka.support.serializer.JsonSerializer
 @EnableConfigurationProperties(KafkaProperties::class)
 class PaymentKafkaConfig(
     private val kafkaProperties: KafkaProperties,
+    private val objectMapper: ObjectMapper,
 ) {
     @Bean
     fun paymentProducerConfigs(): Map<String, Any> {
@@ -29,7 +31,14 @@ class PaymentKafkaConfig(
 
     @Bean
     fun paymentProducerFactory(): ProducerFactory<String, StreamMessage<Payment>> {
-        return DefaultKafkaProducerFactory(paymentProducerConfigs())
+        val keySerializer = StringSerializer()
+        keySerializer.configure(paymentProducerConfigs(), true) // isKey = true
+        val valueSerializer = JsonSerializer<StreamMessage<Payment>>(objectMapper)
+        return DefaultKafkaProducerFactory(
+            paymentProducerConfigs(),
+            keySerializer,
+            valueSerializer
+        )
     }
 
     @Bean
