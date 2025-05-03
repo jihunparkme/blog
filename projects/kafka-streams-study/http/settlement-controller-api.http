@@ -1,0 +1,2 @@
+### send payment to topic
+get http://localhost:8080/api/payment/send/3
