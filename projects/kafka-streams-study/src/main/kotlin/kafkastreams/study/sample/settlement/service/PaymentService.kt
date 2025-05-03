@@ -34,7 +34,7 @@ class PaymentService(
                 payoutDate = LocalDate.now().plusDays(2),
                 confirmDate = LocalDate.now().plusDays(2),
                 merchantNumber = "merchant-${Random.nextInt(1000, 9999)}",
-                paymentDate = LocalDateTime.now().minusSeconds(Random.nextLong(0, 3600)), // 현재~1시간 전 랜덤 시간
+                paymentDate = LocalDateTime.now(),
                 paymentActionType = randomEnum<PaymentActionType>(),
                 paymentMethodType = randomEnum<PaymentMethodType>(),
             )

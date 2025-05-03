@@ -1,30 +1,33 @@
 package kafkastreams.study.sample.settlement
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import kafkastreams.study.sample.settlement.common.StreamMessage
+import kafkastreams.study.sample.settlement.config.KafkaProperties
 import kafkastreams.study.sample.settlement.config.KafkaStreamsConfig
 import kafkastreams.study.sample.settlement.payment.Payment
 import org.apache.kafka.streams.KafkaStreams
 import org.apache.kafka.streams.StreamsBuilder
+import org.apache.kafka.streams.kstream.Printed
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
 private const val APPLICATION_NAME = "settlement-streams"
-private const val PAYMENT_TOPIC = "payment"
 
 @Configuration
 class SettlementKafkaStreams(
-    private val objectMapper: ObjectMapper,
-    private val streamsConfig: KafkaStreamsConfig
+    private val streamsConfig: KafkaStreamsConfig,
+    private val kafkaProperties: KafkaProperties,
 ) {
     @Bean
     fun settlementStreams(): KafkaStreams {
         val builder = StreamsBuilder()
+
         /**
          * [소스 프로세서]
          * - 결제 데이터 받기
          * - 결제 로그 저장
          */
-        val paymentStream = builder.stream<String, Payment>(PAYMENT_TOPIC)
+        val paymentStream = builder.stream<String, StreamMessage<Payment>>(kafkaProperties.paymentTopic)
+        paymentStream.print(Printed.toSysOut<String, StreamMessage<Payment>>().withLabel("payment-stream"))
 
         /**
          * [스트림 프로세서]
