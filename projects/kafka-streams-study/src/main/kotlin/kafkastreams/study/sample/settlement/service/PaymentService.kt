@@ -1,5 +1,6 @@
 package kafkastreams.study.sample.settlement.service
 
+import kafkastreams.study.common.randomEnum
 import kafkastreams.study.sample.settlement.common.PaymentActionType
 import kafkastreams.study.sample.settlement.common.PaymentMethodType
 import kafkastreams.study.sample.settlement.common.PaymentType
@@ -62,9 +63,4 @@ class PaymentService(
             )
         }
     }
-}
-
-private inline fun <reified T : Enum<T>> randomEnum(): T {
-    val enumValues = enumValues<T>()
-    return enumValues[Random.nextInt(enumValues.size)]
 }
