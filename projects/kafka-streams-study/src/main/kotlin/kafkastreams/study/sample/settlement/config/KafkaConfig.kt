@@ -6,14 +6,15 @@ import kafkastreams.study.sample.settlement.common.StreamMessage
 import kafkastreams.study.sample.settlement.payment.Payment
 import org.apache.kafka.clients.producer.ProducerConfig
 import org.springframework.boot.context.properties.ConfigurationProperties
+import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.kafka.core.DefaultKafkaProducerFactory
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.kafka.core.ProducerFactory
-import org.springframework.stereotype.Component
 
 @Configuration
+@EnableConfigurationProperties(KafkaProperties::class)
 class PaymentKafkaConfig(
     private val kafkaProperties: KafkaProperties,
 ) {
@@ -39,7 +40,6 @@ class PaymentKafkaConfig(
     }
 }
 
-@Component
 @ConfigurationProperties(prefix = "kafka")
 data class KafkaProperties(
     val servers: String,

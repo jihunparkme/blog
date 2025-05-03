@@ -8,6 +8,7 @@ import kafkastreams.study.sample.settlement.common.Type
 import kafkastreams.study.sample.settlement.config.KafkaProperties
 import kafkastreams.study.sample.settlement.payment.Payment
 import org.springframework.kafka.core.KafkaTemplate
+import org.springframework.stereotype.Service
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
@@ -15,6 +16,7 @@ import kotlin.random.Random
 
 private const val TEST_DATA_COUNT: Int = 100
 
+@Service
 class PaymentService(
     private val paymentKafkaTemplate: KafkaTemplate<String, StreamMessage<Payment>>,
     private val kafkaProperties: KafkaProperties,
