@@ -15,3 +15,8 @@ enum class PaymentActionType {
     PAYMENT,
     CANCEL,
 }
+
+enum class Type {
+    FINISH,
+    PAYMENT,
+}
