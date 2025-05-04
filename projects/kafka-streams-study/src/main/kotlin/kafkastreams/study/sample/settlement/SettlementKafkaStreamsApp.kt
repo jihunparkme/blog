@@ -13,7 +13,7 @@ import org.springframework.context.annotation.Configuration
 private const val APPLICATION_NAME = "settlement-streams"
 
 @Configuration
-class SettlementKafkaStreams(
+class SettlementKafkaStreamsApp(
     private val streamsConfig: KafkaStreamsConfig,
     private val kafkaProperties: KafkaProperties,
 ) {

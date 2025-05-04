@@ -19,7 +19,7 @@ import kotlin.random.Random
 @SpringBootTest
 class SettlementKafkaStreamsTest {
     @Autowired
-    private lateinit var settlementKafkaStreams: SettlementKafkaStreams
+    private lateinit var settlementKafkaStreams: SettlementKafkaStreamsApp
 
     @Autowired
     private lateinit var paymentKafkaTemplate: KafkaTemplate<String, StreamMessage<Payment>>

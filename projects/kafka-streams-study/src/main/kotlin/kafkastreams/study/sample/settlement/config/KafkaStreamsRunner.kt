@@ -2,20 +2,20 @@ package kafkastreams.study.sample.settlement.config
 
 import jakarta.annotation.PreDestroy
 import kafkastreams.study.common.logger
-import kafkastreams.study.sample.settlement.SettlementKafkaStreams
+import kafkastreams.study.sample.settlement.SettlementKafkaStreamsApp
 import org.apache.kafka.streams.KafkaStreams
 import org.springframework.boot.CommandLineRunner
 import org.springframework.stereotype.Component
 
 @Component
 class KafkaStreamsRunner (
-    private val settlementKafkaStreams: SettlementKafkaStreams,
+    private val settlementKafkaStreamsApp: SettlementKafkaStreamsApp,
 ) : CommandLineRunner {
 
     private lateinit var settlementStreams: KafkaStreams
 
     override fun run(vararg args: String?) {
-        with(settlementKafkaStreams) {
+        with(settlementKafkaStreamsApp) {
             log.info("Starting Kafka Streams")
             settlementStreams = settlementStreams()
             settlementStreams.start()
