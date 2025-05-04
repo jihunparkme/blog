@@ -6,7 +6,7 @@ import kafkastreams.study.sample.settlement.common.PaymentMethodType
 import kafkastreams.study.sample.settlement.common.PaymentType
 import kafkastreams.study.sample.settlement.common.StreamMessage
 import kafkastreams.study.sample.settlement.common.Type
-import kafkastreams.study.sample.settlement.payment.Payment
+import kafkastreams.study.sample.settlement.domain.payment.Payment
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest

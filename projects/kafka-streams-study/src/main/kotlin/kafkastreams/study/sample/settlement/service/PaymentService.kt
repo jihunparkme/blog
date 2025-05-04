@@ -7,7 +7,7 @@ import kafkastreams.study.sample.settlement.common.PaymentType
 import kafkastreams.study.sample.settlement.common.StreamMessage
 import kafkastreams.study.sample.settlement.common.Type
 import kafkastreams.study.sample.settlement.config.KafkaProperties
-import kafkastreams.study.sample.settlement.payment.Payment
+import kafkastreams.study.sample.settlement.domain.payment.Payment
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.stereotype.Service
 import java.time.LocalDate

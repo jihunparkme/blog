@@ -2,7 +2,7 @@ package kafkastreams.study.sample.settlement.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import kafkastreams.study.sample.settlement.common.StreamMessage
-import kafkastreams.study.sample.settlement.payment.Payment
+import kafkastreams.study.sample.settlement.domain.payment.Payment
 import org.apache.kafka.clients.producer.ProducerConfig
 import org.apache.kafka.common.serialization.StringSerializer
 import org.springframework.boot.context.properties.ConfigurationProperties

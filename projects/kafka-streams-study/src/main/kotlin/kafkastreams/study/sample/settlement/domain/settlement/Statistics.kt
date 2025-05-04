@@ -1,4 +1,4 @@
-package kafkastreams.study.sample.settlement.settlement
+package kafkastreams.study.sample.settlement.domain.settlement
 
 import kafkastreams.study.sample.settlement.common.PaymentActionType
 import kafkastreams.study.sample.settlement.common.PaymentMethodType

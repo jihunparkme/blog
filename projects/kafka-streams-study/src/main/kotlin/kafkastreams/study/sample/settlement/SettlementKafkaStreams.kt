@@ -3,7 +3,7 @@ package kafkastreams.study.sample.settlement
 import kafkastreams.study.sample.settlement.common.StreamMessage
 import kafkastreams.study.sample.settlement.config.KafkaProperties
 import kafkastreams.study.sample.settlement.config.KafkaStreamsConfig
-import kafkastreams.study.sample.settlement.payment.Payment
+import kafkastreams.study.sample.settlement.domain.payment.Payment
 import org.apache.kafka.streams.KafkaStreams
 import org.apache.kafka.streams.StreamsBuilder
 import org.apache.kafka.streams.kstream.Printed

@@ -1,14 +1,12 @@
-package kafkastreams.study.sample.settlement.settlement
+package kafkastreams.study.sample.settlement.domain.rule
 
 import kafkastreams.study.sample.settlement.common.PaymentActionType
 import kafkastreams.study.sample.settlement.common.PaymentMethodType
-import kafkastreams.study.sample.settlement.common.PaymentType
 import java.time.LocalDate
 import java.time.LocalDateTime
 
-data class Base(
-    val paymentType: PaymentType,
-    val amount: Long,
+data class Rule(
+    val ruleId: String,
     val payoutDate: LocalDate,
     val confirmDate: LocalDate,
 
