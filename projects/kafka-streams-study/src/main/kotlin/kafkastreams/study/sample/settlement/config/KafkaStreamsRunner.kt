@@ -8,18 +8,24 @@ import org.springframework.boot.CommandLineRunner
 import org.springframework.stereotype.Component
 
 @Component
-class KafkaStreamsRunner (
+class KafkaStreamsRunner(
     private val settlementKafkaStreamsApp: SettlementKafkaStreamsApp,
 ) : CommandLineRunner {
 
     private lateinit var settlementStreams: KafkaStreams
 
     override fun run(vararg args: String?) {
-        with(settlementKafkaStreamsApp) {
-            log.info("Starting Kafka Streams")
-            settlementStreams = settlementStreams()
+        settlementStreams = settlementKafkaStreamsApp.settlementStreams()
+        val currentState = settlementStreams.state()
+        if (currentState == KafkaStreams.State.CREATED ||
+            currentState == KafkaStreams.State.NOT_RUNNING
+        ) {
             settlementStreams.start()
+            log.info("Kafka Streams started.")
+            return
         }
+
+        log.warn("Kafka Streams is already running or in an unexpected state: {}. Not starting again.", currentState)
     }
 
     @PreDestroy
