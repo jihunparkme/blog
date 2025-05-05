@@ -1,0 +1,10 @@
+kafka:
+  servers: localhost:9092
+  partition: 4
+  payment-topic: test-payment
+
+logging:
+  level:
+    root: INFO
+    org.apache.kafka.streams: INFO
+    org.apache.kafka.clients: INFO
