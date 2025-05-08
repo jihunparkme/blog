@@ -16,8 +16,6 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.kafka.support.serializer.JsonSerde
 
-private const val APPLICATION_NAME = "settlement-streams"
-
 @Configuration
 class SettlementKafkaStreamsApp(
     private val streamsConfig: KafkaStreamsConfig,
@@ -60,6 +58,6 @@ class SettlementKafkaStreamsApp(
          *
          * 스트림 과정을 printed 로 확인
          */
-        return KafkaStreams(builder.build(), streamsConfig.properties(APPLICATION_NAME))
+        return KafkaStreams(builder.build(), streamsConfig.properties(kafkaProperties.paymentApplicationName))
     }
 }

@@ -2,6 +2,7 @@ kafka:
   servers: localhost:9092
   partition: 4
   payment-topic: payment
+  payment-application-name: settlement-streams
 
 logging:
   level:

@@ -54,4 +54,5 @@ data class KafkaProperties(
     val servers: String,
     val partition: Int,
     val paymentTopic: String,
+    val paymentApplicationName: String,
 )
