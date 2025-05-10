@@ -1,4 +1,4 @@
-package kafkastreams.study.sample.settlement.processor
+package kafkastreams.study.sample.settlement
 
 import kafkastreams.study.common.logger
 import kafkastreams.study.sample.settlement.client.PayoutDateRequest

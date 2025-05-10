@@ -8,7 +8,6 @@ import kafkastreams.study.sample.settlement.config.KafkaProperties
 import kafkastreams.study.sample.settlement.config.KafkaStreamsConfig
 import kafkastreams.study.sample.settlement.domain.payment.Payment
 import kafkastreams.study.sample.settlement.domain.rule.Rule
-import kafkastreams.study.sample.settlement.processor.PayoutRuleProcessValues
 import kafkastreams.study.sample.settlement.service.SettlementService
 import org.apache.kafka.common.serialization.Serdes
 import org.apache.kafka.streams.KafkaStreams
