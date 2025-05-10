@@ -1,7 +1,7 @@
 plugins {
     kotlin("jvm") version "1.9.25"
     kotlin("plugin.spring") version "1.9.25"
-    id("org.springframework.boot") version "3.4.4"
+    id("org.springframework.boot") version "3.4.5"
     id("io.spring.dependency-management") version "1.1.7"
 }
 
@@ -24,7 +24,7 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-reflect")
 
     implementation("org.springframework.kafka:spring-kafka")
-    implementation("org.apache.kafka:kafka-streams:3.9.0")
+    implementation("org.apache.kafka:kafka-streams:3.8.1")
     implementation("org.rocksdb:rocksdbjni:9.10.0")
     implementation("com.google.code.gson:gson:2.12.1")
 
