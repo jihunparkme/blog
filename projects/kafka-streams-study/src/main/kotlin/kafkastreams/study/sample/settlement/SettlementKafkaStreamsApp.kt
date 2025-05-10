@@ -7,6 +7,7 @@ import kafkastreams.study.sample.settlement.common.StreamMessage
 import kafkastreams.study.sample.settlement.config.KafkaProperties
 import kafkastreams.study.sample.settlement.config.KafkaStreamsConfig
 import kafkastreams.study.sample.settlement.domain.payment.Payment
+import kafkastreams.study.sample.settlement.domain.rule.Rule
 import kafkastreams.study.sample.settlement.processor.PayoutRuleProcessValues
 import kafkastreams.study.sample.settlement.service.SettlementService
 import org.apache.kafka.common.serialization.Serdes
@@ -50,6 +51,8 @@ class SettlementKafkaStreamsApp(
          * 3. 처리 토폴로지 구성
          */
         val builder = StreamsBuilder()
+        // 지급룰 stateStore 추가
+        builder.addStateStore(getPayoutDateStoreBuilder())
 
         // [소스 프로세서] 결제 토픽으로부터 결제 데이터 받기
         val paymentStream = builder.stream(
@@ -59,11 +62,8 @@ class SettlementKafkaStreamsApp(
                 valueSerde
             )
         )
+
         println("============================")
-
-        val storeBuilder = getPayoutDateStoreBuilder()
-        builder.addStateStore(storeBuilder)
-
         paymentStream
             // TODO: filter 로 finish 아닌 것만
             // [스트림 프로세서] 결제 메시지 로그 저장
@@ -96,6 +96,11 @@ class SettlementKafkaStreamsApp(
         return KafkaStreams(builder.build(), streamsConfig)
     }
 
+    private fun getPayoutDateStoreBuilder(): StoreBuilder<KeyValueStore<String, Rule>> {
+        val storeSupplier = Stores.inMemoryKeyValueStore(PAYOUT_RULE_STATE_STORE_NAME)
+        return Stores.keyValueStoreBuilder(storeSupplier, Serdes.String(), ruleSerde())
+    }
+
     private fun messagePaymentSerde(): JsonSerde<StreamMessage<Payment>> {
         val streamMessagePaymentDeserializer = JsonDeserializer(
             object : TypeReference<StreamMessage<Payment>>() {},
@@ -112,9 +117,18 @@ class SettlementKafkaStreamsApp(
         )
     }
 
-    private fun getPayoutDateStoreBuilder(): StoreBuilder<KeyValueStore<String?, StreamMessage<Payment>?>?>? {
-        val storeSupplier = Stores.inMemoryKeyValueStore(PAYOUT_RULE_STATE_STORE_NAME)
-        val storeBuilder = Stores.keyValueStoreBuilder(storeSupplier, Serdes.String(), messagePaymentSerde())
-        return storeBuilder
+    private fun ruleSerde(): JsonSerde<Rule> {
+        val streamMessagePaymentDeserializer = JsonDeserializer(
+            object : TypeReference<Rule>() {},
+            objectMapper,
+            false) // Kafka 메시지를 역직렬화할 때 메시지 헤더에 있는 타입 정보를 사용할지 여부
+        streamMessagePaymentDeserializer.addTrustedPackages(
+            "kafkastreams.study.sample.settlement.domain.*",
+        )
+
+        return JsonSerde(
+            JsonSerializer(objectMapper),
+            streamMessagePaymentDeserializer
+        )
     }
 }
