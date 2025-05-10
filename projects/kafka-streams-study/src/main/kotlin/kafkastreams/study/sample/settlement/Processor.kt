@@ -50,10 +50,10 @@ class PayoutRuleProcessor(
             log.info(">>> 🔎🔎🔎 Search payout rule.. $key")
             val findRule = payoutRuleClient.getPayoutDate(
                 PayoutDateRequest(
-                    merchantNumber = payment.merchantNumber,
+                    merchantNumber = payment.merchantNumber ?: throw IllegalArgumentException(),
                     paymentDate = payment.paymentDate,
-                    paymentActionType = payment.paymentActionType,
-                    paymentMethodType = payment.paymentMethodType
+                    paymentActionType = payment.paymentActionType ?: throw IllegalArgumentException(),
+                    paymentMethodType = payment.paymentMethodType ?: throw IllegalArgumentException(),
                 )
             )
             payoutRuleStore?.put(stateStoreName, findRule)
