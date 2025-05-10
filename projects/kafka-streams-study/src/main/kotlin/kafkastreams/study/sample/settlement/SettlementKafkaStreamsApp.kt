@@ -1,9 +1,6 @@
 package kafkastreams.study.sample.settlement
 
-import com.fasterxml.jackson.core.type.TypeReference
-import com.fasterxml.jackson.databind.ObjectMapper
 import kafkastreams.study.sample.settlement.client.PayoutRuleClient
-import kafkastreams.study.sample.settlement.common.StreamMessage
 import kafkastreams.study.sample.settlement.config.KafkaProperties
 import kafkastreams.study.sample.settlement.config.KafkaStreamsConfig
 import kafkastreams.study.sample.settlement.domain.payment.Payment
@@ -19,15 +16,11 @@ import org.apache.kafka.streams.state.StoreBuilder
 import org.apache.kafka.streams.state.Stores
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.kafka.support.serializer.JsonDeserializer
-import org.springframework.kafka.support.serializer.JsonSerde
-import org.springframework.kafka.support.serializer.JsonSerializer
 
 @Configuration
 class SettlementKafkaStreamsApp(
     private val streamsConfig: KafkaStreamsConfig,
     private val kafkaProperties: KafkaProperties,
-    private val objectMapper: ObjectMapper,
     private val settlementService: SettlementService,
     private val payoutRuleClient: PayoutRuleClient,
 ) {
@@ -67,7 +60,10 @@ class SettlementKafkaStreamsApp(
             // TODO: filter 로 finish 아닌 것만
             // [스트림 프로세서] 결제 메시지 로그 저장
             .peek({ _, message -> settlementService.savePaymentMessageLog(message) })
-            .processValues(PayoutRuleProcessValues(PAYOUT_RULE_STATE_STORE_NAME, payoutRuleClient), PAYOUT_RULE_STATE_STORE_NAME)
+            .processValues(
+                PayoutRuleProcessValues(PAYOUT_RULE_STATE_STORE_NAME, payoutRuleClient),
+                PAYOUT_RULE_STATE_STORE_NAME
+            )
             .print(Printed.toSysOut<String, Payment>().withLabel("payment-stream"))
 
         /**
@@ -98,36 +94,5 @@ class SettlementKafkaStreamsApp(
     private fun getPayoutDateStoreBuilder(): StoreBuilder<KeyValueStore<String, Rule>> {
         val storeSupplier = Stores.inMemoryKeyValueStore(PAYOUT_RULE_STATE_STORE_NAME)
         return Stores.keyValueStoreBuilder(storeSupplier, Serdes.String(), ruleSerde())
-    }
-
-    private fun messagePaymentSerde(): JsonSerde<StreamMessage<Payment>> {
-        val streamMessagePaymentDeserializer = JsonDeserializer(
-            object : TypeReference<StreamMessage<Payment>>() {},
-            objectMapper,
-            false) // Kafka 메시지를 역직렬화할 때 메시지 헤더에 있는 타입 정보를 사용할지 여부
-        streamMessagePaymentDeserializer.addTrustedPackages(
-            "kafkastreams.study.sample.settlement.common.*",
-            "kafkastreams.study.sample.settlement.domain.*",
-        )
-
-        return JsonSerde(
-            JsonSerializer(objectMapper),
-            streamMessagePaymentDeserializer
-        )
-    }
-
-    private fun ruleSerde(): JsonSerde<Rule> {
-        val streamMessagePaymentDeserializer = JsonDeserializer(
-            object : TypeReference<Rule>() {},
-            objectMapper,
-            false) // Kafka 메시지를 역직렬화할 때 메시지 헤더에 있는 타입 정보를 사용할지 여부
-        streamMessagePaymentDeserializer.addTrustedPackages(
-            "kafkastreams.study.sample.settlement.domain.*",
-        )
-
-        return JsonSerde(
-            JsonSerializer(objectMapper),
-            streamMessagePaymentDeserializer
-        )
     }
 }
