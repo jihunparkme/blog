@@ -27,17 +27,8 @@ class SettlementKafkaStreamsTest {
     private lateinit var paymentKafkaTemplate: KafkaTemplate<String, StreamMessage<Payment>>
 
     @Test
-    fun settlementKafkaStreams() {
-        val payment = Payment(
-            paymentType = PaymentType.ONLINE,
-            amount = Random.nextLong(1000L, 1000000L),
-            payoutDate = LocalDate.now().plusDays(2),
-            confirmDate = LocalDate.now().plusDays(2),
-            merchantNumber = "merchant-${Random.nextInt(1000, 9999)}",
-            paymentDate = LocalDateTime.now(),
-            paymentActionType = randomEnum<PaymentActionType>(),
-            paymentMethodType = randomEnum<PaymentMethodType>(),
-        )
+    fun integration() {
+        val payment = testPayment()
         paymentKafkaTemplate.send(
             "test-payment",
             UUID.randomUUID().toString(),
@@ -48,4 +39,42 @@ class SettlementKafkaStreamsTest {
             )
         ).get(10, TimeUnit.SECONDS)
     }
+
+    @Test
+    fun ruleStateStore() {
+        val payment = testPayment()
+        paymentKafkaTemplate.send(
+            "test-payment",
+            UUID.randomUUID().toString(),
+            StreamMessage(
+                action = Type.PAYMENT,
+                channel = PaymentType.ONLINE,
+                data = payment,
+            )
+        ).get(10, TimeUnit.SECONDS)
+
+        paymentKafkaTemplate.send(
+            "test-payment",
+            UUID.randomUUID().toString(),
+            StreamMessage(
+                action = Type.PAYMENT,
+                channel = PaymentType.ONLINE,
+                data = payment,
+            )
+        ).get(10, TimeUnit.SECONDS)
+    }
+}
+
+private fun testPayment(): Payment {
+    val payment = Payment(
+        paymentType = PaymentType.ONLINE,
+        amount = Random.nextLong(1000L, 1000000L),
+        payoutDate = LocalDate.now().plusDays(2),
+        confirmDate = LocalDate.now().plusDays(2),
+        merchantNumber = "merchant-${Random.nextInt(1000, 9999)}",
+        paymentDate = LocalDateTime.now(),
+        paymentActionType = randomEnum<PaymentActionType>(),
+        paymentMethodType = randomEnum<PaymentMethodType>(),
+    )
+    return payment
 }
