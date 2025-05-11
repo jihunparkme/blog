@@ -81,27 +81,8 @@ class SettlementKafkaStreamsApp(
             .peek({ _, message -> settlementService.saveBase(message) })
             .print(Printed.toSysOut<String, Base>().withLabel("payment-stream"))
 
-        /**
-         * [스트림 프로세서]
-         * - 룰 조회(state store 활용 룰 관리)
-         * - 없을 경우 API 조회
-         *
-         * [스트림 프로세서]
-         * - 베이스 생성 valueTransform
-         *
-         * [스트림 프로세서]
-         * - 베이스 저장
-         *
-         * [스트림 프로세서]
-         * - 결제 데이터 집계(Group By key)
-         * - state store
-         *
-         * [스트림 프로세서]
-         * - 각 파티션에 FINISH 메시지가 도착하면 집계로 된 일통계 저장
-         *
-         * GlobalKTable(활용?) 환율?
-         *
-         * 스트림 과정을 printed 로 확인
+        /*************************************
+         * 4. 카프카 스트림즈 인스턴스 생성
          */
         return KafkaStreams(builder.build(), streamsConfig)
     }
