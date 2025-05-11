@@ -10,11 +10,11 @@ import kotlin.getValue
 @Service
 class SettlementService {
     fun savePaymentMessageLog(data: StreamMessage<Payment>) {
-        log.info(">>> 📦📦📦 Save payment message log to payment_log.. $data")
+        log.info(">>> [결제 메시지 로그 저장] Save payment message log to payment_log.. $data")
     }
 
     fun saveBase(data: Base) {
-        log.info(">>> 📦📦📦 Save base to base.. $data")
+        log.info(">>> [정산 베이스 저장] Save base to base.. $data")
     }
 
     companion object {

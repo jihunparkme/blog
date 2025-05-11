@@ -39,7 +39,7 @@ class PayoutRuleProcessor(
 
         // 결제 데이터가 없을 경우 스킵
         if (payment == null) {
-            log.info(">>> Payment data is null, skipping processing for key: $key")
+            log.info(">>> [결제 데이터 누락] Payment data is null, skipping processing for key: $key")
             return
         }
 
@@ -47,7 +47,7 @@ class PayoutRuleProcessor(
         var rule = payoutRuleStore?.get(stateStoreName)
         // stateStore에 지급룰이 저장되어 있지 않을 경우 API 요청 후 저장
         if (rule == null) {
-            log.info(">>> 🔎🔎🔎 Search payout rule.. $key")
+            log.info(">>> [지급룰 조회] Search payout rule.. $key")
             val findRule = payoutRuleClient.getPayoutDate(
                 PayoutDateRequest(
                     merchantNumber = payment.merchantNumber ?: throw IllegalArgumentException(),
@@ -62,13 +62,13 @@ class PayoutRuleProcessor(
 
         // 가맹점에 대한 지급룰이 없을 경우
         if (rule == null) {
-            log.info(">>> Not found payment payout rule. key: $key")
+            log.info(">>> [지급룰 없음] Not found payment payout rule. key: $key")
             payment.updateDefaultPayoutDate()
         }
 
         // 지급룰 업데이트 대상일 경우
         if (rule != null && (rule.payoutDate != payment.payoutDate || rule.confirmDate != payment.confirmDate)) {
-            log.info(">>> 📦📦📦 Save payout date.. $key")
+            log.info(">>> [지급룰 정보 저장] Save payout date.. $key")
             payment.updatePayoutDate(rule)
         }
 
