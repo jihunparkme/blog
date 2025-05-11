@@ -75,8 +75,10 @@ class SettlementKafkaStreamsApp(
                 PayoutRuleProcessValues(PAYOUT_RULE_STATE_STORE_NAME, payoutRuleClient),
                 PAYOUT_RULE_STATE_STORE_NAME
             )
-            // [스트림 프로세서] 베이스 데이터 생성
+            // [스트림 프로세서] 정산 베이스 생성
             .mapValues(BaseMapper())
+            // [스트림 프로세서] 정산 베이스 저장
+            .peek({ _, message -> settlementService.saveBase(message) })
             .print(Printed.toSysOut<String, Base>().withLabel("payment-stream"))
 
         /**
