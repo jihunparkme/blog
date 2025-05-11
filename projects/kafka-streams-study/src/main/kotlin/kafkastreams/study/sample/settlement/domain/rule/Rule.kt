@@ -1,5 +1,6 @@
 package kafkastreams.study.sample.settlement.domain.rule
 
+import kafkastreams.study.sample.settlement.common.DEFAULT_PAYOUT_DATE
 import kafkastreams.study.sample.settlement.common.PaymentActionType
 import kafkastreams.study.sample.settlement.common.PaymentMethodType
 import java.time.LocalDate
@@ -14,8 +15,4 @@ data class Rule(
     val paymentDate: LocalDateTime = LocalDateTime.now(),
     val paymentActionType: PaymentActionType? = null,
     val paymentMethodType: PaymentMethodType? = null,
-) {
-    companion object {
-        private val DEFAULT_PAYOUT_DATE = LocalDate.now().plusDays(2)
-    }
-}
+)

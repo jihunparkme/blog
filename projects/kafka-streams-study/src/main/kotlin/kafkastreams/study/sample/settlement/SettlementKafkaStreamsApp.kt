@@ -70,13 +70,13 @@ class SettlementKafkaStreamsApp(
             .peek({ _, message -> settlementService.savePaymentMessageLog(message) })
             // [스트림 프로세서] FINISH 메시지는 로그만 저장
             .filter { _, message -> message.action != Type.FINISH }
-            // [스트림 프로세서] 지급룰 조회
+            // [스트림 프로세서] 결제 데이터로 정산 베이스 생성
+            .mapValues(BaseMapper())
+            // [스트림 프로세서] 지급룰 조회 및 세팅
             .processValues(
                 PayoutRuleProcessValues(PAYOUT_RULE_STATE_STORE_NAME, payoutRuleClient),
                 PAYOUT_RULE_STATE_STORE_NAME
             )
-            // [스트림 프로세서] 정산 베이스 생성
-            .mapValues(BaseMapper())
             // [스트림 프로세서] 정산 베이스 저장
             .peek({ _, message -> settlementService.saveBase(message) })
             .print(Printed.toSysOut<String, Base>().withLabel("payment-stream"))

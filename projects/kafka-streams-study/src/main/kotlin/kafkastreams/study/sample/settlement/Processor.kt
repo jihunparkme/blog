@@ -3,9 +3,8 @@ package kafkastreams.study.sample.settlement
 import kafkastreams.study.common.logger
 import kafkastreams.study.sample.settlement.client.PayoutDateRequest
 import kafkastreams.study.sample.settlement.client.PayoutRuleClient
-import kafkastreams.study.sample.settlement.common.StreamMessage
-import kafkastreams.study.sample.settlement.domain.payment.Payment
 import kafkastreams.study.sample.settlement.domain.rule.Rule
+import kafkastreams.study.sample.settlement.domain.settlement.Base
 import org.apache.kafka.streams.processor.api.FixedKeyProcessor
 import org.apache.kafka.streams.processor.api.FixedKeyProcessorContext
 import org.apache.kafka.streams.processor.api.FixedKeyProcessorSupplier
@@ -15,8 +14,8 @@ import org.apache.kafka.streams.state.KeyValueStore
 class PayoutRuleProcessValues(
     private val stateStoreName: String,
     private val payoutRuleClient: PayoutRuleClient,
-) : FixedKeyProcessorSupplier<String, StreamMessage<Payment>, Payment> {
-    override fun get(): FixedKeyProcessor<String, StreamMessage<Payment>, Payment> {
+) : FixedKeyProcessorSupplier<String, Base, Base> {
+    override fun get(): FixedKeyProcessor<String, Base, Base> {
         return PayoutRuleProcessor(stateStoreName, payoutRuleClient)
     }
 }
@@ -24,21 +23,21 @@ class PayoutRuleProcessValues(
 class PayoutRuleProcessor(
     private val stateStoreName: String,
     private val payoutRuleClient: PayoutRuleClient
-) : FixedKeyProcessor<String, StreamMessage<Payment>, Payment> {
-    private var context: FixedKeyProcessorContext<String, Payment>? = null
+) : FixedKeyProcessor<String, Base, Base> {
+    private var context: FixedKeyProcessorContext<String, Base>? = null
     private var payoutRuleStore: KeyValueStore<String, Rule>? = null
 
-    override fun init(context: FixedKeyProcessorContext<String, Payment>) {
+    override fun init(context: FixedKeyProcessorContext<String, Base>) {
         this.context = context
         this.payoutRuleStore = this.context?.getStateStore(stateStoreName)
     }
 
-    override fun process(record: FixedKeyRecord<String, StreamMessage<Payment>>) {
+    override fun process(record: FixedKeyRecord<String, Base>) {
         val key = record.key()
-        val payment = record.value().data
+        val base = record.value()
 
         // 결제 데이터가 없을 경우 스킵
-        if (payment == null) {
+        if (base == null) {
             log.info(">>> [결제 데이터 누락] Payment data is null, skipping processing for key: $key")
             return
         }
@@ -50,10 +49,10 @@ class PayoutRuleProcessor(
             log.info(">>> [지급룰 조회] Search payout rule.. $key")
             val findRule = payoutRuleClient.getPayoutDate(
                 PayoutDateRequest(
-                    merchantNumber = payment.merchantNumber ?: throw IllegalArgumentException(),
-                    paymentDate = payment.paymentDate,
-                    paymentActionType = payment.paymentActionType ?: throw IllegalArgumentException(),
-                    paymentMethodType = payment.paymentMethodType ?: throw IllegalArgumentException(),
+                    merchantNumber = base.merchantNumber,
+                    paymentDate = base.paymentDate,
+                    paymentActionType = base.paymentActionType,
+                    paymentMethodType = base.paymentMethodType,
                 )
             )
             payoutRuleStore?.put(stateStoreName, findRule)
@@ -63,16 +62,16 @@ class PayoutRuleProcessor(
         // 가맹점에 대한 지급룰이 없을 경우
         if (rule == null) {
             log.info(">>> [지급룰 없음] Not found payment payout rule. key: $key")
-            payment.updateDefaultPayoutDate()
+            base.updateDefaultPayoutDate()
         }
 
         // 지급룰 업데이트 대상일 경우
-        if (rule != null && (rule.payoutDate != payment.payoutDate || rule.confirmDate != payment.confirmDate)) {
+        if (rule != null && (rule.payoutDate != base.payoutDate || rule.confirmDate != base.confirmDate)) {
             log.info(">>> [지급룰 정보 저장] Save payout date.. $key")
-            payment.updatePayoutDate(rule)
+            base.updatePayoutDate(rule)
         }
 
-        context?.forward(record.withValue(payment))
+        context?.forward(record.withValue(base))
     }
 
     override fun close() {
