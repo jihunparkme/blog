@@ -9,6 +9,7 @@ import kafkastreams.study.sample.settlement.config.KafkaProperties
 import kafkastreams.study.sample.settlement.config.KafkaStreamsConfig
 import kafkastreams.study.sample.settlement.domain.payment.Payment
 import kafkastreams.study.sample.settlement.domain.rule.Rule
+import kafkastreams.study.sample.settlement.domain.settlement.Base
 import kafkastreams.study.sample.settlement.service.SettlementService
 import org.apache.kafka.common.serialization.Serdes
 import org.apache.kafka.streams.KafkaStreams
@@ -67,13 +68,16 @@ class SettlementKafkaStreamsApp(
         paymentStream
             // [스트림 프로세서] 결제 메시지 로그 저장
             .peek({ _, message -> settlementService.savePaymentMessageLog(message) })
-            // FINISH 메시지는 로그만 저장
+            // [스트림 프로세서] FINISH 메시지는 로그만 저장
             .filter { _, message -> message.action != Type.FINISH }
+            // [스트림 프로세서] 지급룰 조회
             .processValues(
                 PayoutRuleProcessValues(PAYOUT_RULE_STATE_STORE_NAME, payoutRuleClient),
                 PAYOUT_RULE_STATE_STORE_NAME
             )
-            .print(Printed.toSysOut<String, Payment>().withLabel("payment-stream"))
+            // [스트림 프로세서] 베이스 데이터 생성
+            .mapValues(BaseMapper())
+            .print(Printed.toSysOut<String, Base>().withLabel("payment-stream"))
 
         /**
          * [스트림 프로세서]
@@ -109,7 +113,8 @@ class SettlementKafkaStreamsApp(
         val streamMessagePaymentDeserializer = JsonDeserializer(
             object : TypeReference<StreamMessage<Payment>>() {},
             objectMapper,
-            false) // Kafka 메시지를 역직렬화할 때 메시지 헤더에 있는 타입 정보를 사용할지 여부
+            false
+        ) // Kafka 메시지를 역직렬화할 때 메시지 헤더에 있는 타입 정보를 사용할지 여부
         streamMessagePaymentDeserializer.addTrustedPackages(
             "kafkastreams.study.sample.settlement.common.*",
             "kafkastreams.study.sample.settlement.domain.*",
@@ -121,11 +126,12 @@ class SettlementKafkaStreamsApp(
         )
     }
 
-    private  fun ruleSerde(): JsonSerde<Rule> {
+    private fun ruleSerde(): JsonSerde<Rule> {
         val streamMessagePaymentDeserializer = JsonDeserializer(
             object : TypeReference<Rule>() {},
             objectMapper,
-            false) // Kafka 메시지를 역직렬화할 때 메시지 헤더에 있는 타입 정보를 사용할지 여부
+            false
+        ) // Kafka 메시지를 역직렬화할 때 메시지 헤더에 있는 타입 정보를 사용할지 여부
         streamMessagePaymentDeserializer.addTrustedPackages(
             "kafkastreams.study.sample.settlement.domain.*",
         )
