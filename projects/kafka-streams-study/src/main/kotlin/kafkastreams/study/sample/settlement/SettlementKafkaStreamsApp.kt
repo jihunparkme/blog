@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import kafkastreams.study.sample.settlement.client.PayoutRuleClient
 import kafkastreams.study.sample.settlement.common.StreamMessage
+import kafkastreams.study.sample.settlement.common.Type
 import kafkastreams.study.sample.settlement.config.KafkaProperties
 import kafkastreams.study.sample.settlement.config.KafkaStreamsConfig
 import kafkastreams.study.sample.settlement.domain.payment.Payment
@@ -64,9 +65,10 @@ class SettlementKafkaStreamsApp(
 
         println("============================")
         paymentStream
-            // TODO: filter 로 finish 아닌 것만
             // [스트림 프로세서] 결제 메시지 로그 저장
             .peek({ _, message -> settlementService.savePaymentMessageLog(message) })
+            // FINISH 메시지는 로그만 저장
+            .filter { _, message -> message.action != Type.FINISH }
             .processValues(
                 PayoutRuleProcessValues(PAYOUT_RULE_STATE_STORE_NAME, payoutRuleClient),
                 PAYOUT_RULE_STATE_STORE_NAME
