@@ -9,15 +9,15 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 
 data class Base(
-    val paymentType: PaymentType,
-    val amount: Long,
-    var payoutDate: LocalDate,
-    var confirmDate: LocalDate,
+    val paymentType: PaymentType? = null,
+    val amount: Long = 0L,
+    var payoutDate: LocalDate = DEFAULT_PAYOUT_DATE,
+    var confirmDate: LocalDate = DEFAULT_PAYOUT_DATE,
 
-    val merchantNumber: String,
-    val paymentDate: LocalDateTime,
-    val paymentActionType: PaymentActionType,
-    val paymentMethodType: PaymentMethodType,
+    val merchantNumber: String? = null,
+    val paymentDate: LocalDateTime = LocalDateTime.now(),
+    val paymentActionType: PaymentActionType? = null,
+    val paymentMethodType: PaymentMethodType? = null,
 ) {
     fun updatePayoutDate(rule: Rule) {
         this.payoutDate = rule.payoutDate
