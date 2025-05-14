@@ -1,17 +1,12 @@
 package kafkastreams.study.sample.settlement
 
-import com.fasterxml.jackson.core.type.TypeReference
-import com.fasterxml.jackson.databind.ObjectMapper
 import kafkastreams.study.sample.settlement.client.PayoutRuleClient
-import kafkastreams.study.sample.settlement.common.StreamMessage
 import kafkastreams.study.sample.settlement.common.Type
 import kafkastreams.study.sample.settlement.config.KafkaProperties
 import kafkastreams.study.sample.settlement.config.KafkaStreamsConfig
 import kafkastreams.study.sample.settlement.domain.aggregation.BaseAggregateValue
 import kafkastreams.study.sample.settlement.domain.aggregation.BaseAggregationKey
-import kafkastreams.study.sample.settlement.domain.payment.Payment
 import kafkastreams.study.sample.settlement.domain.rule.Rule
-import kafkastreams.study.sample.settlement.domain.settlement.Base
 import kafkastreams.study.sample.settlement.service.SettlementService
 import org.apache.kafka.common.serialization.Serdes
 import org.apache.kafka.common.utils.Bytes
@@ -25,16 +20,13 @@ import org.apache.kafka.streams.state.StoreBuilder
 import org.apache.kafka.streams.state.Stores
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.kafka.support.serializer.JsonDeserializer
-import org.springframework.kafka.support.serializer.JsonSerde
-import org.springframework.kafka.support.serializer.JsonSerializer
 
 @Configuration
 class SettlementKafkaStreamsApp(
     private val streamsConfig: KafkaStreamsConfig,
     private val kafkaProperties: KafkaProperties,
-    private val objectMapper: ObjectMapper,
     private val settlementService: SettlementService,
+    private val serdeFactory: SerdeFactory,
     private val payoutRuleClient: PayoutRuleClient,
 ) {
     private final val PAYOUT_RULE_STATE_STORE_NAME = "payout-rules-store"
@@ -51,7 +43,7 @@ class SettlementKafkaStreamsApp(
          * 2. 레코드 역직렬화를 위한 Serde 객체 생성
          */
         val keySerde = Serdes.String()
-        val valueSerde = messagePaymentSerde()
+        val valueSerde = serdeFactory.messagePaymentSerde()
 
         /*************************************
          * 3. 처리 토폴로지 구성
@@ -96,8 +88,8 @@ class SettlementKafkaStreamsApp(
                 )
             },
             Grouped.with( // 그룹화에 사용될 복합 키, 원본 Base 를 위한 Serdes 지정
-                baseAggregationKeySerde(),
-                baseSerde()
+                serdeFactory.baseAggregationKeySerde(),
+                serdeFactory.baseSerde()
             )
         )
             .aggregate( // 그룹별로 집계 수행
@@ -112,8 +104,8 @@ class SettlementKafkaStreamsApp(
                 Materialized.`as`<BaseAggregationKey, BaseAggregateValue, KeyValueStore<Bytes, ByteArray>>(
                     STATISTICS_STORE_NAME
                 )
-                    .withKeySerde(baseAggregationKeySerde())   // KTable의 키(BaseAggregationKey) Serde
-                    .withValueSerde(baseAggregateValueSerde()) // KTable의 값(BaseAggregateValue) Serde
+                    .withKeySerde(serdeFactory.baseAggregationKeySerde())   // KTable의 키(BaseAggregationKey) Serde
+                    .withValueSerde(serdeFactory.baseAggregateValueSerde()) // KTable의 값(BaseAggregateValue) Serde
             )
 
         /*************************************
@@ -124,82 +116,6 @@ class SettlementKafkaStreamsApp(
 
     private fun getPayoutDateStoreBuilder(): StoreBuilder<KeyValueStore<String, Rule>> {
         val storeSupplier = Stores.inMemoryKeyValueStore(PAYOUT_RULE_STATE_STORE_NAME)
-        return Stores.keyValueStoreBuilder(storeSupplier, Serdes.String(), ruleSerde())
-    }
-
-    // TODO: Serde 메서드 추출
-    private fun messagePaymentSerde(): JsonSerde<StreamMessage<Payment>> {
-        val streamMessagePaymentDeserializer = JsonDeserializer(
-            object : TypeReference<StreamMessage<Payment>>() {},
-            objectMapper,
-            false
-        ) // Kafka 메시지를 역직렬화할 때 메시지 헤더에 있는 타입 정보를 사용할지 여부
-        streamMessagePaymentDeserializer.addTrustedPackages(
-            "kafkastreams.study.sample.settlement.common.*",
-            "kafkastreams.study.sample.settlement.domain.*",
-        )
-
-        return JsonSerde(
-            JsonSerializer(objectMapper),
-            streamMessagePaymentDeserializer
-        )
-    }
-
-    private fun baseSerde(): JsonSerde<Base> {
-        val streamMessagePaymentDeserializer = JsonDeserializer(
-            object : TypeReference<Base>() {},
-            objectMapper,
-            false
-        )
-        streamMessagePaymentDeserializer.addTrustedPackages(
-            "kafkastreams.study.sample.settlement.common.*",
-            "kafkastreams.study.sample.settlement.domain.*",
-        )
-
-        return JsonSerde(
-            JsonSerializer(objectMapper),
-            streamMessagePaymentDeserializer
-        )
-    }
-
-    private fun ruleSerde(): JsonSerde<Rule> {
-        val streamMessagePaymentDeserializer = JsonDeserializer(
-            object : TypeReference<Rule>() {},
-            objectMapper,
-            false
-        ) // Kafka 메시지를 역직렬화할 때 메시지 헤더에 있는 타입 정보를 사용할지 여부
-        streamMessagePaymentDeserializer.addTrustedPackages(
-            "kafkastreams.study.sample.settlement.domain.*",
-        )
-
-        return JsonSerde(
-            JsonSerializer(objectMapper),
-            streamMessagePaymentDeserializer
-        )
-    }
-
-    private fun baseAggregationKeySerde(): JsonSerde<BaseAggregationKey> {
-        val deserializer = JsonDeserializer(
-            object : TypeReference<BaseAggregationKey>() {},
-            objectMapper,
-            false
-        )
-        deserializer.addTrustedPackages(
-            "kafkastreams.study.sample.settlement.domain.aggregation.*",
-            "kafkastreams.study.sample.settlement.common.*"
-        )
-        return JsonSerde(JsonSerializer(objectMapper), deserializer)
-    }
-
-    private fun baseAggregateValueSerde(): JsonSerde<BaseAggregateValue> {
-        val deserializer = JsonDeserializer(
-            object : TypeReference<BaseAggregateValue>() {},
-            objectMapper,
-            false
-        )
-        deserializer.addTrustedPackages(
-            "kafkastreams.study.sample.settlement.domain.aggregation.*"
-        )
-        return JsonSerde(JsonSerializer(objectMapper), deserializer)
+        return Stores.keyValueStoreBuilder(storeSupplier, Serdes.String(), serdeFactory.ruleSerde())
     }
 }
