@@ -6,7 +6,10 @@ import kafkastreams.study.sample.settlement.common.PaymentMethodType
 import kafkastreams.study.sample.settlement.common.PaymentType
 import kafkastreams.study.sample.settlement.common.StreamMessage
 import kafkastreams.study.sample.settlement.common.Type
+import kafkastreams.study.sample.settlement.config.KafkaStreamsRunner
 import kafkastreams.study.sample.settlement.domain.payment.Payment
+import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.springframework.beans.factory.annotation.Autowired
@@ -25,6 +28,19 @@ import kotlin.random.Random
 class SettlementKafkaStreamsTest {
     @Autowired
     private lateinit var paymentKafkaTemplate: KafkaTemplate<String, StreamMessage<Payment>>
+
+    @Autowired
+    private lateinit var KafkaStreamsRunner: KafkaStreamsRunner
+
+    @BeforeAll
+    fun beforeAll() {
+        KafkaStreamsRunner.run()
+    }
+
+    @AfterAll
+    fun afterAll() {
+        KafkaStreamsRunner.closeStreams()
+    }
 
     @Test
     fun integration() {
