@@ -14,15 +14,15 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.context.annotation.Profile
 import org.springframework.kafka.core.KafkaTemplate
+import org.springframework.test.context.ActiveProfiles
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 import java.util.concurrent.TimeUnit
 import kotlin.random.Random
 
-@Profile("test")
+@ActiveProfiles("test")
 @SpringBootTest
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class SettlementKafkaStreamsTest {
@@ -44,6 +44,7 @@ class SettlementKafkaStreamsTest {
 
     @Test
     fun integration() {
+        Thread.sleep(3000)
         val payment = testPayment()
         paymentKafkaTemplate.send(
             "test-payment",
@@ -54,6 +55,7 @@ class SettlementKafkaStreamsTest {
                 data = payment,
             )
         ).get(10, TimeUnit.SECONDS)
+        Thread.sleep(5000)
     }
 
     @Test
