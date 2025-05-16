@@ -46,6 +46,19 @@
 
 먼저 전체 코드를 살짝 보고 시작해 보겠습니다.
 
+https://kafka.apache.org/30/documentation/streams/developer-guide/dsl-api.html#id10
+
+Streams DSL 을 활용한 방식
+
+Streams DSL(Domain Specific Language)
+일반적인 스트림 처리 작업을 위한 고수준의 추상화를 제공
+필터링, 매핑, 집계, 조인 등과 같은 일반적인 스트림 처리 작업을 간단하고 선언적인 방식으로 수행
+
+더 낮은 수준의 추상화는
+processor API
+스트림 처리 로직을 직접 정의하고 제어할 수 있는 낮은 수준의 추상화를 제공
+스트림 프로세서, 상태 저장소, 토폴로지 등을 직접 정의하고 관리
+
 ```kotlin
 
 ```
@@ -175,6 +188,8 @@ paymentStream
 ### 3️⃣ FINISH 메시지 필터링
 
 ⁉️ filter 메서드에 대한 설명
+
+필터 사용을 위한 가정
 
 ```kotlin
 paymentStream
@@ -353,3 +368,4 @@ KafkaStreams(builder.build(), streamsConfig)
 ⁉️ stateStore 어떤 구조로 저장되는지
 
 ⁉️ 조회는 어떤 방식으로 하는지
+- 조회하면 어떤 형태로 응답이 오는지
