@@ -62,6 +62,7 @@ class SettlementKafkaStreamsApp(
         )
 
         println("============================")
+        paymentStream.foreach { _, value -> println(">>> " + value) }
         val baseStream = paymentStream
             // [스트림 프로세서] 결제 메시지 로그 저장
             .peek({ _, message -> settlementService.savePaymentMessageLog(message) })
@@ -69,6 +70,8 @@ class SettlementKafkaStreamsApp(
             .filter { _, message -> message.action != Type.FINISH }
             // [스트림 프로세서] 결제 데이터로 정산 베이스 생성
             .mapValues(BaseMapper())
+            // [스트림 프로세서] 비정산 결제건 필터링
+            .filter { _, base -> base.isNotUnSettlement() }
             // [스트림 프로세서] 지급룰 조회 및 세팅
             .processValues(
                 PayoutRuleProcessValues(PAYOUT_RULE_STATE_STORE_NAME, payoutRuleClient),

@@ -4,6 +4,8 @@
 결제팀으로부터 Kafka를 통해 수신한 결제 데이터는 여러 단계를 거쳐 지급, 전표 생성, 세금계산서 발행 등 정산에 필요한 베이스 및 통계 데이터로 생성됩니다.<br/>
 이러한 여러 단계의 데이터 처리 과정을 Kafka Streams의 파이프라인 형태로 재구성하여, 데이터를 스트림 방식으로 처리하도록 적용해 보려고 합니다.<br/>
 
+Kafka 를 사용하면서 Kafka Streams 라는 기술에 대한 매력을 느끼고, 정산 도메인에 Kafka Streams를 적용해 보며 Kafka Streams에 대한 매력을 공유드리고자 합니다.
+
 # Kafka Streams?
 
 카프카 스트림즈(Kafka Streams)를 한 줄로 표현한다면 아래와 같이 표현할 수 있습니다.
@@ -224,6 +226,14 @@ class BaseMapper() : ValueMapper<StreamMessage<Payment>, Base> {
         )
     }
 }
+```
+
+### 5️⃣ 비정산 결제건 필터링
+
+스트림 프로세서
+
+```kotlin
+.filter { _, base -> base.isNotUnSettlement() }
 ```
 
 ### 5️⃣ 지급룰 조회 및 세팅
