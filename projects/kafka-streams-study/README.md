@@ -69,9 +69,42 @@ class KafkaStreamsConfig {
 }
 ```
 
+### 레코드 역직렬화를 위한 Serde 객체 생성
+
+```kotlin
+val keySerde = Serdes.String()
+val valueSerde = serdeFactory.messagePaymentSerde()
+```
+
+⁉️ json 형태의 레코드를 받기 위해 serde 객체 생성이 필요 
+
+```kotlin
+fun messagePaymentSerde(): JsonSerde<StreamMessage<Payment>> {
+    val streamMessagePaymentDeserializer = JsonDeserializer(
+        object : TypeReference<StreamMessage<Payment>>() {},
+        objectMapper,
+        false
+    ) // Kafka 메시지를 역직렬화할 때 메시지 헤더에 있는 타입 정보를 사용할지 여부
+    streamMessagePaymentDeserializer.addTrustedPackages(
+        "kafkastreams.study.sample.settlement.common.*",
+        "kafkastreams.study.sample.settlement.domain.*",
+    )
+
+    return JsonSerde(
+        JsonSerializer(objectMapper),
+        streamMessagePaymentDeserializer
+    )
+}
+```
 
 
-### 결제팀으로부터 결제 데이터 수신
+
+
+
+
+### 처리 토폴로지 구성
+
+결제팀으로부터 결제 데이터 수신
 
 하나 이상의 카프카 토픽에서 데이터를 가져오려면 소스 프로세스에 해당하는 토폴로지 생성이 필요합니다.
 
