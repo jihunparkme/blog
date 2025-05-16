@@ -30,31 +30,35 @@
 
 # Kafka Streams 적용
 
-전체 코드를 쉽게 이해하기 위해 먼저 각 단계를 하나씩 살펴보려고 합니다.
-
-카프카 스트림즈 애플리케이션을 만들기 위해 사용되는 일반적인 패턴을 하나씩 적용해 보겠습니다.
+카프카 스트림즈 애플리케이션을 만들기 위해 사용되는 일반적인 패턴을 따라 하나씩 적용해 보겠습니다.
 
 1. StreamsConfig 인스턴스 생성
 2. Serde 객체 생성
 3. 처리 토폴로지 구성
 4. 카프카 스트림즈 프로그램 시작
 
-먼저 전체 코드를 살짝 보고 시작해 보겠습니다.
+카프카 스트림즈 개발을 위해 `Streams DSL`, `processor API` 두 가지 방법이 제공되는데<br/>
+Streams DSL(Domain Specific Language)을 활용하여 개발해 보려고 합니다.
 
-https://kafka.apache.org/30/documentation/streams/developer-guide/dsl-api.html#id10
+두 방법의 차이는 간략하게 아래와 같습니다.
 
-Streams DSL 을 활용한 방식
+|Streams DSL|processor API|
+|---|---|
+|일반적인 스트림 처리 작업을 위한 고수준의 추상화를 제공|스트림 처리 로직을 직접 정의하고 제어할 수 있는 낮은 수준의 추상화를 제공|
+|필터링, 매핑, 집계, 조인 등과 같은 일반적인 스트림 처리 작업을 간단하고 선언적인 방식으로 수행|스트림 프로세서, 상태 저장소, 토폴로지 등을 직접 정의하고 관리|
 
-Streams DSL(Domain Specific Language)
-일반적인 스트림 처리 작업을 위한 고수준의 추상화를 제공
-필터링, 매핑, 집계, 조인 등과 같은 일반적인 스트림 처리 작업을 간단하고 선언적인 방식으로 수행
+Streams DSL 에서 제공하는 추상화된 메서드는 [Streams DSL Developer Guide](https://kafka.apache.org/30/documentation/streams/developer-guide/dsl-api.html)에서 확인할 수 있습니다.
 
-더 낮은 수준의 추상화는
-processor API
-스트림 처리 로직을 직접 정의하고 제어할 수 있는 낮은 수준의 추상화를 제공
-스트림 프로세서, 상태 저장소, 토폴로지 등을 직접 정의하고 관리
+## 1. StreamsConfig 인스턴스 생성
 
-## StreamsConfig 인스턴스 생성
+
+
+
+
+
+
+
+
 
 ⁉️StreamsConfig 에 어떤 설정이 들어가는지
 
@@ -365,6 +369,9 @@ KafkaStreams(builder.build(), streamsConfig)
 ```
 
 ## 전체 코드
+
+.. 메서드를 활용하여 스트림 파이프라인을 구성해 보았는데 그밖에도 카프카 스트림즈 
+https://kafka.apache.org/30/documentation/streams/developer-guide/dsl-api.html#id10
 
 ⁉️ stateStore 어떤 구조로 저장되는지
 
