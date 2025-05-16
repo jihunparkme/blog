@@ -21,5 +21,13 @@ class PaymentController(
         paymentService.sendToTopic(count)
         return BasicResponse.ok(Result.SUCCESS)
     }
+
+    @GetMapping("/send/{count}/test")
+    fun sendToTopicTest(
+        @PathVariable count: Int = 1
+    ): ResponseEntity<BasicResponse<Result>> {
+        paymentService.sendToTopicTest(count)
+        return BasicResponse.ok(Result.SUCCESS)
+    }
 }
 

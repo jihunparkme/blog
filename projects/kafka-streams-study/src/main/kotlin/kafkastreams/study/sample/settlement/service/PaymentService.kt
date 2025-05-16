@@ -63,4 +63,9 @@ class PaymentService(
             )
         }
     }
+
+    fun sendToTopicTest(count: Int) {
+        val paymentType = randomEnum<PaymentType>()
+        sendPayment(count, paymentType)
+    }
 }
