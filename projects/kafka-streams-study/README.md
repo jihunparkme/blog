@@ -17,11 +17,11 @@
 
 ## 정산 데이터 생성 단계
 
-정산 베이스 및 통계 데이터 생성에 kafka streams 적용을 위해 먼저 간단한 시나리오를 살펴보려고 합니다.
+정산 베이스 및 통계 데이터 생성에 kafka streams 적용을 위해 먼저 간단한 시나리오를 만들어 보았습니다.
 
-정산 데이터 생성을 위해 보다 더 복잡한 비즈니스 로직들이 포함되어 있지만 kafka streams 적용에 초점을 맞추고자 단순한 예제로 진행해 보려고 합니다. 
+정산 데이터 생성을 위해 보다 더 복잡한 비즈니스 로직들이 포함되어 있지만 kafka streams 적용에 초점을 맞추고자 단순한 시나리오로 진행해 보려고 합니다. 
 
-1. 결제팀으로부터 결제 데이터를 수신
+1. 결제팀으로부터 결제 데이터 수신
 2. 베이스(건별 내역) 생성
    - 중복 베이스 확인
    - 테스트 데이터 확인 / 비정산 결제건 확인 / 정산 대상 확인(망취소, 미확인..)
@@ -33,7 +33,60 @@
 
 ## Kafka Streams 적용
 
-### 데이터 수신
+이제 위에 나열된 각 시나리오에 Kafka streams를 적용해 보겠습니다.<br/>
+
+전체 코드를 쉽게 이해하기 위해 먼저 각 단계를 하나씩 살펴보려고 합니다.
+
+카프카 스트림즈 애플리케이션을 만들기 위해 사용되는 일반적인 패턴을 하나씩 적용해 보겠습니다.
+
+1. StreamsConfig 인스턴스 생성
+2. Serde 객체 생성
+3. 처리 토폴로지 구성
+4. 카프카 스트림즈 프로그램 시작
+
+### StreamsConfig 인스턴스 생성
+
+⁉️StreamsConfig 에 어떤 설정이 들어가는지
+
+```kotlin
+val streamsConfig = streamsConfig.properties(kafkaProperties.paymentApplicationName)
+```
+
+streamsConfig 빈을 들여다 보면
+
+```kotlin
+@Configuration
+class KafkaStreamsConfig {
+    fun properties(applicationId: String): Properties {
+        return Properties().apply {
+            put(StreamsConfig.APPLICATION_ID_CONFIG, applicationId)
+            put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092")
+            put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().javaClass)
+            put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().javaClass)
+            put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")
+        }
+    }
+}
+```
+
+
+
+### 결제팀으로부터 결제 데이터 수신
+
+하나 이상의 카프카 토픽에서 데이터를 가져오려면 소스 프로세스에 해당하는 토폴로지 생성이 필요합니다.
+
+```kotlin
+// [소스 프로세서] 결제 토픽으로부터 결제 데이터 받기
+val paymentStream = builder.stream(
+   kafkaProperties.paymentTopic,
+   Consumed.with(
+       keySerde,
+       valueSerde
+   )
+)
+```
+
+
 
 
 
