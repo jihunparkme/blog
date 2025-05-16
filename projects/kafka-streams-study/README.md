@@ -57,9 +57,6 @@ Streams DSL 에서 제공하는 추상화된 메서드는 [Streams DSL Developer
 
 
 
-
-
-
 ⁉️StreamsConfig 에 어떤 설정이 들어가는지
 
 ```kotlin
