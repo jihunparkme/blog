@@ -44,28 +44,21 @@ Streams DSL(Domain Specific Language)을 활용하여 개발해 보려고 합니
 
 |Streams DSL|processor API|
 |---|---|
-|일반적인 스트림 처리 작업을 위한 고수준의 추상화를 제공|스트림 처리 로직을 직접 정의하고 제어할 수 있는 낮은 수준의 추상화를 제공|
-|필터링, 매핑, 집계, 조인 등과 같은 일반적인 스트림 처리 작업을 간단하고 선언적인 방식으로 수행|스트림 프로세서, 상태 저장소, 토폴로지 등을 직접 정의하고 관리|
+|일반적인 스트림 처리 작업을 위한 **고수준의 추상화**를 제공|스트림 처리 로직을 직접 정의하고 제어할 수 있는 **낮은 수준의 추상화**를 제공|
+|필터링, 매핑, 집계, 조인 등과 같은 일반적인 **스트림 처리 작업을 간단하고 선언적인 방식으로** 수행|스트림 프로세서, 상태 저장소, 토폴로지 등을 **직접 정의하고 관리**|
 
 Streams DSL 에서 제공하는 추상화된 메서드는 [Streams DSL Developer Guide](https://kafka.apache.org/30/documentation/streams/developer-guide/dsl-api.html)에서 확인할 수 있습니다.
 
 ## 1. StreamsConfig 인스턴스 생성
 
-
-
-
-
-
-
-⁉️StreamsConfig 에 어떤 설정이 들어가는지
+`StreamsConfig`에는 카프카 스트림즈 애플리케이션의 동작 방식을 정의하는 다양한 설정들이 들어갑니다.
+- 애플리케이션의 기본 동작, Kafka 클러스터 연결, 데이터 직렬화/역직렬화, 상태 관리, 장애 처리, 성능 튜닝 등
 
 ```kotlin
+// StreamsConfig 인스턴스 생성
 val streamsConfig = streamsConfig.properties(kafkaProperties.paymentApplicationName)
-```
 
-streamsConfig 빈을 들여다 보면
-
-```kotlin
+// KafkaStreamsConfig.kt
 @Configuration
 class KafkaStreamsConfig {
     fun properties(applicationId: String): Properties {
@@ -79,6 +72,20 @@ class KafkaStreamsConfig {
     }
 }
 ```
+
+예제에 사용된 설정들을 살펴보겠습니다.
+
+필수 설정
+- `application.id`: 스트림즈 애플리케이션의 고유 식별자입니다. 
+  - Kafka 클러스터 내에서 유일해야 하며, 내부 토픽 및 소비자 그룹 ID의 접두사로 사용됩니다.
+- `bootstrap.servers`: Kafka 브로커 목록을 지정합니다. 
+  - 초기 연결을 위해 사용되며, host:port 형태로 쉼표로 구분하여 여러 개 지정 가능합니다.
+
+주요 설정
+- `default.key.serde`: 메시지 키의 기본 직렬화/역직렬화 클래스를 지정합니다.
+- `default.value.serde`: 메시지 값의 기본 직렬화/역직렬화 클래스를 지정합니다.
+  - 커스텀한 serde 타입을 사용할 수도 있습니다.
+- `consumer.auto.offset.reset`: 카프카 컨슈머의 오프셋을 설정합니다.
 
 ## 레코드 역직렬화를 위한 Serde 객체 생성
 
