@@ -55,7 +55,6 @@ Streams DSL 에서 제공하는 추상화된 메서드는 [Streams DSL Developer
 - 애플리케이션의 기본 동작, Kafka 클러스터 연결, 데이터 직렬화/역직렬화, 상태 관리, 장애 처리, 성능 튜닝 등
 
 ```kotlin
-// StreamsConfig 인스턴스 생성
 val streamsConfig = streamsConfig.properties(kafkaProperties.paymentApplicationName)
 
 // KafkaStreamsConfig.kt
@@ -84,30 +83,34 @@ class KafkaStreamsConfig {
 주요 설정
 - `default.key.serde`: 메시지 키의 기본 직렬화/역직렬화 클래스를 지정합니다.
 - `default.value.serde`: 메시지 값의 기본 직렬화/역직렬화 클래스를 지정합니다.
-  - 커스텀한 serde 타입을 사용할 수도 있습니다.
+  - 메시지 키/값의 serde 객체는 기본값은 설정되어 있지 않으므로 명시적으로 설정해주어야 합니다.
+  - 공용으로 사용되는 설정이 아니라면 커스텀한 serde 타입을 적용할 수도 있습니다.
 - `consumer.auto.offset.reset`: 카프카 컨슈머의 오프셋을 설정합니다.
 
-## 레코드 역직렬화를 위한 Serde 객체 생성
+## 2. 레코드 역직렬화를 위한 Serde 객체 생성
+
+카프카에서 [Serdes](https://kafka.apache.org/21/javadoc/org/apache/kafka/common/serialization/Serdes.html#serdeFrom-java.lang.Class-) 클래스에서 기본적으로 제공해주는 객체를 사용하거나, 필요한 형태의 레코드를 사용하려면 커스텀한 객체 생성이 필요합니다.<br/>
+여기서는 Json 형태의 `StreamMessage<Payment>` 객체로 메시지 값을 역직렬화화기 위해 커스텀한 Serde 객체를 생성해보겠습니다. 
 
 ```kotlin
 val keySerde = Serdes.String()
 val valueSerde = serdeFactory.messagePaymentSerde()
-```
 
-⁉️ json 형태의 레코드를 받기 위해 serde 객체 생성이 필요 
-
-```kotlin
+// SerdeFactory.kt
 fun messagePaymentSerde(): JsonSerde<StreamMessage<Payment>> {
+    // JsonDeserializer 생성
     val streamMessagePaymentDeserializer = JsonDeserializer(
         object : TypeReference<StreamMessage<Payment>>() {},
         objectMapper,
-        false
-    ) // Kafka 메시지를 역직렬화할 때 메시지 헤더에 있는 타입 정보를 사용할지 여부
+        false // failOnUnknownProperties flag
+    )
+    // 신뢰할 수 있는 패키지 설정
     streamMessagePaymentDeserializer.addTrustedPackages(
         "kafkastreams.study.sample.settlement.common.*",
         "kafkastreams.study.sample.settlement.domain.*",
     )
 
+    // JsonSerde 객체 생성 및 반환
     return JsonSerde(
         JsonSerializer(objectMapper),
         streamMessagePaymentDeserializer

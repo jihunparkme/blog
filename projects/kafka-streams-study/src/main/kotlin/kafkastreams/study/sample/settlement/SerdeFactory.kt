@@ -21,8 +21,8 @@ class SerdeFactory(
         val streamMessagePaymentDeserializer = JsonDeserializer(
             object : TypeReference<StreamMessage<Payment>>() {},
             objectMapper,
-            false
-        ) // Kafka 메시지를 역직렬화할 때 메시지 헤더에 있는 타입 정보를 사용할지 여부
+            false // failOnUnknownProperties
+        )
         streamMessagePaymentDeserializer.addTrustedPackages(
             "kafkastreams.study.sample.settlement.common.*",
             "kafkastreams.study.sample.settlement.domain.*",
