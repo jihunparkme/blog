@@ -41,12 +41,6 @@ class SettlementKafkaStreamsApp(
         val streamsConfig = streamsConfig()
 
         /*************************************
-         * 2. 레코드 역직렬화를 위한 Serde 객체 생성
-         */
-        // val keySerde = Serdes.String()
-        // val valueSerde = serdeFactory.messagePaymentSerde()
-
-        /*************************************
          * 3. 처리 토폴로지 구성
          */
         val builder = StreamsBuilder()

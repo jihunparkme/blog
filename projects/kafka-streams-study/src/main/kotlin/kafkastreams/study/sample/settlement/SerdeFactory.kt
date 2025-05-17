@@ -13,6 +13,9 @@ import org.springframework.kafka.support.serializer.JsonSerde
 import org.springframework.kafka.support.serializer.JsonSerializer
 import org.springframework.stereotype.Component
 
+/*************************************
+ * 2. 레코드 역직렬화를 위한 Serde 객체 생성
+ */
 @Component
 class SerdeFactory(
     private val objectMapper: ObjectMapper,

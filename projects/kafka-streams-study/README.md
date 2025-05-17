@@ -55,21 +55,18 @@ Streams DSL 에서 제공하는 추상화된 메서드는 [Streams DSL Developer
 - 애플리케이션의 기본 동작, Kafka 클러스터 연결, 데이터 직렬화/역직렬화, 상태 관리, 장애 처리, 성능 튜닝 등
 
 ```kotlin
-val streamsConfig = streamsConfig.properties(kafkaProperties.paymentApplicationName)
+val streamsConfig = streamsConfig()
 
 // KafkaStreamsConfig.kt
-@Configuration
-class KafkaStreamsConfig {
-    fun properties(applicationId: String): Properties {
-        return Properties().apply {
-            put(StreamsConfig.APPLICATION_ID_CONFIG, applicationId)
-            put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092")
-            put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().javaClass)
-            put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().javaClass)
-            put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")
-        }
-    }
-}
+@Bean
+fun streamsConfig(): StreamsConfig =
+  StreamsConfig(Properties().apply {
+    put(StreamsConfig.APPLICATION_ID_CONFIG, kafkaProperties.paymentApplicationName)
+    put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaProperties.servers)
+    put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().javaClass)
+    put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, serdeFactory.messagePaymentSerde().javaClass) // 2. 레코드 역직렬화를 위한 Serde 객체 생성 단계에서 생성
+    put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")
+  })
 ```
 
 예제에 사용된 설정들을 살펴보겠습니다.
@@ -84,7 +81,7 @@ class KafkaStreamsConfig {
 - `default.key.serde`: 메시지 키의 기본 직렬화/역직렬화 클래스를 지정합니다.
 - `default.value.serde`: 메시지 값의 기본 직렬화/역직렬화 클래스를 지정합니다.
   - 메시지 키/값의 serde 객체는 기본값은 설정되어 있지 않으므로 명시적으로 설정해주어야 합니다.
-  - 공용으로 사용되는 설정이 아니라면 커스텀한 serde 타입을 적용할 수도 있습니다.
+  - 커스텀한 serde 타입을 적용할 수도 있습니다.
 - `consumer.auto.offset.reset`: 카프카 컨슈머의 오프셋을 설정합니다.
 
 ## 2. 레코드 역직렬화를 위한 Serde 객체 생성
@@ -93,9 +90,6 @@ class KafkaStreamsConfig {
 여기서는 Json 형태의 `StreamMessage<Payment>` 객체로 메시지 값을 역직렬화화기 위해 커스텀한 Serde 객체를 생성해보겠습니다. 
 
 ```kotlin
-val keySerde = Serdes.String()
-val valueSerde = serdeFactory.messagePaymentSerde()
-
 // SerdeFactory.kt
 fun messagePaymentSerde(): JsonSerde<StreamMessage<Payment>> {
     // JsonDeserializer 생성
@@ -118,7 +112,14 @@ fun messagePaymentSerde(): JsonSerde<StreamMessage<Payment>> {
 }
 ```
 
-## 처리 토폴로지 구성
+## 3. 처리 토폴로지 구성
+
+
+
+
+
+
+
 
 > 데이터 스트림을 처리하는 과정, 즉 데이터의 흐름과 변환 과정을 정의하는 구조
 
