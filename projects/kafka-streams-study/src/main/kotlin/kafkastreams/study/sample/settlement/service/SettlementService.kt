@@ -17,6 +17,8 @@ class SettlementService {
         log.info(">>> [정산 베이스 저장] Save base to base.. $data")
     }
 
+    fun isSettlement(base: Base) = true
+
     companion object {
         private val log by logger()
     }

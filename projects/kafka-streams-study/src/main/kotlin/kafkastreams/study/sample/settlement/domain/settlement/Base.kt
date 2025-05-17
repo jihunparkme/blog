@@ -28,8 +28,4 @@ data class Base(
         this.payoutDate = DEFAULT_PAYOUT_DATE
         this.confirmDate = DEFAULT_PAYOUT_DATE
     }
-
-    fun isNotUnSettlement(): Boolean {
-        return true
-    }
 }

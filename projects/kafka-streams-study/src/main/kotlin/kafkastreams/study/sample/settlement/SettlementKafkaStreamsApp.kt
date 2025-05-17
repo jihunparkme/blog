@@ -3,15 +3,16 @@ package kafkastreams.study.sample.settlement
 import kafkastreams.study.sample.settlement.client.PayoutRuleClient
 import kafkastreams.study.sample.settlement.common.Type
 import kafkastreams.study.sample.settlement.config.KafkaProperties
-import kafkastreams.study.sample.settlement.config.KafkaStreamsConfig
 import kafkastreams.study.sample.settlement.domain.aggregation.BaseAggregateValue
 import kafkastreams.study.sample.settlement.domain.aggregation.BaseAggregationKey
 import kafkastreams.study.sample.settlement.domain.rule.Rule
 import kafkastreams.study.sample.settlement.service.SettlementService
+import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.common.serialization.Serdes
 import org.apache.kafka.common.utils.Bytes
 import org.apache.kafka.streams.KafkaStreams
 import org.apache.kafka.streams.StreamsBuilder
+import org.apache.kafka.streams.StreamsConfig
 import org.apache.kafka.streams.kstream.Consumed
 import org.apache.kafka.streams.kstream.Grouped
 import org.apache.kafka.streams.kstream.Materialized
@@ -20,13 +21,13 @@ import org.apache.kafka.streams.state.StoreBuilder
 import org.apache.kafka.streams.state.Stores
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import java.util.Properties
 
 @Configuration
 class SettlementKafkaStreamsApp(
-    private val streamsConfig: KafkaStreamsConfig,
     private val kafkaProperties: KafkaProperties,
-    private val settlementService: SettlementService,
     private val serdeFactory: SerdeFactory,
+    private val settlementService: SettlementService,
     private val payoutRuleClient: PayoutRuleClient,
 ) {
     private final val PAYOUT_RULE_STATE_STORE_NAME = "payout-rules-store"
@@ -37,13 +38,13 @@ class SettlementKafkaStreamsApp(
         /*************************************
          * 1. StreamsConfig 인스턴스 생성
          */
-        val streamsConfig = streamsConfig.properties(kafkaProperties.paymentApplicationName)
+        val streamsConfig = streamsConfig()
 
         /*************************************
          * 2. 레코드 역직렬화를 위한 Serde 객체 생성
          */
-        val keySerde = Serdes.String()
-        val valueSerde = serdeFactory.messagePaymentSerde()
+        // val keySerde = Serdes.String()
+        // val valueSerde = serdeFactory.messagePaymentSerde()
 
         /*************************************
          * 3. 처리 토폴로지 구성
@@ -56,8 +57,8 @@ class SettlementKafkaStreamsApp(
         val paymentStream = builder.stream(
             kafkaProperties.paymentTopic,
             Consumed.with(
-                keySerde,
-                valueSerde
+                Serdes.String(),
+                serdeFactory.messagePaymentSerde()
             )
         )
 
@@ -71,7 +72,7 @@ class SettlementKafkaStreamsApp(
             // [스트림 프로세서] 결제 데이터로 정산 베이스 생성
             .mapValues(BaseMapper())
             // [스트림 프로세서] 비정산 결제건 필터링
-            .filter { _, base -> base.isNotUnSettlement() }
+            .filter { _, base -> settlementService.isSettlement(base) }
             // [스트림 프로세서] 지급룰 조회 및 세팅
             .processValues(
                 PayoutRuleProcessValues(PAYOUT_RULE_STATE_STORE_NAME, payoutRuleClient),
@@ -121,4 +122,14 @@ class SettlementKafkaStreamsApp(
         val storeSupplier = Stores.inMemoryKeyValueStore(PAYOUT_RULE_STATE_STORE_NAME)
         return Stores.keyValueStoreBuilder(storeSupplier, Serdes.String(), serdeFactory.ruleSerde())
     }
+
+    @Bean
+    fun streamsConfig(): StreamsConfig =
+        StreamsConfig(Properties().apply {
+            put(StreamsConfig.APPLICATION_ID_CONFIG, kafkaProperties.paymentApplicationName)
+            put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaProperties.servers)
+            put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().javaClass)
+            put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, serdeFactory.messagePaymentSerde().javaClass)
+            put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")
+        })
 }
