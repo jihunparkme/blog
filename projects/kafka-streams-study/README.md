@@ -133,6 +133,23 @@ fun messagePaymentSerde(): JsonSerde<StreamMessage<Payment>> {
 
 ![Result](https://github.com/jihunparkme/blog/blob/main/img/kafka-streams/topology-2.png?raw=true 'Result')
 
+이제 만들게될 토폴로지의 구성을 살펴보겠습니다.
+
+![Result](https://github.com/jihunparkme/blog/blob/main/img/kafka-streams/topology-example.png?raw=true 'Result')
+
+총 여섯 단계의 토폴로지를 한 단계씩 만들어 보겠습니다.
+
+
+
+
+
+
+
+
+
+
+
+
 ### 0️⃣ 빌더 생성
 
 StreamsBuilder 역할과 StateStore 대한 설명

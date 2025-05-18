@@ -1,7 +1,6 @@
 package kafkastreams.study.sample.settlement
 
 import kafkastreams.study.sample.settlement.client.PayoutRuleClient
-import kafkastreams.study.sample.settlement.common.Type
 import kafkastreams.study.sample.settlement.config.KafkaProperties
 import kafkastreams.study.sample.settlement.domain.aggregation.BaseAggregateValue
 import kafkastreams.study.sample.settlement.domain.aggregation.BaseAggregationKey
@@ -61,8 +60,6 @@ class SettlementKafkaStreamsApp(
         val baseStream = paymentStream
             // [스트림 프로세서] 결제 메시지 로그 저장
             .peek({ _, message -> settlementService.savePaymentMessageLog(message) })
-            // [스트림 프로세서] FINISH 메시지는 로그만 저장
-            .filter { _, message -> message.action != Type.FINISH }
             // [스트림 프로세서] 결제 데이터로 정산 베이스 생성
             .mapValues(BaseMapper())
             // [스트림 프로세서] 비정산 결제건 필터링
