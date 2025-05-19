@@ -174,26 +174,22 @@ val paymentStream: KStream<String, StreamMessage<Payment>> = builder.stream(
 )
 ```
 
-
-
-
-
-
-
-
-이 영역은 소스 프로세서
+디버깅/테스트 환경에서 print 메서드를 활용해서 단계별로 레코드의 상태를 확인할 수 있습니다.
 
 ```kotlin
-// [소스 프로세서] 결제 토픽으로부터 결제 데이터 받기
-val paymentStream = builder.stream(
-   kafkaProperties.paymentTopic,
-   Consumed.with(
-       keySerde,
-       valueSerde
-   )
-)
+// [payment-stream]: 5a54041d-2cce-43f5-8194-299acb8e8766, StreamMessage(channel=OFFLINE, action=PAYMENT, data=Payment(paymentType=OFFLINE, amount=65218, payoutDate=2025-05-21, confirmDate=2025-05-21, merchantNumber=merchant-1881, paymentDate=2025-05-19T21:48:15.989609, paymentActionType=PAYMENT, paymentMethodType=CARD))
+paymentStream.print(Printed.toSysOut<String, StreamMessage<Payment>>().withLabel("payment-stream"))
 ```
+
 ### 2️⃣ 결제 메시지 로그 저장
+
+
+
+
+
+
+
+
 
 스트림 프로세서
 

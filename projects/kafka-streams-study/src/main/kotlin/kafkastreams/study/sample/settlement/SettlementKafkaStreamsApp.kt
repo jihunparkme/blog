@@ -19,6 +19,7 @@ import org.apache.kafka.streams.kstream.Consumed
 import org.apache.kafka.streams.kstream.Grouped
 import org.apache.kafka.streams.kstream.KStream
 import org.apache.kafka.streams.kstream.Materialized
+import org.apache.kafka.streams.kstream.Printed
 import org.apache.kafka.streams.state.KeyValueStore
 import org.apache.kafka.streams.state.StoreBuilder
 import org.apache.kafka.streams.state.Stores
@@ -60,7 +61,7 @@ class SettlementKafkaStreamsApp(
         )
 
         println("============================")
-        paymentStream.foreach { _, value -> println(">>> " + value) }
+        paymentStream.print(Printed.toSysOut<String, StreamMessage<Payment>>().withLabel("payment-stream"))
         val baseStream = paymentStream
             // [스트림 프로세서] 결제 메시지 로그 저장
             .peek({ _, message -> settlementService.savePaymentMessageLog(message) })
@@ -76,36 +77,36 @@ class SettlementKafkaStreamsApp(
             // [스트림 프로세서] 정산 베이스 저장
             .peek({ _, message -> settlementService.saveBase(message) })
         // .print(Printed.toSysOut<String, Base>().withLabel("payment-stream"))
-
-        val statisticsTable = baseStream.groupBy(
-            { _, base ->
-                BaseAggregationKey( // Base 에서 복합 키 추출
-                    merchantNumber = base.merchantNumber,
-                    paymentDateDaily = base.paymentDate.toLocalDate(),
-                    paymentActionType = base.paymentActionType,
-                    paymentMethodType = base.paymentMethodType
-                )
-            },
-            Grouped.with( // 그룹화에 사용될 복합 키, 원본 Base 를 위한 Serdes 지정
-                serdeFactory.baseAggregationKeySerde(),
-                serdeFactory.baseSerde()
-            )
-        )
-            .aggregate( // 그룹별로 집계 수행
-                { // 각 그룹의 집계가 시작될 때 초기값을 반환
-                    BaseAggregateValue()
-                },
-                // (그룹 키, 새로운 값, 현재 집계값) -> 새로운 집계값
-                { _aggKey, newBaseValue, currentAggregate ->
-                    currentAggregate.updateWith(newBaseValue.amount)
-                },
-                // 집계 결과를 저장할 상태 저장소 및 Serdes 설정
-                Materialized.`as`<BaseAggregationKey, BaseAggregateValue, KeyValueStore<Bytes, ByteArray>>(
-                    STATISTICS_STORE_NAME
-                )
-                    .withKeySerde(serdeFactory.baseAggregationKeySerde())   // KTable의 키(BaseAggregationKey) Serde
-                    .withValueSerde(serdeFactory.baseAggregateValueSerde()) // KTable의 값(BaseAggregateValue) Serde
-            )
+        //
+        // val statisticsTable = baseStream.groupBy(
+        //     { _, base ->
+        //         BaseAggregationKey( // Base 에서 복합 키 추출
+        //             merchantNumber = base.merchantNumber,
+        //             paymentDateDaily = base.paymentDate.toLocalDate(),
+        //             paymentActionType = base.paymentActionType,
+        //             paymentMethodType = base.paymentMethodType
+        //         )
+        //     },
+        //     Grouped.with( // 그룹화에 사용될 복합 키, 원본 Base 를 위한 Serdes 지정
+        //         serdeFactory.baseAggregationKeySerde(),
+        //         serdeFactory.baseSerde()
+        //     )
+        // )
+        //     .aggregate( // 그룹별로 집계 수행
+        //         { // 각 그룹의 집계가 시작될 때 초기값을 반환
+        //             BaseAggregateValue()
+        //         },
+        //         // (그룹 키, 새로운 값, 현재 집계값) -> 새로운 집계값
+        //         { _aggKey, newBaseValue, currentAggregate ->
+        //             currentAggregate.updateWith(newBaseValue.amount)
+        //         },
+        //         // 집계 결과를 저장할 상태 저장소 및 Serdes 설정
+        //         Materialized.`as`<BaseAggregationKey, BaseAggregateValue, KeyValueStore<Bytes, ByteArray>>(
+        //             STATISTICS_STORE_NAME
+        //         )
+        //             .withKeySerde(serdeFactory.baseAggregationKeySerde())   // KTable의 키(BaseAggregationKey) Serde
+        //             .withValueSerde(serdeFactory.baseAggregateValueSerde()) // KTable의 값(BaseAggregateValue) Serde
+        //     )
 
         /*************************************
          * 4. 카프카 스트림즈 인스턴스 생성
