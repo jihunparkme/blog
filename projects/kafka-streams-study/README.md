@@ -162,7 +162,7 @@ fun streamsConfig(): StreamsConfig =
 ```
 ### 토픽으로부터 결제 데이터 받기
 
-`Stream` 메서드는 토픽으로부터 소비한 메시지를 명시한 Serdes 객체 형태에 맞게 매핑하고 KStream을 생성합니다.
+`Stream` 메서드는 토픽으로부터 소비한 메시지를 명시한 Serdes 객체 형태에 맞게 매핑하고 [KStream](https://kafka.apache.org/40/javadoc/org/apache/kafka/streams/kstream/KStream.html)을 생성합니다.
 
 ```kotlin
 val paymentStream: KStream<String, StreamMessage<Payment>> = builder.stream(
@@ -181,24 +181,25 @@ val paymentStream: KStream<String, StreamMessage<Payment>> = builder.stream(
 paymentStream.print(Printed.toSysOut<String, StreamMessage<Payment>>().withLabel("payment-stream"))
 ```
 
-### 2️⃣ 결제 메시지 로그 저장
+### 결제 메시지 저장
 
+토픽으로 수신한 결제 데이터를 로그성으로 저장하려고 한다면 [peek](https://kafka.apache.org/40/javadoc/org/apache/kafka/streams/kstream/KStream.html#peek(org.apache.kafka.streams.kstream.ForeachAction)) 메서드를 활용할 수 있습니다.
 
-
-
-
-
-
-
-
-스트림 프로세서
-
-⁉️ peek 메서드에 대한 설명
+`peek` 메서드는 각 레코드에 대해 작업을 수행하고 변경되지 않은 스트림을 반환합니다.
 
 ```kotlin
 paymentStream
     .peek({ _, message -> settlementService.savePaymentMessageLog(message) })
 ```
+
+
+
+
+
+
+
+
+
 
 ### 3️⃣ FINISH 메시지 필터링
 
