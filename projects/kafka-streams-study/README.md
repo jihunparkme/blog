@@ -160,7 +160,19 @@ fun streamsConfig(): StreamsConfig =
     put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")
   })
 ```
-### 결제팀으로부터 결제 데이터 수신
+### 토픽으로부터 결제 데이터 받기
+
+`Stream` 메서드는 토픽으로부터 소비한 메시지를 명시한 Serdes 객체 형태에 맞게 매핑하고 KStream을 생성합니다.
+
+```kotlin
+val paymentStream: KStream<String, StreamMessage<Payment>> = builder.stream(
+  kafkaProperties.paymentTopic,
+  Consumed.with(
+    Serdes.String(),
+    serdeFactory.messagePaymentSerde()
+  )
+)
+```
 
 
 
