@@ -1,9 +1,12 @@
 package kafkastreams.study.sample.settlement
 
 import kafkastreams.study.sample.settlement.client.PayoutRuleClient
+import kafkastreams.study.sample.settlement.common.StreamMessage
+import kafkastreams.study.sample.settlement.common.Type
 import kafkastreams.study.sample.settlement.config.KafkaProperties
 import kafkastreams.study.sample.settlement.domain.aggregation.BaseAggregateValue
 import kafkastreams.study.sample.settlement.domain.aggregation.BaseAggregationKey
+import kafkastreams.study.sample.settlement.domain.payment.Payment
 import kafkastreams.study.sample.settlement.domain.rule.Rule
 import kafkastreams.study.sample.settlement.service.SettlementService
 import org.apache.kafka.clients.consumer.ConsumerConfig
@@ -14,6 +17,7 @@ import org.apache.kafka.streams.StreamsBuilder
 import org.apache.kafka.streams.StreamsConfig
 import org.apache.kafka.streams.kstream.Consumed
 import org.apache.kafka.streams.kstream.Grouped
+import org.apache.kafka.streams.kstream.KStream
 import org.apache.kafka.streams.kstream.Materialized
 import org.apache.kafka.streams.state.KeyValueStore
 import org.apache.kafka.streams.state.StoreBuilder
@@ -47,7 +51,7 @@ class SettlementKafkaStreamsApp(
         builder.addStateStore(getPayoutDateStoreBuilder())
 
         // [소스 프로세서] 결제 토픽으로부터 결제 데이터 받기
-        val paymentStream = builder.stream(
+        val paymentStream: KStream<String, StreamMessage<Payment>> = builder.stream(
             kafkaProperties.paymentTopic,
             Consumed.with(
                 Serdes.String(),
