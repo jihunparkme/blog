@@ -124,7 +124,7 @@ fun messagePaymentSerde(): JsonSerde<StreamMessage<Payment>> {
       - 하나 이상의 토픽에서 데이터를 가져오는 역할
     - **스트림 프로세스**:
       - 다른 프로세서가 반환한 데이터를 처리하는 역할 
-      - 변환, 분기처리와 같은 로직이 데이터 처리의 일종
+      - 필터링, 변환, 조인, 집계 등 데이터 처리의 일종
     - **싱크 프로세서**
       - 데이터를 특정 카프카 토픽으로 저장하는 역할 
       - 스트림즈로 처리된 데이터의 최종 종착지
@@ -139,33 +139,35 @@ fun messagePaymentSerde(): JsonSerde<StreamMessage<Payment>> {
 
 총 여섯 단계의 토폴로지를 한 단계씩 만들어 보겠습니다.
 
+### 빌더 생성
 
+`StreamsBuilder`는 토폴로지를 정의하기 위한 빌더 클래스입니다.
 
-
-
-
-
-
-
-
-
-
-### 0️⃣ 빌더 생성
-
-StreamsBuilder 역할과 StateStore 대한 설명
+`StreamsBuilder`를 사용해서 여러 프로세서를 연결하여 데이터 처리 파이프라인을 구축할 수 있습니다.
 
 ```kotlin
 val builder = StreamsBuilder()
-        // 지급룰 stateStore 추가
-        builder.addStateStore(getPayoutDateStoreBuilder())
 
-private fun getPayoutDateStoreBuilder(): StoreBuilder<KeyValueStore<String, Rule>> {
-    val storeSupplier = Stores.inMemoryKeyValueStore(PAYOUT_RULE_STATE_STORE_NAME)
-    return Stores.keyValueStoreBuilder(storeSupplier, Serdes.String(), serdeFactory.ruleSerde())
-}
+// ...
+
+@Bean
+fun streamsConfig(): StreamsConfig =
+  StreamsConfig(Properties().apply {
+    put(StreamsConfig.APPLICATION_ID_CONFIG, kafkaProperties.paymentApplicationName)
+    put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaProperties.servers)
+    put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().javaClass)
+    put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, serdeFactory.messagePaymentSerde().javaClass)
+    put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")
+  })
 ```
+### 결제팀으로부터 결제 데이터 수신
 
-### 1️⃣ 결제팀으로부터 결제 데이터 수신
+
+
+
+
+
+
 
 이 영역은 소스 프로세서
 
@@ -242,6 +244,8 @@ class BaseMapper() : ValueMapper<StreamMessage<Payment>, Base> {
 ### 5️⃣ 지급룰 조회 및 세팅
 
 스트림 프로세서
+
+builder.addStateStore(getPayoutDateStoreBuilder())
 
 ⁉️ processValues 메서드에 대한 설명
 
