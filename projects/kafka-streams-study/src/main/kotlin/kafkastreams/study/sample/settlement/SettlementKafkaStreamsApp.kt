@@ -69,10 +69,10 @@ class SettlementKafkaStreamsApp(
             // // [스트림 프로세서] 비정산 결제건 필터링
             .filter { _, base -> settlementService.isSettlement(base) }
             // // [스트림 프로세서] 지급룰 조회 및 세팅
-            // .processValues(
-            //     PayoutRuleProcessValues(PAYOUT_RULE_STATE_STORE_NAME, payoutRuleClient),
-            //     PAYOUT_RULE_STATE_STORE_NAME
-            // )
+            .processValues(
+                PayoutRuleProcessValues(PAYOUT_RULE_STATE_STORE_NAME, payoutRuleClient),
+                PAYOUT_RULE_STATE_STORE_NAME
+            )
             // // [스트림 프로세서] 정산 베이스 저장
             // .peek({ _, message -> settlementService.saveBase(message) })
         // .print(Printed.toSysOut<String, Base>().withLabel("payment-stream"))

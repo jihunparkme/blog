@@ -235,104 +235,106 @@ paymentStream
         .filter { _, base -> settlementService.isSettlement(base) }
 ```
 
+### 지급룰 조회 및 세팅
 
+상태 저장소를 연결를 연결해서 레코드를 하나씩 처리하기 위해 [processValues](https://kafka.apache.org/40/javadoc/org/apache/kafka/streams/kstream/KStream.html#processValues(org.apache.kafka.streams.processor.api.FixedKeyProcessorSupplier,java.lang.String...)) 메서드를 사용할 수 있습니다.
 
+`FixedKeyProcessorSupplier` 에서 제공하는 `FixedKeyProcessor`를 적용하고, 상태 저장소를 연결하여 레코드를 처리할 수 있습니다.
 
+<br/>
 
-
-
-
-
-
-### 5️⃣ 지급룰 조회 및 세팅
-
-스트림 프로세서
-
-builder.addStateStore(getPayoutDateStoreBuilder())
-
-⁉️ processValues 메서드에 대한 설명
+여기서 잠깐 ‼ 카프카 스트림즈에서 `상태 저장소`란<br/> 
+한 문장으로 요약하면, 카프카 스트림즈는 RocksDB 같은 `상태 저장소`를 활용하여 `KTable`로 키-값 데이터를 관리하고, `변경 로그 토픽`을 통해 상태를 복원하여 내결함성을 제공하며, `윈도우 기반 처리`로 특정 기간 내 데이터 집계 및 분석을 가능하게 합니다.<br/>
+여기서 상태 저장소에 지급룰을 관리하여 API 조회 횟수를 줄이고 캐시처럼 사용할 수 있습니다.
 
 ```kotlin
+// 정의된 상태 저장소를 토폴로지에 추가
+builder.addStateStore(getPayoutDateStoreBuilder())
+
 paymentStream
     .processValues(
         PayoutRuleProcessValues(PAYOUT_RULE_STATE_STORE_NAME, payoutRuleClient),
         PAYOUT_RULE_STATE_STORE_NAME
     )
+
+// ...
+
+private fun getPayoutDateStoreBuilder(): StoreBuilder<KeyValueStore<String, Rule>> {
+  val storeSupplier = Stores.inMemoryKeyValueStore(PAYOUT_RULE_STATE_STORE_NAME)
+  return Stores.keyValueStoreBuilder(storeSupplier, Serdes.String(), serdeFactory.ruleSerde())
+}
 ```
 
-PayoutRuleProcessValues 구현
+`FixedKeyProcessorSupplier`, `FixedKeyProcessor` 구현
 
 ```kotlin
 class PayoutRuleProcessValues(
-    private val stateStoreName: String,
-    private val payoutRuleClient: PayoutRuleClient,
+  private val stateStoreName: String, // 상태 저장소 이름
+  private val payoutRuleClient: PayoutRuleClient, // API Client
 ) : FixedKeyProcessorSupplier<String, Base, Base> {
-    override fun get(): FixedKeyProcessor<String, Base, Base> {
-        return PayoutRuleProcessor(stateStoreName, payoutRuleClient)
-    }
+  override fun get(): FixedKeyProcessor<String, Base, Base> {
+    return PayoutRuleProcessor(stateStoreName, payoutRuleClient)
+  }
 }
 
 class PayoutRuleProcessor(
-    private val stateStoreName: String,
-    private val payoutRuleClient: PayoutRuleClient
+  private val stateStoreName: String,
+  private val payoutRuleClient: PayoutRuleClient
 ) : FixedKeyProcessor<String, Base, Base> {
-    private var context: FixedKeyProcessorContext<String, Base>? = null
-    private var payoutRuleStore: KeyValueStore<String, Rule>? = null
+  private var context: FixedKeyProcessorContext<String, Base>? = null
+  private var payoutRuleStore: KeyValueStore<String, Rule>? = null
 
-    override fun init(context: FixedKeyProcessorContext<String, Base>) {
-        this.context = context
-        this.payoutRuleStore = this.context?.getStateStore(stateStoreName)
+  override fun init(context: FixedKeyProcessorContext<String, Base>) {
+    this.context = context
+    this.payoutRuleStore = this.context?.getStateStore(stateStoreName)
+  }
+
+  override fun process(record: FixedKeyRecord<String, Base>) {
+    val key = record.key()
+    val base = record.value()
+    
+    if (base == null) { // 결제 데이터가 없을 경우 스킵
+      log.info(">>> [결제 데이터 누락] Payment data is null, skipping processing for key: $key")
+      return
     }
 
-    override fun process(record: FixedKeyRecord<String, Base>) {
-        val key = record.key()
-        val base = record.value()
-
-        // 결제 데이터가 없을 경우 스킵
-        if (base == null) {
-            log.info(">>> [결제 데이터 누락] Payment data is null, skipping processing for key: $key")
-            return
-        }
-
-        // stateStore에 저장된 지급룰 조회
-        var rule = payoutRuleStore?.get(stateStoreName)
-        // stateStore에 지급룰이 저장되어 있지 않을 경우 API 요청 후 저장
-        if (rule == null) {
-            log.info(">>> [지급룰 조회] Search payout rule.. $key")
-            val findRule = payoutRuleClient.getPayoutDate(
-                PayoutDateRequest(
-                    merchantNumber = base.merchantNumber ?: throw IllegalArgumentException(),
-                    paymentDate = base.paymentDate,
-                    paymentActionType = base.paymentActionType ?: throw IllegalArgumentException(),
-                    paymentMethodType = base.paymentMethodType ?: throw IllegalArgumentException(),
-                )
-            )
-            payoutRuleStore?.put(stateStoreName, findRule)
-            rule = findRule
-        }
-
-        // 가맹점에 대한 지급룰이 없을 경우
-        if (rule == null) {
-            log.info(">>> [지급룰 없음] Not found payment payout rule. key: $key")
-            base.updateDefaultPayoutDate()
-        }
-
-        // 지급룰 업데이트 대상일 경우
-        if (rule != null && (rule.payoutDate != base.payoutDate || rule.confirmDate != base.confirmDate)) {
-            log.info(">>> [지급룰 정보 저장] Save payout date.. $key")
-            base.updatePayoutDate(rule)
-        }
-
-        context?.forward(record.withValue(base))
+    var rule = payoutRuleStore?.get(base.merchantNumber) // stateStore에 저장된 가맹점의 지급룰 조회
+    if (rule == null) { // stateStore에 지급룰이 저장되어 있지 않을 경우 API 요청 후 저장
+      log.info(">>> [지급룰 조회] Search payout rule.. $key")
+      val findRule = payoutRuleClient.getPayoutDate(
+        PayoutDateRequest(
+          merchantNumber = base.merchantNumber,
+          paymentDate = base.paymentDate,
+          paymentActionType = base.paymentActionType,
+          paymentMethodType = base.paymentMethodType,
+        )
+      )
+      payoutRuleStore?.put(stateStoreName, findRule)
+      rule = findRule
     }
 
-    override fun close() {
-        this.close()
+    // 가맹점에 대한 지급룰이 없을 경우
+    if (rule == null) {
+      log.info(">>> [지급룰 없음] Not found payment payout rule. key: $key")
+      base.updateDefaultPayoutDate()
     }
 
-    companion object {
-        private val log by logger()
+    // 지급룰 업데이트 대상일 경우
+    if (rule != null && (rule.payoutDate != base.payoutDate || rule.confirmDate != base.confirmDate)) {
+      log.info(">>> [지급룰 정보 저장] Save payout date.. $key")
+      base.updatePayoutDate(rule)
     }
+
+    context?.forward(record.withValue(base))
+  }
+
+  override fun close() {
+    this.close()
+  }
+
+  companion object {
+    private val log by logger()
+  }
 }
 ```
 
