@@ -224,21 +224,25 @@ class BaseMapper() : ValueMapper<StreamMessage<Payment>, Base> {
 }
 ```
 
+### 비정산 결제건 필터링
 
+결제 데이터 중에서도 비정산(테스트 결제, 비정산 가맹점, 망취소, 미확인 등)에 해당하는 데이터는 UnSettlement로 분류하고, 정산 대상의 데이터만 파이프라인을 이어갈 수 있도록 [filter](https://kafka.apache.org/40/javadoc/org/apache/kafka/streams/kstream/KStream.html#filter(org.apache.kafka.streams.kstream.Predicate)) 메서드를 사용할 수 있습니다.
 
-
-
-
-
-
-
-### 5️⃣ 비정산 결제건 필터링
-
-스트림 프로세서
+`filter` 메서드는 주어진 조건을 만족하는 레코드의 KStream 을 반환하고, 조건을 만족하지 않는 레코드는 삭제됩니다.
 
 ```kotlin
-.filter { _, base -> base.isNotUnSettlement() }
+paymentStream
+        .filter { _, base -> settlementService.isSettlement(base) }
 ```
+
+
+
+
+
+
+
+
+
 
 ### 5️⃣ 지급룰 조회 및 세팅
 
