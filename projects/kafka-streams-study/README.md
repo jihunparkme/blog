@@ -192,31 +192,11 @@ paymentStream
     .peek({ _, message -> settlementService.savePaymentMessageLog(message) })
 ```
 
+### 결제 데이터로 정산 베이스 생성
 
+레코드의 값을 새로운 형태로 매핑하기 위해서 [mapValues](https://kafka.apache.org/40/javadoc/org/apache/kafka/streams/kstream/KStream.html#mapValues(org.apache.kafka.streams.kstream.ValueMapper)) 메서드를 활용할 수 있습니다.
 
-
-
-
-
-
-
-
-### 3️⃣ FINISH 메시지 필터링
-
-⁉️ filter 메서드에 대한 설명
-
-필터 사용을 위한 가정
-
-```kotlin
-paymentStream
-    .filter { _, message -> message.action != Type.FINISH }
-```
-
-### 4️⃣ 결제 데이터로 정산 베이스 생성
-
-스트림 프로세서
-
-⁉️ mapValues 메서드에 대한 설명
+각 입력 레코드의 키값은 유지하면서 새로운 값으로 변환합니다.
 
 ```kotlin
 paymentStream
@@ -224,23 +204,33 @@ paymentStream
 ```
 
 Mapper 구현
+- `ValueMapper` 인터페이스를 구현하고, 입력으로 `value type`, 출력으로 `mapped value type` 을 명시합니다.
+- 여기서는 `StreamMessage<Payment>` 타입을 `Base` 타입으로 매핑하였습니다.
 
 ```kotlin
 class BaseMapper() : ValueMapper<StreamMessage<Payment>, Base> {
-    override fun apply(payment: StreamMessage<Payment>): Base {
-        return Base(
-            paymentType = payment.data?.paymentType ?: throw IllegalArgumentException(),
-            amount = payment.data.amount,
-            payoutDate = payment.data.payoutDate,
-            confirmDate = payment.data.confirmDate,
-            merchantNumber = payment.data.merchantNumber ?: throw IllegalArgumentException(),
-            paymentDate = payment.data.paymentDate,
-            paymentActionType = payment.data.paymentActionType ?: throw IllegalArgumentException(),
-            paymentMethodType = payment.data.paymentMethodType ?: throw IllegalArgumentException(),
-        )
-    }
+  override fun apply(payment: StreamMessage<Payment>): Base {
+    return Base(
+      paymentType = payment.data?.paymentType,
+      amount = payment.data.amount,
+      payoutDate = payment.data.payoutDate,
+      confirmDate = payment.data.confirmDate,
+      merchantNumber = payment.data.merchantNumber,
+      paymentDate = payment.data.paymentDate,
+      paymentActionType = payment.data.paymentActionType,
+      paymentMethodType = payment.data.paymentMethodType,
+    )
+  }
 }
 ```
+
+
+
+
+
+
+
+
 
 ### 5️⃣ 비정산 결제건 필터링
 
