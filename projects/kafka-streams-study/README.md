@@ -267,24 +267,10 @@ private fun getPayoutDateStoreBuilder(): StoreBuilder<KeyValueStore<String, Rule
 
 `FixedKeyProcessorSupplier`, `FixedKeyProcessor` 구현
 
-
-
-merchantNumber 로 스토어에서 조회하는거 확인해보기
-
-
-
-
-
-
-
-
-
-
-
 ```kotlin
 class PayoutRuleProcessValues(
-  private val stateStoreName: String, // 상태 저장소 이름
-  private val payoutRuleClient: PayoutRuleClient, // API Client
+  private val stateStoreName: String,
+  private val payoutRuleClient: PayoutRuleClient,
 ) : FixedKeyProcessorSupplier<String, Base, Base> {
   override fun get(): FixedKeyProcessor<String, Base, Base> {
     return PayoutRuleProcessor(stateStoreName, payoutRuleClient)
@@ -306,26 +292,28 @@ class PayoutRuleProcessor(
   override fun process(record: FixedKeyRecord<String, Base>) {
     val key = record.key()
     val base = record.value()
-    
-    if (base == null) { // 결제 데이터가 없을 경우 스킵
+
+    // 결제 데이터가 없을 경우 스킵
+    if (base == null) {
       log.info(">>> [결제 데이터 누락] Payment data is null, skipping processing for key: $key")
       return
     }
 
-    // stateStore에 저장된 가맹점의 지급룰 조회
-    val ruleKey = "${base.merchantNumber}/${base.paymentDate}/${base.paymentActionType}/${base.paymentMethodType}"
+    // stateStore에 저장된 지급룰 조회
+    val ruleKey = "${base.merchantNumber}/${base.paymentDate.toLocalDate()}/${base.paymentActionType}/${base.paymentMethodType}"
     var rule = payoutRuleStore?.get(ruleKey)
-    if (rule == null) { // stateStore에 지급룰이 저장되어 있지 않을 경우 API 요청 후 저장
+    // stateStore에 지급룰이 저장되어 있지 않을 경우 API 요청 후 저장
+    if (rule == null) {
       log.info(">>> [지급룰 조회] Search payout rule.. $key")
       val findRule = payoutRuleClient.getPayoutDate(
         PayoutDateRequest(
-          merchantNumber = base.merchantNumber,
+          merchantNumber = base.merchantNumber ?: throw IllegalArgumentException(),
           paymentDate = base.paymentDate,
-          paymentActionType = base.paymentActionType,
-          paymentMethodType = base.paymentMethodType,
+          paymentActionType = base.paymentActionType ?: throw IllegalArgumentException(),
+          paymentMethodType = base.paymentMethodType ?: throw IllegalArgumentException(),
         )
       )
-      payoutRuleStore?.put(stateStoreName, findRule)
+      payoutRuleStore?.put(ruleKey, findRule)
       rule = findRule
     }
 
@@ -353,6 +341,22 @@ class PayoutRuleProcessor(
   }
 }
 ```
+
+TODO: 코드 설명
+
+
+상태 저장소에 대한 이미지  
+
+
+
+
+
+
+
+
+
+
+
 
 ### 6️⃣ 정산 베이스 저장
 

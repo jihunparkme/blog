@@ -56,7 +56,7 @@ class PayoutRuleProcessor(
                     paymentMethodType = base.paymentMethodType ?: throw IllegalArgumentException(),
                 )
             )
-            payoutRuleStore?.put(stateStoreName, findRule)
+            payoutRuleStore?.put(ruleKey, findRule)
             rule = findRule
         }
 
