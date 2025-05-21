@@ -43,7 +43,8 @@ class PayoutRuleProcessor(
         }
 
         // stateStore에 저장된 지급룰 조회
-        var rule = payoutRuleStore?.get(base.merchantNumber)
+        val ruleKey = "${base.merchantNumber}/${base.paymentDate.toLocalDate()}/${base.paymentActionType}/${base.paymentMethodType}"
+        var rule = payoutRuleStore?.get(ruleKey)
         // stateStore에 지급룰이 저장되어 있지 않을 경우 API 요청 후 저장
         if (rule == null) {
             log.info(">>> [지급룰 조회] Search payout rule.. $key")

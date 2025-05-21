@@ -267,6 +267,20 @@ private fun getPayoutDateStoreBuilder(): StoreBuilder<KeyValueStore<String, Rule
 
 `FixedKeyProcessorSupplier`, `FixedKeyProcessor` 구현
 
+
+
+merchantNumber 로 스토어에서 조회하는거 확인해보기
+
+
+
+
+
+
+
+
+
+
+
 ```kotlin
 class PayoutRuleProcessValues(
   private val stateStoreName: String, // 상태 저장소 이름
@@ -298,7 +312,9 @@ class PayoutRuleProcessor(
       return
     }
 
-    var rule = payoutRuleStore?.get(base.merchantNumber) // stateStore에 저장된 가맹점의 지급룰 조회
+    // stateStore에 저장된 가맹점의 지급룰 조회
+    val ruleKey = "${base.merchantNumber}/${base.paymentDate}/${base.paymentActionType}/${base.paymentMethodType}"
+    var rule = payoutRuleStore?.get(ruleKey)
     if (rule == null) { // stateStore에 지급룰이 저장되어 있지 않을 경우 API 요청 후 저장
       log.info(">>> [지급룰 조회] Search payout rule.. $key")
       val findRule = payoutRuleClient.getPayoutDate(
