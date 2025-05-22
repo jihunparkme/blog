@@ -268,15 +268,18 @@ private fun getPayoutDateStoreBuilder(): StoreBuilder<KeyValueStore<String, Rule
 `FixedKeyProcessorSupplier`, `FixedKeyProcessor` 구현
 
 ```kotlin
+// FixedKeyProcessorSupplier 구현체
 class PayoutRuleProcessValues(
-  private val stateStoreName: String,
-  private val payoutRuleClient: PayoutRuleClient,
+  private val stateStoreName: String, // 상태 저장소 이름
+  private val payoutRuleClient: PayoutRuleClient, // 외부 API 호출을 위한 클라이언트
 ) : FixedKeyProcessorSupplier<String, Base, Base> {
+  // Kafka Streams 프레임워크에 의해 호출되어 실제 레코드 처리를 담당할 FixedKeyProcessor 인스턴스 반환
   override fun get(): FixedKeyProcessor<String, Base, Base> {
     return PayoutRuleProcessor(stateStoreName, payoutRuleClient)
   }
 }
 
+// FixedKeyProcessor 구현체
 class PayoutRuleProcessor(
   private val stateStoreName: String,
   private val payoutRuleClient: PayoutRuleClient
@@ -284,11 +287,13 @@ class PayoutRuleProcessor(
   private var context: FixedKeyProcessorContext<String, Base>? = null
   private var payoutRuleStore: KeyValueStore<String, Rule>? = null
 
+  // 프로세서가 처음 생성될 때 Kafka Streams 프레임워크에 의해 호출
   override fun init(context: FixedKeyProcessorContext<String, Base>) {
     this.context = context
-    this.payoutRuleStore = this.context?.getStateStore(stateStoreName)
+    this.payoutRuleStore = this.context?.getStateStore(stateStoreName) // 상태 저장소 초기화
   }
 
+  // 스트림의 각 레코드에 대해 호출되어 실제 데이터 처리를 수행
   override fun process(record: FixedKeyRecord<String, Base>) {
     val key = record.key()
     val base = record.value()
@@ -299,18 +304,17 @@ class PayoutRuleProcessor(
       return
     }
 
-    // stateStore에 저장된 지급룰 조회
+    // 상태 저장소에 저장된 지급룰 조회
     val ruleKey = "${base.merchantNumber}/${base.paymentDate.toLocalDate()}/${base.paymentActionType}/${base.paymentMethodType}"
     var rule = payoutRuleStore?.get(ruleKey)
-    // stateStore에 지급룰이 저장되어 있지 않을 경우 API 요청 후 저장
+    // 상태 저장소에 지급룰이 저장되어 있지 않을 경우 API 요청 후 저장
     if (rule == null) {
-      log.info(">>> [지급룰 조회] Search payout rule.. $key")
       val findRule = payoutRuleClient.getPayoutDate(
         PayoutDateRequest(
-          merchantNumber = base.merchantNumber ?: throw IllegalArgumentException(),
+          merchantNumber = base.merchantNumber,
           paymentDate = base.paymentDate,
-          paymentActionType = base.paymentActionType ?: throw IllegalArgumentException(),
-          paymentMethodType = base.paymentMethodType ?: throw IllegalArgumentException(),
+          paymentActionType = base.paymentActionType,
+          paymentMethodType = base.paymentMethodType,
         )
       )
       payoutRuleStore?.put(ruleKey, findRule)
@@ -325,10 +329,10 @@ class PayoutRuleProcessor(
 
     // 지급룰 업데이트 대상일 경우
     if (rule != null && (rule.payoutDate != base.payoutDate || rule.confirmDate != base.confirmDate)) {
-      log.info(">>> [지급룰 정보 저장] Save payout date.. $key")
       base.updatePayoutDate(rule)
     }
 
+    // 처리된 Base 객체를 다음 스트림 처리 단계로 전달
     context?.forward(record.withValue(base))
   }
 
@@ -341,9 +345,6 @@ class PayoutRuleProcessor(
   }
 }
 ```
-
-TODO: 코드 설명
-
 
 상태 저장소에 대한 이미지  
 
