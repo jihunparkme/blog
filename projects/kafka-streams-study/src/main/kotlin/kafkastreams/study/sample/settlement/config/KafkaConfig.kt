@@ -3,6 +3,8 @@ package kafkastreams.study.sample.settlement.config
 import com.fasterxml.jackson.databind.ObjectMapper
 import kafkastreams.study.sample.settlement.common.StreamMessage
 import kafkastreams.study.sample.settlement.domain.payment.Payment
+import kafkastreams.study.sample.settlement.domain.rule.Rule
+import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerConfig
 import org.apache.kafka.common.serialization.StringSerializer
 import org.springframework.boot.context.properties.ConfigurationProperties
@@ -46,6 +48,16 @@ class PaymentKafkaConfig(
         producerFactory: ProducerFactory<String, StreamMessage<Payment>>
     ): KafkaTemplate<String, StreamMessage<Payment>> {
         return KafkaTemplate(producerFactory)
+    }
+
+    @Bean
+    fun ruleProducer(): KafkaProducer<String, Rule> {
+        val producerProps: Map<String, Any> = mapOf(
+            ProducerConfig.BOOTSTRAP_SERVERS_CONFIG to kafkaProperties.servers,
+            ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java,
+            ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG to JsonSerializer<Rule>(objectMapper)::class.java,
+        )
+        return KafkaProducer<String, Rule>(producerProps)
     }
 }
 

@@ -5,27 +5,32 @@ import kafkastreams.study.sample.settlement.client.PayoutDateRequest
 import kafkastreams.study.sample.settlement.client.PayoutRuleClient
 import kafkastreams.study.sample.settlement.domain.rule.Rule
 import kafkastreams.study.sample.settlement.domain.settlement.Base
+import org.apache.kafka.clients.producer.KafkaProducer
+import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.streams.processor.api.FixedKeyProcessor
 import org.apache.kafka.streams.processor.api.FixedKeyProcessorContext
 import org.apache.kafka.streams.processor.api.FixedKeyProcessorSupplier
 import org.apache.kafka.streams.processor.api.FixedKeyRecord
-import org.apache.kafka.streams.state.KeyValueStore
+import org.apache.kafka.streams.state.ReadOnlyKeyValueStore
+import org.apache.kafka.streams.state.ValueAndTimestamp
 
 class PayoutRuleProcessValues(
     private val stateStoreName: String,
     private val payoutRuleClient: PayoutRuleClient,
+    private val ruleProducer: KafkaProducer<String, Rule>
 ) : FixedKeyProcessorSupplier<String, Base, Base> {
     override fun get(): FixedKeyProcessor<String, Base, Base> {
-        return PayoutRuleProcessor(stateStoreName, payoutRuleClient)
+        return PayoutRuleProcessor(stateStoreName, payoutRuleClient, ruleProducer)
     }
 }
 
 class PayoutRuleProcessor(
     private val stateStoreName: String,
-    private val payoutRuleClient: PayoutRuleClient
+    private val payoutRuleClient: PayoutRuleClient,
+    private val ruleProducer: KafkaProducer<String, Rule>,
 ) : FixedKeyProcessor<String, Base, Base> {
     private var context: FixedKeyProcessorContext<String, Base>? = null
-    private var payoutRuleStore: KeyValueStore<String, Rule>? = null
+    private var payoutRuleStore: ReadOnlyKeyValueStore<String, ValueAndTimestamp<Rule>>? = null
 
     override fun init(context: FixedKeyProcessorContext<String, Base>) {
         this.context = context
@@ -44,7 +49,8 @@ class PayoutRuleProcessor(
 
         // stateStore에 저장된 지급룰 조회
         val ruleKey = "${base.merchantNumber}/${base.paymentDate.toLocalDate()}/${base.paymentActionType}/${base.paymentMethodType}"
-        var rule = payoutRuleStore?.get(ruleKey)
+        val valueAndTimestamp = payoutRuleStore?.get(ruleKey)
+        var rule = valueAndTimestamp?.value() // 실제 Rule 객체 추출
         // stateStore에 지급룰이 저장되어 있지 않을 경우 API 요청 후 저장
         if (rule == null) {
             log.info(">>> [지급룰 조회] Search payout rule.. $key")
@@ -56,7 +62,7 @@ class PayoutRuleProcessor(
                     paymentMethodType = base.paymentMethodType ?: throw IllegalArgumentException(),
                 )
             )
-            payoutRuleStore?.put(ruleKey, findRule)
+            ruleProducer.send(ProducerRecord("payout-rules-global-topic", ruleKey, findRule)) // TODO: 토픽 이름 전달받기
             rule = findRule
         }
 
