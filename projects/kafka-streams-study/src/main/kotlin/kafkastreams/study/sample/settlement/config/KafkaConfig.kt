@@ -43,13 +43,41 @@ class PaymentKafkaConfig(
     }
 
     @Bean
-    fun paymentKafkaTemplate(): KafkaTemplate<String, StreamMessage<Payment>> {
-        return KafkaTemplate(createProducerFactory())
+    fun paymentProducerFactory(): ProducerFactory<String, StreamMessage<Payment>> {
+        val keySerializer = StringSerializer()
+        keySerializer.configure(producerConfigs(), true) // isKey = true
+        val valueSerializer = JsonSerializer<StreamMessage<Payment>>(objectMapper)
+        return DefaultKafkaProducerFactory(
+            producerConfigs(),
+            keySerializer,
+            valueSerializer
+        )
     }
 
     @Bean
-    fun ruleKafkaTemplate(): KafkaTemplate<String, Rule> {
-        return KafkaTemplate(createProducerFactory())
+    fun paymentKafkaTemplate(
+        paymentProducerFactory: ProducerFactory<String, StreamMessage<Payment>>
+    ): KafkaTemplate<String, StreamMessage<Payment>> {
+        return KafkaTemplate(paymentProducerFactory)
+    }
+
+    @Bean
+    fun ruleProducerFactory(): ProducerFactory<String, Rule> {
+        val keySerializer = StringSerializer()
+        keySerializer.configure(producerConfigs(), true) // isKey = true
+        val valueSerializer = JsonSerializer<Rule>(objectMapper)
+        return DefaultKafkaProducerFactory(
+            producerConfigs(),
+            keySerializer,
+            valueSerializer
+        )
+    }
+
+    @Bean
+    fun ruleKafkaTemplate(
+        ruleProducerFactory: ProducerFactory<String, Rule>
+    ): KafkaTemplate<String, Rule> {
+        return KafkaTemplate(ruleProducerFactory)
     }
 }
 

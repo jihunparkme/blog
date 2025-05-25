@@ -10,6 +10,7 @@ import org.apache.kafka.streams.processor.api.FixedKeyProcessorContext
 import org.apache.kafka.streams.processor.api.FixedKeyProcessorSupplier
 import org.apache.kafka.streams.processor.api.FixedKeyRecord
 import org.apache.kafka.streams.state.ReadOnlyKeyValueStore
+import org.apache.kafka.streams.state.ValueAndTimestamp
 import org.springframework.kafka.core.KafkaTemplate
 
 class PayoutRuleProcessValues(
@@ -30,7 +31,7 @@ class PayoutRuleProcessor(
     private val ruleKafkaTemplate: KafkaTemplate<String, Rule>,
 ) : FixedKeyProcessor<String, Base, Base> {
     private var context: FixedKeyProcessorContext<String, Base>? = null
-    private var payoutRuleStore: ReadOnlyKeyValueStore<String, Rule>? = null
+    private var payoutRuleStore: ReadOnlyKeyValueStore<String, ValueAndTimestamp<Rule>>? = null
 
     override fun init(context: FixedKeyProcessorContext<String, Base>) {
         this.context = context
@@ -48,8 +49,10 @@ class PayoutRuleProcessor(
         }
 
         // stateStore에 저장된 지급룰 조회
+        // val ruleKey = "merchant-4436/2025-05-25/PAYMENT/MONEY"
         val ruleKey = "${base.merchantNumber}/${base.paymentDate.toLocalDate()}/${base.paymentActionType}/${base.paymentMethodType}"
-        var rule = payoutRuleStore?.get(ruleKey)
+        val valueAndTimestamp = payoutRuleStore?.get(ruleKey)
+        var rule = valueAndTimestamp?.value() // 실제 Rule 객체 추출
         // stateStore에 지급룰이 저장되어 있지 않을 경우 API 요청 후 저장
         if (rule == null) {
             log.info(">>> [지급룰 조회] Search payout rule.. $ruleKey")
