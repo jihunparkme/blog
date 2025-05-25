@@ -257,7 +257,7 @@ GlobalKTable은 해당 토픽의 모든 데이터를 각 Kafka Streams 인스턴
 
 ```kotlin
 builder.globalTable(
-  "payout-rules-global-topic", // TODO: 프로퍼티스로
+  kafkaProperties.paymentRulesGlobalTopic,
   Materialized.`as`<String, Rule, KeyValueStore<Bytes, ByteArray>>(GLOBAL_PAYOUT_RULE_STATE_STORE_NAME)
     .withKeySerde(Serdes.String())
     .withValueSerde(serdeFactory.ruleSerde())
@@ -266,18 +266,113 @@ builder.globalTable(
 // ...
 
 paymentStream.processValues(
-  PayoutRuleProcessValues(GLOBAL_PAYOUT_RULE_STATE_STORE_NAME, payoutRuleClient, ruleProducer),
+  PayoutRuleProcessValues(
+    rulesGlobalTopic = kafkaProperties.paymentRulesGlobalTopic,
+    stateStoreName = GLOBAL_PAYOUT_RULE_STATE_STORE_NAME,
+    payoutRuleClient = payoutRuleClient,
+    ruleKafkaTemplate = ruleKafkaTemplate,
+  ),
 )
 ```
 
 `FixedKeyProcessorSupplier`, `FixedKeyProcessor` 구현
 
 ```kotlin
+class PayoutRuleProcessValues(
+  private val rulesGlobalTopic: String,
+  private val stateStoreName: String,
+  private val payoutRuleClient: PayoutRuleClient,
+  private val ruleKafkaTemplate: KafkaTemplate<String, Rule>,
+) : FixedKeyProcessorSupplier<String, Base, Base> {
+  override fun get(): FixedKeyProcessor<String, Base, Base> {
+    return PayoutRuleProcessor(rulesGlobalTopic, stateStoreName, payoutRuleClient, ruleKafkaTemplate)
+  }
+}
+
+class PayoutRuleProcessor(
+  private val rulesGlobalTopic: String,
+  private val stateStoreName: String,
+  private val payoutRuleClient: PayoutRuleClient,
+  private val ruleKafkaTemplate: KafkaTemplate<String, Rule>,
+) : FixedKeyProcessor<String, Base, Base> {
+  private var context: FixedKeyProcessorContext<String, Base>? = null
+  private var payoutRuleStore: ReadOnlyKeyValueStore<String, Rule>? = null
+
+  override fun init(context: FixedKeyProcessorContext<String, Base>) {
+    this.context = context
+    this.payoutRuleStore = this.context?.getStateStore(stateStoreName)
+  }
+
+  override fun process(record: FixedKeyRecord<String, Base>) {
+    val key = record.key()
+    val base = record.value()
+
+    // 결제 데이터가 없을 경우 스킵
+    if (base == null) {
+      log.info(">>> [결제 데이터 누락] Payment data is null, skipping processing for key: $key")
+      return
+    }
+
+    // stateStore에 저장된 지급룰 조회
+    val ruleKey = "${base.merchantNumber}/${base.paymentDate.toLocalDate()}/${base.paymentActionType}/${base.paymentMethodType}"
+    var rule = payoutRuleStore?.get(ruleKey)
+    // stateStore에 지급룰이 저장되어 있지 않을 경우 API 요청 후 저장
+    if (rule == null) {
+      log.info(">>> [지급룰 조회] Search payout rule.. $ruleKey")
+      val findRule = payoutRuleClient.getPayoutDate(
+        PayoutDateRequest(
+          merchantNumber = base.merchantNumber ?: throw IllegalArgumentException(),
+          paymentDate = base.paymentDate,
+          paymentActionType = base.paymentActionType ?: throw IllegalArgumentException(),
+          paymentMethodType = base.paymentMethodType ?: throw IllegalArgumentException(),
+        )
+      )
+      ruleKafkaTemplate.send(rulesGlobalTopic, ruleKey, findRule)
+      rule = findRule
+    }
+
+    // 가맹점에 대한 지급룰이 없을 경우
+    if (rule == null) {
+      log.info(">>> [지급룰 없음] Not found payment payout rule. key: $ruleKey")
+      base.updateDefaultPayoutDate()
+    }
+
+    // 지급룰 업데이트 대상일 경우
+    if (rule != null && (rule.payoutDate != base.payoutDate || rule.confirmDate != base.confirmDate)) {
+      log.info(">>> [지급룰 저장] Save payout date.. $ruleKey")
+      base.updatePayoutDate(rule)
+    }
+
+    context?.forward(record.withValue(base))
+  }
+
+  override fun close() {
+    this.close()
+  }
+
+  companion object {
+    private val log by logger()
+  }
+}
 ```
 
+GlobalKTable 전용 토픽(payout-rules-global-topic)
+- key: merchant-8694/2025-05-25/CANCEL/MONEY 
+- value:
 
-
-
+  ```json
+  
+  
+  {
+    "ruleId": "7a88c5b1-0202-486c-be0c-239f7776f857",
+    "payoutDate": "2025-05-29",
+    "confirmDate": "2025-05-28",
+    "merchantNumber": "merchant-8694",
+    "paymentDate": "2025-05-25T18:08:00.890907",
+    "paymentActionType": "CANCEL",
+    "paymentMethodType": "MONEY"
+  }
+  ```
 
 ### 6️⃣ 정산 베이스 저장
 
