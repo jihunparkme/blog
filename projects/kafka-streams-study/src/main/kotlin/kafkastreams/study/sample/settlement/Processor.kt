@@ -15,16 +15,18 @@ import org.apache.kafka.streams.state.ReadOnlyKeyValueStore
 import org.apache.kafka.streams.state.ValueAndTimestamp
 
 class PayoutRuleProcessValues(
+    private val rulesGlobalTopic: String,
     private val stateStoreName: String,
     private val payoutRuleClient: PayoutRuleClient,
     private val ruleProducer: KafkaProducer<String, Rule>
 ) : FixedKeyProcessorSupplier<String, Base, Base> {
     override fun get(): FixedKeyProcessor<String, Base, Base> {
-        return PayoutRuleProcessor(stateStoreName, payoutRuleClient, ruleProducer)
+        return PayoutRuleProcessor(rulesGlobalTopic, stateStoreName, payoutRuleClient, ruleProducer)
     }
 }
 
 class PayoutRuleProcessor(
+    private val rulesGlobalTopic: String,
     private val stateStoreName: String,
     private val payoutRuleClient: PayoutRuleClient,
     private val ruleProducer: KafkaProducer<String, Rule>,
@@ -53,7 +55,7 @@ class PayoutRuleProcessor(
         var rule = valueAndTimestamp?.value() // 실제 Rule 객체 추출
         // stateStore에 지급룰이 저장되어 있지 않을 경우 API 요청 후 저장
         if (rule == null) {
-            log.info(">>> [지급룰 조회] Search payout rule.. $key")
+            log.info(">>> [지급룰 조회] Search payout rule.. $ruleKey")
             val findRule = payoutRuleClient.getPayoutDate(
                 PayoutDateRequest(
                     merchantNumber = base.merchantNumber ?: throw IllegalArgumentException(),
@@ -62,19 +64,19 @@ class PayoutRuleProcessor(
                     paymentMethodType = base.paymentMethodType ?: throw IllegalArgumentException(),
                 )
             )
-            ruleProducer.send(ProducerRecord("payout-rules-global-topic", ruleKey, findRule)) // TODO: 토픽 이름 전달받기
+            ruleProducer.send(ProducerRecord(rulesGlobalTopic, ruleKey, findRule))
             rule = findRule
         }
 
         // 가맹점에 대한 지급룰이 없을 경우
         if (rule == null) {
-            log.info(">>> [지급룰 없음] Not found payment payout rule. key: $key")
+            log.info(">>> [지급룰 없음] Not found payment payout rule. key: $ruleKey")
             base.updateDefaultPayoutDate()
         }
 
         // 지급룰 업데이트 대상일 경우
         if (rule != null && (rule.payoutDate != base.payoutDate || rule.confirmDate != base.confirmDate)) {
-            log.info(">>> [지급룰 정보 저장] Save payout date.. $key")
+            log.info(">>> [지급룰 저장] Save payout date.. $ruleKey")
             base.updatePayoutDate(rule)
         }
 

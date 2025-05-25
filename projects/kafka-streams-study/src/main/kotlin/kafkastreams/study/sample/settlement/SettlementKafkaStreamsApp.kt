@@ -46,9 +46,8 @@ class SettlementKafkaStreamsApp(
          * 3. 처리 토폴로지 구성
          */
         val builder = StreamsBuilder()
-        // 지급룰 stateStore 추가
         builder.globalTable(
-            "payout-rules-global-topic", // TODO: 프로퍼티스로
+            kafkaProperties.paymentRulesGlobalTopic,
             Materialized.`as`<String, Rule, KeyValueStore<Bytes, ByteArray>>(GLOBAL_PAYOUT_RULE_STATE_STORE_NAME)
                 .withKeySerde(Serdes.String())
                 .withValueSerde(serdeFactory.ruleSerde())
@@ -72,7 +71,12 @@ class SettlementKafkaStreamsApp(
             .filter { _, base -> settlementService.isSettlement(base) }
             // // [스트림 프로세서] 지급룰 조회 및 세팅
             .processValues(
-                PayoutRuleProcessValues(GLOBAL_PAYOUT_RULE_STATE_STORE_NAME, payoutRuleClient, ruleProducer),
+                PayoutRuleProcessValues(
+                    rulesGlobalTopic = kafkaProperties.paymentRulesGlobalTopic,
+                    stateStoreName = GLOBAL_PAYOUT_RULE_STATE_STORE_NAME,
+                    payoutRuleClient = payoutRuleClient,
+                    ruleProducer = ruleProducer
+                ),
             )
             // // [스트림 프로세서] 정산 베이스 저장
             .peek({ _, message -> settlementService.saveBase(message) })

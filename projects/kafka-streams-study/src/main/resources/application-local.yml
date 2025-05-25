@@ -1,9 +1,9 @@
 kafka:
   servers: localhost:9092
   partition: 4
-  payment-topic: payment
-  payment-rules-global-topic: payout-rules-global-topic
-  payment-application-name: settlement-streams
+  payment-topic: test-payment
+  payment-rules-global-topic: test-payout-rules-global-topic
+  payment-application-name: test-settlement-streams
 
 logging:
   level:
