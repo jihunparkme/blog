@@ -237,131 +237,43 @@ paymentStream
 
 ### 지급룰 조회 및 세팅
 
-상태 저장소를 연결를 연결해서 레코드를 하나씩 처리하기 위해 [processValues](https://kafka.apache.org/40/javadoc/org/apache/kafka/streams/kstream/KStream.html#processValues(org.apache.kafka.streams.processor.api.FixedKeyProcessorSupplier,java.lang.String...)) 메서드를 사용할 수 있습니다.
+`상태 저장소`를 연결해서 레코드를 하나씩 처리하기 위해 [processValues](https://kafka.apache.org/40/javadoc/org/apache/kafka/streams/kstream/KStream.html#processValues(org.apache.kafka.streams.processor.api.FixedKeyProcessorSupplier,java.lang.String...)) 메서드를 활용할 수 있습니다.
+- 상태 저장소를 연결하기 위해 `FixedKeyProcessorSupplier` 에서 제공하는 `FixedKeyProcessor`를 적용해야 합니다.
 
-`FixedKeyProcessorSupplier` 에서 제공하는 `FixedKeyProcessor`를 적용하고, 상태 저장소를 연결하여 레코드를 처리할 수 있습니다.
+여기서 `상태 저장소`를 간략하게 살펴보면<br/> 
+`RocksDB`와 같은 로컬 저장소를 활용하여 `KTable`로 키-값 데이터를 관리하고, `변경 로그 토픽`을 통해 상태를 복원하여 내결함성을 제공하며, `윈도우 기반 처리`로 특정 기간 내 데이터 집계 및 분석이 가능합니다.
 
-<br/>
+상태 저장소의 한 가지 단점이 있다면, 데이터가 파티션마다 분산되어 저장되므로 조회 시 파티션 전체로 조회가 필요합니다.<br/>
+그렇지 않을 경우 파티션 별로 데이터가 달라질 수 있습니다.<br/>
+이 단점은 `Interactive Queries`를 활용하여, 특정 key를 담당하는 파티션의 인스턴스의 호스트 정보를 알아내고, 만약 key가 다른 인스턴스에 있다면, 해당 인스턴스의 HTTP 엔드포인트로 요청을 보내 데이터를 가져올 수 있습니다.
 
-여기서 잠깐 ‼ 카프카 스트림즈에서 `상태 저장소`란<br/> 
-한 문장으로 요약하면, 카프카 스트림즈는 RocksDB 같은 `상태 저장소`를 활용하여 `KTable`로 키-값 데이터를 관리하고, `변경 로그 토픽`을 통해 상태를 복원하여 내결함성을 제공하며, `윈도우 기반 처리`로 특정 기간 내 데이터 집계 및 분석을 가능하게 합니다.<br/>
-여기서 상태 저장소에 지급룰을 관리하여 API 조회 횟수를 줄이고 캐시처럼 사용할 수 있습니다.
+대안으로 `GlobalKTable`을 사용할 수 있는데<br/>
+별도의 토픽으로 데이터를 관리하고, 이 토픽을 소스로 하는 GlobalKTable을 생성합니다.<br/>
+GlobalKTable은 해당 토픽의 모든 데이터를 각 Kafka Streams 인스턴스에 복제합니다.<br/>
+따라서 각 인스턴스는 전체 Rule 데이터의 로컬 복사본을 가지게 되어, 어떤 key에 대해서도 로컬에서 빠르게 조회할 수 있습니다.<br/>
+이 방법은 "글로벌 캐시"와 유사하게 동작하며, 모든 인스턴스가 전체 데이터셋에 접근해야 할 때 매우 유용합니다<br/>
+
+참고. 단순하게 레디스를 활용할 수 있지만 상태 저장소의 활용을 위해 적용해 보겠습니다.
 
 ```kotlin
-// 정의된 상태 저장소를 토폴로지에 추가
-builder.addStateStore(getPayoutDateStoreBuilder())
-
-paymentStream
-    .processValues(
-        PayoutRuleProcessValues(PAYOUT_RULE_STATE_STORE_NAME, payoutRuleClient),
-        PAYOUT_RULE_STATE_STORE_NAME
-    )
+builder.globalTable(
+  "payout-rules-global-topic", // TODO: 프로퍼티스로
+  Materialized.`as`<String, Rule, KeyValueStore<Bytes, ByteArray>>(GLOBAL_PAYOUT_RULE_STATE_STORE_NAME)
+    .withKeySerde(Serdes.String())
+    .withValueSerde(serdeFactory.ruleSerde())
+)
 
 // ...
 
-private fun getPayoutDateStoreBuilder(): StoreBuilder<KeyValueStore<String, Rule>> {
-  val storeSupplier = Stores.inMemoryKeyValueStore(PAYOUT_RULE_STATE_STORE_NAME)
-  return Stores.keyValueStoreBuilder(storeSupplier, Serdes.String(), serdeFactory.ruleSerde())
-}
+paymentStream.processValues(
+  PayoutRuleProcessValues(GLOBAL_PAYOUT_RULE_STATE_STORE_NAME, payoutRuleClient, ruleProducer),
+)
 ```
 
 `FixedKeyProcessorSupplier`, `FixedKeyProcessor` 구현
 
 ```kotlin
-// FixedKeyProcessorSupplier 구현체
-class PayoutRuleProcessValues(
-  private val stateStoreName: String, // 상태 저장소 이름
-  private val payoutRuleClient: PayoutRuleClient, // 외부 API 호출을 위한 클라이언트
-) : FixedKeyProcessorSupplier<String, Base, Base> {
-  // Kafka Streams 프레임워크에 의해 호출되어 실제 레코드 처리를 담당할 FixedKeyProcessor 인스턴스 반환
-  override fun get(): FixedKeyProcessor<String, Base, Base> {
-    return PayoutRuleProcessor(stateStoreName, payoutRuleClient)
-  }
-}
-
-// FixedKeyProcessor 구현체
-class PayoutRuleProcessor(
-  private val stateStoreName: String,
-  private val payoutRuleClient: PayoutRuleClient
-) : FixedKeyProcessor<String, Base, Base> {
-  private var context: FixedKeyProcessorContext<String, Base>? = null
-  private var payoutRuleStore: KeyValueStore<String, Rule>? = null
-
-  // 프로세서가 처음 생성될 때 Kafka Streams 프레임워크에 의해 호출
-  override fun init(context: FixedKeyProcessorContext<String, Base>) {
-    this.context = context
-    this.payoutRuleStore = this.context?.getStateStore(stateStoreName) // 상태 저장소 초기화
-  }
-
-  // 스트림의 각 레코드에 대해 호출되어 실제 데이터 처리를 수행
-  override fun process(record: FixedKeyRecord<String, Base>) {
-    val key = record.key()
-    val base = record.value()
-
-    // 결제 데이터가 없을 경우 스킵
-    if (base == null) {
-      log.info(">>> [결제 데이터 누락] Payment data is null, skipping processing for key: $key")
-      return
-    }
-
-    // 상태 저장소에 저장된 지급룰 조회
-    val ruleKey = "${base.merchantNumber}/${base.paymentDate.toLocalDate()}/${base.paymentActionType}/${base.paymentMethodType}"
-    var rule = payoutRuleStore?.get(ruleKey)
-    // 상태 저장소에 지급룰이 저장되어 있지 않을 경우 API 요청 후 저장
-    if (rule == null) {
-      val findRule = payoutRuleClient.getPayoutDate(
-        PayoutDateRequest(
-          merchantNumber = base.merchantNumber,
-          paymentDate = base.paymentDate,
-          paymentActionType = base.paymentActionType,
-          paymentMethodType = base.paymentMethodType,
-        )
-      )
-      payoutRuleStore?.put(ruleKey, findRule)
-      rule = findRule
-    }
-
-    // 가맹점에 대한 지급룰이 없을 경우
-    if (rule == null) {
-      log.info(">>> [지급룰 없음] Not found payment payout rule. key: $key")
-      base.updateDefaultPayoutDate()
-    }
-
-    // 지급룰 업데이트 대상일 경우
-    if (rule != null && (rule.payoutDate != base.payoutDate || rule.confirmDate != base.confirmDate)) {
-      base.updatePayoutDate(rule)
-    }
-
-    // 처리된 Base 객체를 다음 스트림 처리 단계로 전달
-    context?.forward(record.withValue(base))
-  }
-
-  override fun close() {
-    this.close()
-  }
-
-  companion object {
-    private val log by logger()
-  }
-}
 ```
-KTable, GlobalKTable 대신 레디스를 사용할 수 있지만 상태 저장소 사용해보자.
-
-상태 저장소는 파티션마다 분선되어 자장되므로 파티션 전체로 조회가 필요
-그렇지 않을 경우 각 파티션마다 저장되는 현상
-
-Interactive Queries 활용 (이전 답변에서 설명):•kafkaStreams.queryMetadataForKey()를 사용하여 특정 key를 담당하는 인스턴스의 호스트 정보를 알아냅니다.•만약 key가 다른 인스턴스에 있다면, 해당 인스턴스의 HTTP 엔드포인트로 요청을 보내 데이터를 가져옵니다.•이 방법은 외부에서 상태를 조회하거나, 인스턴스 간 통신이 필요한 경우에 적합합니다. 하지만 process() 메서드와 같이 성능에 민감한 곳에서 동기적으로 호출하는 것은 권장되지 않습니다.2.GlobalKTable 사용 (권장):•Rule 데이터를 저장하는 별도의 Kafka 토픽을 만들고, 이 토픽을 소스로 하는 GlobalKTable을 생성합니다.•GlobalKTable은 해당 토픽의 모든 데이터를 각 Kafka Streams 인스턴스에 복제합니다.•따라서 각 인스턴스는 전체 Rule 데이터의 로컬 복사본을 가지게 되어, 어떤 key에 대해서도 로컬에서 빠르게 조회할 수 있습니다.•이 방법은 "글로벌 캐시"와 유사하게 동작하며, 모든 인스턴스가 전체 데이터셋에 접근해야 할 때 매우 유용합니다
-
-
-
-- 표준 KeyValueStore는 해당 프로세서 인스턴스가 담당하는 파티션의 데이터에만 접근
-
-GlobalKTable이란?
-GlobalKTable은 특정 카프카 토픽의 모든 데이터를 각 카프카 스트림즈 애플리케이션 인스턴스로 완전히 복제합니다. 결과적으로 모든 인스턴스는 전체 데이터셋의 로컬 복사본을 가지게 되어, 어떤 키에 대해서도 파티션에 구애받지 않고 로컬에서 빠르게 조회할 수 있게 됩니다. GlobalKTable에서 조회하는 저장소는 프로세서 입장에서 읽기 전용(read-only)입니다.
-
-
-
-
 
 
 
