@@ -361,8 +361,6 @@ GlobalKTable 전용 토픽(payout-rules-global-topic)
 - value:
 
   ```json
-  
-  
   {
     "ruleId": "7a88c5b1-0202-486c-be0c-239f7776f857",
     "payoutDate": "2025-05-29",
@@ -373,10 +371,12 @@ GlobalKTable 전용 토픽(payout-rules-global-topic)
     "paymentMethodType": "MONEY"
   }
   ```
+  
 
-### 6️⃣ 정산 베이스 저장
 
-스트림 프로세서
+### 정산 베이스 저장
+
+결제 메시지 저장과 동일하게 `peek` 메서드를 사용하서 각 레코드를 저장합니다.
 
 ```kotlin
 paymentStream
@@ -384,6 +384,19 @@ paymentStream
 ```
 
 ### 7️⃣ 집계
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ```kotlin
 val statisticsTable = baseStream.groupBy(
