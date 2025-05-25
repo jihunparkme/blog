@@ -9,7 +9,6 @@ import kafkastreams.study.sample.settlement.domain.payment.Payment
 import kafkastreams.study.sample.settlement.domain.rule.Rule
 import kafkastreams.study.sample.settlement.service.SettlementService
 import org.apache.kafka.clients.consumer.ConsumerConfig
-import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.common.serialization.Serdes
 import org.apache.kafka.common.utils.Bytes
 import org.apache.kafka.streams.KafkaStreams
@@ -22,6 +21,7 @@ import org.apache.kafka.streams.kstream.Materialized
 import org.apache.kafka.streams.state.KeyValueStore
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.kafka.core.KafkaTemplate
 import java.util.Properties
 
 @Configuration
@@ -30,7 +30,7 @@ class SettlementKafkaStreamsApp(
     private val serdeFactory: SerdeFactory,
     private val settlementService: SettlementService,
     private val payoutRuleClient: PayoutRuleClient,
-    private val ruleProducer: KafkaProducer<String, Rule>,
+    private val ruleKafkaTemplate: KafkaTemplate<String, Rule>,
 ) {
     private final val GLOBAL_PAYOUT_RULE_STATE_STORE_NAME = "global-payout-rules-store"
     private final val STATISTICS_STORE_NAME = "statistics-store"
@@ -46,12 +46,7 @@ class SettlementKafkaStreamsApp(
          * 3. 처리 토폴로지 구성
          */
         val builder = StreamsBuilder()
-        builder.globalTable(
-            kafkaProperties.paymentRulesGlobalTopic,
-            Materialized.`as`<String, Rule, KeyValueStore<Bytes, ByteArray>>(GLOBAL_PAYOUT_RULE_STATE_STORE_NAME)
-                .withKeySerde(Serdes.String())
-                .withValueSerde(serdeFactory.ruleSerde())
-        )
+        applyGlobalTable(builder)
 
         // [소스 프로세서] 결제 토픽으로부터 결제 데이터 받기
         val paymentStream: KStream<String, StreamMessage<Payment>> = builder.stream(
@@ -75,7 +70,7 @@ class SettlementKafkaStreamsApp(
                     rulesGlobalTopic = kafkaProperties.paymentRulesGlobalTopic,
                     stateStoreName = GLOBAL_PAYOUT_RULE_STATE_STORE_NAME,
                     payoutRuleClient = payoutRuleClient,
-                    ruleProducer = ruleProducer
+                    ruleKafkaTemplate = ruleKafkaTemplate,
                 ),
             )
             // // [스트림 프로세서] 정산 베이스 저장
@@ -116,6 +111,15 @@ class SettlementKafkaStreamsApp(
          * 4. 카프카 스트림즈 인스턴스 생성
          */
         return KafkaStreams(builder.build(), streamsConfig)
+    }
+
+    private fun applyGlobalTable(builder: StreamsBuilder) {
+        builder.globalTable(
+            kafkaProperties.paymentRulesGlobalTopic,
+            Materialized.`as`<String, Rule, KeyValueStore<Bytes, ByteArray>>(GLOBAL_PAYOUT_RULE_STATE_STORE_NAME)
+                .withKeySerde(Serdes.String())
+                .withValueSerde(serdeFactory.ruleSerde())
+        )
     }
 
     @Bean

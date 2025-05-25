@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import kafkastreams.study.sample.settlement.common.StreamMessage
 import kafkastreams.study.sample.settlement.domain.payment.Payment
 import kafkastreams.study.sample.settlement.domain.rule.Rule
-import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerConfig
 import org.apache.kafka.common.serialization.StringSerializer
 import org.springframework.boot.context.properties.ConfigurationProperties
@@ -23,41 +22,34 @@ class PaymentKafkaConfig(
     private val objectMapper: ObjectMapper,
 ) {
     @Bean
-    fun paymentProducerConfigs(): Map<String, Any> {
+    fun producerConfigs(): Map<String, Any> {
         return mapOf(
             ProducerConfig.BOOTSTRAP_SERVERS_CONFIG to kafkaProperties.servers,
             ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java,
-            ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG to JsonSerializer::class.java,
+            ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG to JsonSerializer::class.java, // 기본 값 직렬화기 클래스
         )
     }
 
-    @Bean
-    fun paymentProducerFactory(): ProducerFactory<String, StreamMessage<Payment>> {
-        val keySerializer = StringSerializer()
-        keySerializer.configure(paymentProducerConfigs(), true) // isKey = true
-        val valueSerializer = JsonSerializer<StreamMessage<Payment>>(objectMapper)
+    private inline fun <reified V> createProducerFactory(): ProducerFactory<String, V> {
+        val keySerializer = StringSerializer().apply {
+            configure(producerConfigs(), true) // isKey = true
+        }
+        val valueSerializer = JsonSerializer<V>(objectMapper)
         return DefaultKafkaProducerFactory(
-            paymentProducerConfigs(),
+            producerConfigs(),
             keySerializer,
             valueSerializer
         )
     }
 
     @Bean
-    fun paymentKafkaTemplate(
-        producerFactory: ProducerFactory<String, StreamMessage<Payment>>
-    ): KafkaTemplate<String, StreamMessage<Payment>> {
-        return KafkaTemplate(producerFactory)
+    fun paymentKafkaTemplate(): KafkaTemplate<String, StreamMessage<Payment>> {
+        return KafkaTemplate(createProducerFactory())
     }
 
     @Bean
-    fun ruleProducer(): KafkaProducer<String, Rule> {
-        val producerProps: Map<String, Any> = mapOf(
-            ProducerConfig.BOOTSTRAP_SERVERS_CONFIG to kafkaProperties.servers,
-            ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java,
-            ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG to JsonSerializer<Rule>(objectMapper)::class.java,
-        )
-        return KafkaProducer<String, Rule>(producerProps)
+    fun ruleKafkaTemplate(): KafkaTemplate<String, Rule> {
+        return KafkaTemplate(createProducerFactory())
     }
 }
 
@@ -66,5 +58,6 @@ data class KafkaProperties(
     val servers: String,
     val partition: Int,
     val paymentTopic: String,
+    val paymentRulesGlobalTopic: String,
     val paymentApplicationName: String,
 )
