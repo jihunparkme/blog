@@ -371,8 +371,10 @@ GlobalKTable 전용 토픽(payout-rules-global-topic)
     "paymentMethodType": "MONEY"
   }
   ```
-  
 
+
+TODO: GlobalKTable 어떻게 저장되는지,
+- stateStore 어떤 구조로 저장되는지
 
 ### 정산 베이스 저장
 
@@ -383,54 +385,61 @@ paymentStream
     .peek({ _, message -> settlementService.saveBase(message) })
 ```
 
-### 7️⃣ 집계
-
-
-
-
-
-
-
-
-
-
-
-
-
+### 집계
 
 ```kotlin
-val statisticsTable = baseStream.groupBy(
-    { _, base ->
-        BaseAggregationKey( // Base 에서 복합 키 추출
-            merchantNumber = base.merchantNumber,
-            paymentDateDaily = base.paymentDate.toLocalDate(),
-            paymentActionType = base.paymentActionType,
-            paymentMethodType = base.paymentMethodType
-        )
-    },
-    Grouped.with( // 그룹화에 사용될 복합 키, 원본 Base 를 위한 Serdes 지정
-        serdeFactory.baseAggregationKeySerde(),
-        serdeFactory.baseSerde()
-    )
+baseStream.groupBy(
+  { _, base -> base.toAggregationKey() },
+  Grouped.with( // 그룹화에 사용될 복합 키, 원본 Base 를 위한 Serdes 지정
+    serdeFactory.baseAggregationKeySerde(),
+    serdeFactory.baseSerde()
+  )
 )
-    .aggregate( // 그룹별로 집계 수행
-        { // 각 그룹의 집계가 시작될 때 초기값을 반환
-            BaseAggregateValue()
-        },
-        // (그룹 키, 새로운 값, 현재 집계값) -> 새로운 집계값
-        { _aggKey, newBaseValue, currentAggregate ->
-            currentAggregate.updateWith(newBaseValue.amount)
-        },
-        // 집계 결과를 저장할 상태 저장소 및 Serdes 설정
-        Materialized.`as`<BaseAggregationKey, BaseAggregateValue, KeyValueStore<Bytes, ByteArray>>(
-            STATISTICS_STORE_NAME
-        )
-            .withKeySerde(serdeFactory.baseAggregationKeySerde())   // KTable의 키(BaseAggregationKey) Serde
-            .withValueSerde(serdeFactory.baseAggregateValueSerde()) // KTable의 값(BaseAggregateValue) Serde
+  .aggregate( // 그룹별로 집계 수행
+    { BaseAggregateValue() }, // 각 그룹의 집계가 시작될 때 초기값을 반환
+    // (그룹 키, 새로운 값, 현재 집계값) -> 새로운 집계값
+    { _aggKey, newBaseValue, currentAggregate ->
+      currentAggregate.updateWith(newBaseValue.amount)
+    },
+    // 집계 결과를 저장할 상태 저장소 및 Serdes 설정
+    Materialized.`as`<BaseAggregationKey, BaseAggregateValue, KeyValueStore<Bytes, ByteArray>>(
+      STATISTICS_STORE_NAME
     )
+      .withKeySerde(serdeFactory.baseAggregationKeySerde())   // KTable의 키(BaseAggregationKey) Serde
+      .withValueSerde(serdeFactory.baseAggregateValueSerde()) // KTable의 값(BaseAggregateValue) Serde
+  )
 ```
 
-## 카프카 스트림즈 프로그램 시작
+집계 조회
+
+```json
+{
+    "key": {
+        "merchantNumber": "merchant-4436",
+        "paymentActionType": "PAYMENT",
+        "paymentDateDaily": "2025-05-26",
+        "paymentMethodType": "MONEY"
+    },
+    "value": {
+        "count": 5,
+        "totalAmount": 3540674
+    }
+},
+{
+    "key": {
+        "merchantNumber": "merchant-6076",
+        "paymentActionType": "PAYMENT",
+        "paymentDateDaily": "2025-05-26",
+        "paymentMethodType": "CARD"
+    },
+    "value": {
+        "count": 2,
+        "totalAmount": 1550510
+    }
+},
+```
+
+## 카프카 스트림즈 인스턴스 생성
 
 ```kotlin
 KafkaStreams(builder.build(), streamsConfig)
@@ -441,7 +450,3 @@ KafkaStreams(builder.build(), streamsConfig)
 .. 메서드를 활용하여 스트림 파이프라인을 구성해 보았는데 그밖에도 카프카 스트림즈 
 https://kafka.apache.org/30/documentation/streams/developer-guide/dsl-api.html#id10
 
-⁉️ stateStore 어떤 구조로 저장되는지
-
-⁉️ 조회는 어떤 방식으로 하는지
-- 조회하면 어떤 형태로 응답이 오는지
