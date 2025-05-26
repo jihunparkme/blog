@@ -77,24 +77,15 @@ class SettlementKafkaStreamsApp(
             .peek({ _, message -> settlementService.saveBase(message) })
         // .print(Printed.toSysOut<String, Base>().withLabel("payment-stream"))
 
-        val statisticsTable = baseStream.groupBy(
-            { _, base ->
-                BaseAggregationKey( // Base 에서 복합 키 추출
-                    merchantNumber = base.merchantNumber,
-                    paymentDateDaily = base.paymentDate.toLocalDate(),
-                    paymentActionType = base.paymentActionType,
-                    paymentMethodType = base.paymentMethodType
-                )
-            },
+        baseStream.groupBy(
+            { _, base -> base.toAggregationKey() },
             Grouped.with( // 그룹화에 사용될 복합 키, 원본 Base 를 위한 Serdes 지정
                 serdeFactory.baseAggregationKeySerde(),
                 serdeFactory.baseSerde()
             )
         )
             .aggregate( // 그룹별로 집계 수행
-                { // 각 그룹의 집계가 시작될 때 초기값을 반환
-                    BaseAggregateValue()
-                },
+                { BaseAggregateValue() }, // 각 그룹의 집계가 시작될 때 초기값을 반환
                 // (그룹 키, 새로운 값, 현재 집계값) -> 새로운 집계값
                 { _aggKey, newBaseValue, currentAggregate ->
                     currentAggregate.updateWith(newBaseValue.amount)

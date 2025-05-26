@@ -4,6 +4,7 @@ import kafkastreams.study.sample.settlement.common.DEFAULT_PAYOUT_DATE
 import kafkastreams.study.sample.settlement.common.PaymentActionType
 import kafkastreams.study.sample.settlement.common.PaymentMethodType
 import kafkastreams.study.sample.settlement.common.PaymentType
+import kafkastreams.study.sample.settlement.domain.aggregation.BaseAggregationKey
 import kafkastreams.study.sample.settlement.domain.rule.Rule
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -28,4 +29,12 @@ data class Base(
         this.payoutDate = DEFAULT_PAYOUT_DATE
         this.confirmDate = DEFAULT_PAYOUT_DATE
     }
+
+    fun toAggregationKey() =
+        BaseAggregationKey(
+            merchantNumber = this.merchantNumber,
+            paymentDateDaily = this.paymentDate.toLocalDate(),
+            paymentActionType = this.paymentActionType,
+            paymentMethodType = this.paymentMethodType
+        )
 }
