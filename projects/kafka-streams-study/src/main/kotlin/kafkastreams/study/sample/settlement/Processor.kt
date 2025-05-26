@@ -76,7 +76,7 @@ class PayoutRuleProcessor(
 
         // 지급룰 업데이트 대상일 경우
         if (rule != null && (rule.payoutDate != base.payoutDate || rule.confirmDate != base.confirmDate)) {
-            log.info(">>> [지급룰 저장] Save payout date.. $ruleKey")
+            log.info(">>> [지급룰 업데이트] Update payout date.. $ruleKey")
             base.updatePayoutDate(rule)
         }
 

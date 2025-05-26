@@ -32,9 +32,6 @@ class SettlementKafkaStreamsApp(
     private val payoutRuleClient: PayoutRuleClient,
     private val ruleKafkaTemplate: KafkaTemplate<String, Rule>,
 ) {
-    private final val GLOBAL_PAYOUT_RULE_STATE_STORE_NAME = "global-payout-rules-store"
-    private final val STATISTICS_STORE_NAME = "statistics-store"
-
     @Bean
     fun settlementStreams(): KafkaStreams {
         /*************************************
@@ -68,7 +65,7 @@ class SettlementKafkaStreamsApp(
             .processValues(
                 PayoutRuleProcessValues(
                     rulesGlobalTopic = kafkaProperties.paymentRulesGlobalTopic,
-                    stateStoreName = GLOBAL_PAYOUT_RULE_STATE_STORE_NAME,
+                    stateStoreName = kafkaProperties.globalPayoutRuleStateStoreName,
                     payoutRuleClient = payoutRuleClient,
                     ruleKafkaTemplate = ruleKafkaTemplate,
                 ),
@@ -92,7 +89,7 @@ class SettlementKafkaStreamsApp(
                 },
                 // 집계 결과를 저장할 상태 저장소 및 Serdes 설정
                 Materialized.`as`<BaseAggregationKey, BaseAggregateValue, KeyValueStore<Bytes, ByteArray>>(
-                    STATISTICS_STORE_NAME
+                    kafkaProperties.statisticsStoreName
                 )
                     .withKeySerde(serdeFactory.baseAggregationKeySerde())   // KTable의 키(BaseAggregationKey) Serde
                     .withValueSerde(serdeFactory.baseAggregateValueSerde()) // KTable의 값(BaseAggregateValue) Serde
@@ -107,7 +104,7 @@ class SettlementKafkaStreamsApp(
     private fun applyGlobalTable(builder: StreamsBuilder) {
         builder.globalTable(
             kafkaProperties.paymentRulesGlobalTopic,
-            Materialized.`as`<String, Rule, KeyValueStore<Bytes, ByteArray>>(GLOBAL_PAYOUT_RULE_STATE_STORE_NAME)
+            Materialized.`as`<String, Rule, KeyValueStore<Bytes, ByteArray>>(kafkaProperties.globalPayoutRuleStateStoreName)
                 .withKeySerde(Serdes.String())
                 .withValueSerde(serdeFactory.ruleSerde())
         )

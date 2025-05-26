@@ -60,4 +60,6 @@ data class KafkaProperties(
     val paymentTopic: String,
     val paymentRulesGlobalTopic: String,
     val paymentApplicationName: String,
+    val globalPayoutRuleStateStoreName: String,
+    val statisticsStoreName: String,
 )
