@@ -67,6 +67,7 @@ Streams DSL 에서 제공하는 추상화된 메서드는 [Streams DSL Developer
 - 애플리케이션의 기본 동작, Kafka 클러스터 연결, 데이터 직렬화/역직렬화, 상태 관리, 장애 처리, 성능 튜닝 등
 
 ```kotlin
+// SettlementKafkaStreamsApp.kt
 val streamsConfig = streamsConfig()
 
 // KafkaStreamsConfig.kt
@@ -76,27 +77,32 @@ fun streamsConfig(): StreamsConfig =
     put(StreamsConfig.APPLICATION_ID_CONFIG, kafkaProperties.paymentApplicationName)
     put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaProperties.servers)
     put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().javaClass)
-    put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, serdeFactory.messagePaymentSerde().javaClass) // 2. 레코드 역직렬화를 위한 Serde 객체 생성 단계에서 생성
+    put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, serdeFactory.messagePaymentSerde().javaClass)
     put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")
   })
 ```
 
-예제에 사용된 설정들을 살펴보겠습니다.
+여기서 사용할 카프카 스트림즈 애플리케이션의 설정을 살펴보겠습니다.
 
-필수 설정
-- `application.id`: 스트림즈 애플리케이션의 고유 식별자입니다. 
-  - Kafka 클러스터 내에서 유일해야 하며, 내부 토픽 및 소비자 그룹 ID의 접두사로 사용됩니다.
-- `bootstrap.servers`: Kafka 브로커 목록을 지정합니다. 
+- `application.id`: 카프카 스트림즈 애플리케이션의 고유 식별자입니다. 
+  - 카프카 클러스터 내에서 유일해야 하며, Kafka Consumer Group ID로 사용됩니다.
+- `bootstrap.servers`: Kafka 브로커 서버의 주소 목록을 지정합니다. 
   - 초기 연결을 위해 사용되며, host:port 형태로 쉼표로 구분하여 여러 개 지정 가능합니다.
-
-주요 설정
-- `default.key.serde`: 메시지 키의 기본 직렬화/역직렬화 클래스를 지정합니다.
-- `default.value.serde`: 메시지 값의 기본 직렬화/역직렬화 클래스를 지정합니다.
+- `default.key.serde`: 카프카 토픽에서 메시지를 읽거나 쓸 때 키(Key)의 기본 직렬화/역직렬화(Serde) 방식을 지정합니다.
+- `default.value.serde`: 카프카 토픽에서 메시지를 읽거나 쓸 때 값(Value)의 기본 직렬화/역직렬화(Serde) 방식을 지정합니다.
   - 메시지 키/값의 serde 객체는 기본값은 설정되어 있지 않으므로 명시적으로 설정해주어야 합니다.
-  - 커스텀한 serde 타입을 적용할 수도 있습니다.
+  - 커스텀한 serde 객체를 사용할 수도 있습니다.
 - `consumer.auto.offset.reset`: 카프카 컨슈머의 오프셋을 설정합니다.
 
 ## 2. 레코드 역직렬화를 위한 Serde 객체 생성
+
+
+
+
+
+
+
+
 
 카프카에서 [Serdes](https://kafka.apache.org/21/javadoc/org/apache/kafka/common/serialization/Serdes.html#serdeFrom-java.lang.Class-) 클래스에서 기본적으로 제공해주는 객체를 사용하거나, 필요한 형태의 레코드를 사용하려면 커스텀한 객체 생성이 필요합니다.<br/>
 여기서는 Json 형태의 `StreamMessage<Payment>` 객체로 메시지 값을 역직렬화화기 위해 커스텀한 Serde 객체를 생성해보겠습니다. 
@@ -217,9 +223,9 @@ class BaseMapper() : ValueMapper<StreamMessage<Payment>, Base> {
 }
 ```
 
-### 비정산 결제건 필터링
+### 비정산 또는 중복 결제건 필터링
 
-결제 데이터 중에서도 비정산(테스트 결제, 비정산 가맹점, 망취소, 미확인 등)에 해당하는 데이터는 UnSettlement로 분류하고, 정산 대상의 데이터만 파이프라인을 이어갈 수 있도록 [filter](https://kafka.apache.org/40/javadoc/org/apache/kafka/streams/kstream/KStream.html#filter(org.apache.kafka.streams.kstream.Predicate)) 메서드를 사용할 수 있습니다.
+결제 데이터 중에서도 비정산(테스트 결제, 비정산 가맹점, 망취소, 미확인 등)또는 중복 결제건에 해당하는 데이터는 UnSettlement로 분류하고, 정산 대상의 데이터만 파이프라인을 이어갈 수 있도록 [filter](https://kafka.apache.org/40/javadoc/org/apache/kafka/streams/kstream/KStream.html#filter(org.apache.kafka.streams.kstream.Predicate)) 메서드를 사용할 수 있습니다.
 
 `filter` 메서드는 주어진 조건을 만족하는 레코드의 KStream 을 반환하고, 조건을 만족하지 않는 레코드는 삭제됩니다.
 
