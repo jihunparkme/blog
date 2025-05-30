@@ -96,15 +96,7 @@ fun streamsConfig(): StreamsConfig =
 
 ## 2. 레코드 역직렬화를 위한 Serde 객체 생성
 
-
-
-
-
-
-
-
-
-카프카에서 [Serdes](https://kafka.apache.org/21/javadoc/org/apache/kafka/common/serialization/Serdes.html#serdeFrom-java.lang.Class-) 클래스에서 기본적으로 제공해주는 객체를 사용하거나, 필요한 형태의 레코드를 사용하려면 커스텀한 객체 생성이 필요합니다.<br/>
+카프카에서 기본적으로 제공해주는 [Serdes](https://kafka.apache.org/21/javadoc/org/apache/kafka/common/serialization/Serdes.html#serdeFrom-java.lang.Class-) 객체를 사용하거나, 필요한 형태의 레코드를 사용하려면 커스텀한 객체 생성이 필요합니다.<br/>
 여기서는 Json 형태의 `StreamMessage<Payment>` 객체로 메시지 값을 역직렬화화기 위해 커스텀한 Serde 객체를 생성해보겠습니다. 
 
 ```kotlin
@@ -129,6 +121,11 @@ fun messagePaymentSerde(): JsonSerde<StreamMessage<Payment>> {
     )
 }
 ```
+
+
+
+
+
 
 ## 3. 처리 토폴로지 구성
 
