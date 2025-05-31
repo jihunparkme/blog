@@ -104,8 +104,8 @@ fun streamsConfig(): StreamsConfig =
 fun messagePaymentSerde(): JsonSerde<StreamMessage<Payment>> {
     // JsonDeserializer 생성
     val streamMessagePaymentDeserializer = JsonDeserializer(
-        object : TypeReference<StreamMessage<Payment>>() {},
-        objectMapper,
+        object : TypeReference<StreamMessage<Payment>>() {}, // 역직렬화 대상 타입 지정
+        objectMapper, // JSON 처리를 위한 ObjectMapper
         false // failOnUnknownProperties flag
     )
     // 신뢰할 수 있는 패키지 설정
@@ -122,10 +122,20 @@ fun messagePaymentSerde(): JsonSerde<StreamMessage<Payment>> {
 }
 ```
 
-
-
-
-
+- 역직렬화 대상 타입 지정
+  - JsonDeserializer는 JSON 문자열을 어떤 객체로 변환해야 하는지 알아야 합니다.
+- JSON 처리를 위한 ObjectMapper 
+  - 날짜 형식, 특정 필드 무시, null 값 처리 등 다양한 JSON 처리 관련 설정이 적용된 objectMapper 인스턴스를 주입받아 일관된 방식으로 JSON을 처리합니다.
+- failOnUnknownProperties 플래그
+  - JsonDeserializer가 알 수 없는 JSON 속성(즉, 대상 객체에 매핑될 필드가 없는 속성)을 만났을 때 어떻게 동작할지를 결정합니다.
+  - false로 설정하면, JSON 데이터에 StreamMessage<Payment> 객체에 정의되지 않은 속성이 있더라도 오류를 발생시키지 않고 해당 속성을 무시합니다.
+  - 만약 true로 설정하면, 알 수 없는 속성이 있을 경우 역직렬화 과정에서 예외가 발생합니다. 
+- 신뢰할 수 있는 패키지 설정
+  - Jackson이 특정 상황(예: 다형성 처리 또는 특정 보안 설정 하에서)에서 역직렬화를 수행할 때, 아무 클래스나 역직렬화하지 않도록 제한하는 보안 기능과 관련이 있습니다.
+  - addTrustedPackages() 메서드를 사용하여 역직렬화가 허용되는 패키지 경로를 명시적으로 지정합니다.
+- JsonSerde 객체 생성 및 반환
+  - JsonSerde는 카프카 스트림즈에서 사용할 수 있도록 직렬화기(Serializer)와 역직렬화기(Deserializer)를 하나로 묶은 클래스입니다.
+  - 이렇게 생성된 `JsonSerde<StreamMessage<Payment>>` 객체는 카프카 스트림즈 토폴로지에서 `StreamMessage<Payment>` 타입의 데이터를 읽고 쓸 때 사용됩니다. 
 
 ## 3. 처리 토폴로지 구성
 
