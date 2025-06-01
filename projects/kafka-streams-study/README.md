@@ -138,44 +138,33 @@ fun messagePaymentSerde(): JsonSerde<StreamMessage<Payment>> {
   - `JsonSerde`는 카프카 스트림즈에서 사용할 수 있도록 직렬화기(Serializer)와 역직렬화기(Deserializer)를 하나로 묶은 클래스입니다.
   - 이렇게 생성된 `JsonSerde<ClassA>` 객체는 카프카 스트림즈 토폴로지에서 `ClassA` 타입의 데이터를 읽고 쓸 때 사용됩니다. 
 
-
-
-
-
-
-글 확인
-
-
-
 ## 3. 처리 토폴로지 구성
 
-이제 만들게될 토폴로지의 구성을 살펴보겠습니다.
+카프카 스트림즈 적용을 위한 기본적인 준비는 되었습니다. 이제 생성하게 될 토폴로지의 구성을 살펴보겠습니다.
 
-![Result](https://github.com/jihunparkme/blog/blob/main/img/kafka-streams/topology-example.png?raw=true 'Result')
+<center>
+  <img src="https://github.com/jihunparkme/blog/blob/main/img/kafka-streams/topology-example.png?raw=true" width="40%">
+</center>
 
-총 여섯 단계의 토폴로지를 한 단계씩 만들어 보겠습니다.
-
-### 빌더 생성
-
-`StreamsBuilder`는 토폴로지를 정의하기 위한 빌더 클래스입니다.
-
-`StreamsBuilder`를 사용해서 여러 프로세서를 연결하여 데이터 처리 파이프라인을 구축할 수 있습니다.
+토폴로지를 정의하기 위해 먼저 `StreamsBuilder`라는 빌더 생성이 필요합니다. 
+- `StreamsBuilder`를 사용해서 여러 프로세서를 연결하고, 데이터 처리 파이프라인을 구축할 수 있습니다.
 
 ```kotlin
+// SettlementKafkaStreamsApp.kt
 val builder = StreamsBuilder()
-
-// ...
-
-@Bean
-fun streamsConfig(): StreamsConfig =
-  StreamsConfig(Properties().apply {
-    put(StreamsConfig.APPLICATION_ID_CONFIG, kafkaProperties.paymentApplicationName)
-    put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaProperties.servers)
-    put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().javaClass)
-    put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, serdeFactory.messagePaymentSerde().javaClass)
-    put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")
-  })
 ```
+
+이제 총 여섯 단계의 토폴로지를 한 개씩 만들어 보겠습니다. 
+
+
+
+
+
+
+
+
+
+
 ### 토픽으로부터 결제 데이터 받기
 
 `Stream` 메서드는 토픽으로부터 소비한 메시지를 명시한 Serdes 객체 형태에 맞게 매핑하고 [KStream](https://kafka.apache.org/40/javadoc/org/apache/kafka/streams/kstream/KStream.html)을 생성합니다.
