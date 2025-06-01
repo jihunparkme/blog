@@ -59,7 +59,7 @@
 |일반적인 스트림 처리 작업을 위한 **고수준의 추상화**를 제공|스트림 처리 로직을 직접 정의하고 제어할 수 있는 **낮은 수준의 추상화**를 제공|
 |필터링, 매핑, 집계, 조인 등과 같은 일반적인 **스트림 처리 작업을 간단하고 선언적인 방식으로** 수행|스트림 프로세서, 상태 저장소, 토폴로지 등을 **직접 정의하고 관리**|
 
-Streams DSL 에서 제공하는 추상화된 메서드는 [Streams DSL Developer Guide](https://kafka.apache.org/30/documentation/streams/developer-guide/dsl-api.html)에서 확인할 수 있습니다.
+Streams DSL 에서 제공하는 추상화된 메서드는 [Kafka Streams Domain Specific Language for Confluent Platform](https://docs.confluent.io/platform/current/streams/developer-guide/dsl-api.html#)에서 확인할 수 있습니다.
 
 
 ## 1. StreamsConfig 인스턴스 생성
@@ -97,7 +97,7 @@ fun streamsConfig(): StreamsConfig =
 
 ## 2. 레코드 역직렬화를 위한 Serde 객체 생성
 
-카프카에서 기본적으로 제공해주는 [Serdes](https://kafka.apache.org/21/javadoc/org/apache/kafka/common/serialization/Serdes.html#serdeFrom-java.lang.Class-) 객체를 사용하거나, 필요한 형태의 레코드를 사용하려면 커스텀한 객체 생성이 필요합니다.<br/>
+카프카에서 기본적으로 제공해주는 [Available Serdes](https://docs.confluent.io/platform/current/streams/developer-guide/datatypes.html#available-serdes)를 사용하거나, 필요한 형태의 레코드를 사용하려면 커스텀한 객체 생성이 필요합니다.<br/>
 여기서는 Json 형태의 `StreamMessage<Payment>` 객체로 메시지 값을 역직렬화화기 위해 커스텀한 Serde 객체를 생성해보겠습니다. 
 
 ```kotlin
@@ -139,12 +139,14 @@ fun messagePaymentSerde(): JsonSerde<StreamMessage<Payment>> {
   - `JsonSerde`는 카프카 스트림즈에서 사용할 수 있도록 직렬화기(Serializer)와 역직렬화기(Deserializer)를 하나로 묶은 클래스입니다.
   - 이렇게 생성된 `JsonSerde<ClassA>` 객체는 카프카 스트림즈 토폴로지에서 `ClassA` 타입의 데이터를 읽고 쓸 때 사용됩니다. 
 
+📚 [Kafka Streams Data Types and Serialization for Confluent Platform](https://docs.confluent.io/platform/current/streams/developer-guide/datatypes.html#kstreams-data-types-and-serialization-for-cp)
+
 ## 3. 처리 토폴로지 구성
 
 카프카 스트림즈 적용을 위한 기본적인 준비는 되었습니다. 이제 생성하게 될 토폴로지의 구성을 살펴보겠습니다.
 
 <center>
-  <img src="https://github.com/jihunparkme/blog/blob/main/img/kafka-streams/topology-example.png?raw=true" width="80%">
+  <img src="https://github.com/jihunparkme/blog/blob/main/img/kafka-streams/topology-example.png?raw=true" width="60%">
 </center>
 
 토폴로지를 정의하기 위해 먼저 `StreamsBuilder`라는 빌더 생성이 필요합니다. 
@@ -163,7 +165,7 @@ val builder = StreamsBuilder()
   <img src="https://github.com/jihunparkme/blog/blob/main/img/kafka-streams/source-processor.png?raw=true" width="50%">
 </center>
 
-`Stream` 메서드는 토픽으로부터 소비한 메시지를 명시한 Serdes 객체 형태에 맞게 매핑하고 [KStream](https://kafka.apache.org/40/javadoc/org/apache/kafka/streams/kstream/KStream.html)을 생성합니다.
+소스 스트림에 해당하는 `stream` 메서드(input topics → KStream)는 토픽으로부터 소비한 메시지를 명시한 Serdes 객체 형태에 맞게 매핑하고 레코드 스트림 [KStream](https://docs.confluent.io/platform/current/streams/concepts.html#kstream)을 생성합니다.
 - `Serdes`를 명시적으로 지정하지 않으면 streamsConfig 구성의 기본 Serdes가 사용되고, Kafka 입력 토픽에 있는 레코드의 키 또는 값 유형이 구성된 기본 Serdes와 일치하지 않는 경우 Serdes를 명시적으로 지정해야 합니다.
 
 ```kotlin
@@ -183,7 +185,16 @@ val paymentStream: KStream<String, StreamMessage<Payment>> = builder.stream(
 paymentStream.print(Printed.toSysOut<String, StreamMessage<Payment>>().withLabel("payment-stream"))
 ```
 
-### 결제 메시지 저장
+### 2단계. 결제 메시지 저장
+
+
+
+
+
+
+
+
+
 
 토픽으로 수신한 결제 데이터를 로그성으로 저장하려고 한다면 [peek](https://kafka.apache.org/40/javadoc/org/apache/kafka/streams/kstream/KStream.html#peek(org.apache.kafka.streams.kstream.ForeachAction)) 메서드를 활용할 수 있습니다.
 
@@ -452,7 +463,3 @@ KafkaStreams(builder.build(), streamsConfig)
 .. 메서드를 활용하여 스트림 파이프라인을 구성해 보았는데 그밖에도 카프카 스트림즈 
 https://kafka.apache.org/30/documentation/streams/developer-guide/dsl-api.html#id10
 
-
-**Reference**
-
-- https://docs.confluent.io/platform/current/streams/developer-guide/dsl-api.html#
