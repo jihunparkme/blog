@@ -32,12 +32,13 @@
 ## 정산 데이터 생성 단계
 
 실제 정산 과정은 더 복잡하지만, 여기서는 이해를 돕기 위해 핵심 단계로 구성하여 카프카 스트림즈를 적용해 보려고 합니다.
-- 결제 데이터 수신: 카프카를 통해 결제 데이터를 받아옵니다.
-- 베이스(건별 내역) 생성: 수신된 결제 데이터를 바탕으로 건별 내역을 만듭니다.
-- 비정산 결제건 필터링: 정산 대상이 아닌 결제건을 걸러냅니다.
-- 정산 룰(지급 규칙) 조회: 적용할 지급 규칙을 찾아옵니다.
-- 베이스(건별 내역) 저장: 처리된 개별 내역을 저장합니다.
-- 건별 내역 집계: 개별 내역들을 모아 최종 정산 금액을 계산합니다.
+
+1. 결제 데이터 수신: 카프카를 통해 결제 데이터를 받아옵니다.
+2. 베이스(건별 내역) 생성: 수신된 결제 데이터를 바탕으로 건별 내역을 만듭니다.
+3. 비정산 결제건 필터링: 정산 대상이 아닌 결제건을 걸러냅니다.
+4. 정산 룰(지급 규칙) 조회: 적용할 지급 규칙을 찾아옵니다.
+5. 베이스(건별 내역) 저장: 처리된 개별 내역을 저장합니다.
+6.  건별 내역 집계: 개별 내역들을 모아 최종 정산 금액을 계산합니다.
 
 # Kafka Streams 적용
 
@@ -143,7 +144,7 @@ fun messagePaymentSerde(): JsonSerde<StreamMessage<Payment>> {
 카프카 스트림즈 적용을 위한 기본적인 준비는 되었습니다. 이제 생성하게 될 토폴로지의 구성을 살펴보겠습니다.
 
 <center>
-  <img src="https://github.com/jihunparkme/blog/blob/main/img/kafka-streams/topology-example.png?raw=true" width="40%">
+  <img src="https://github.com/jihunparkme/blog/blob/main/img/kafka-streams/topology-example.png?raw=true" width="80%">
 </center>
 
 토폴로지를 정의하기 위해 먼저 `StreamsBuilder`라는 빌더 생성이 필요합니다. 
@@ -154,23 +155,16 @@ fun messagePaymentSerde(): JsonSerde<StreamMessage<Payment>> {
 val builder = StreamsBuilder()
 ```
 
-이제 총 여섯 단계의 토폴로지를 한 개씩 만들어 보겠습니다. 
+이제 정산 데이터 생성을 위해 여섯 단계의 토폴로지를 한 개씩 만들어 보겠습니다. 
 
+### 1단계. 토픽으로부터 결제 데이터 받기
 
-
-
-
-
-
-
-
-
-
-
-
-### 토픽으로부터 결제 데이터 받기
+<center>
+  <img src="https://github.com/jihunparkme/blog/blob/main/img/kafka-streams/source-processor.png?raw=true" width="50%">
+</center>
 
 `Stream` 메서드는 토픽으로부터 소비한 메시지를 명시한 Serdes 객체 형태에 맞게 매핑하고 [KStream](https://kafka.apache.org/40/javadoc/org/apache/kafka/streams/kstream/KStream.html)을 생성합니다.
+- `Serdes`를 명시적으로 지정하지 않으면 streamsConfig 구성의 기본 Serdes가 사용되고, Kafka 입력 토픽에 있는 레코드의 키 또는 값 유형이 구성된 기본 Serdes와 일치하지 않는 경우 Serdes를 명시적으로 지정해야 합니다.
 
 ```kotlin
 val paymentStream: KStream<String, StreamMessage<Payment>> = builder.stream(
@@ -182,7 +176,7 @@ val paymentStream: KStream<String, StreamMessage<Payment>> = builder.stream(
 )
 ```
 
-디버깅/테스트 환경에서 print 메서드를 활용해서 단계별로 레코드의 상태를 확인할 수 있습니다.
+디버깅/테스트 환경에서 print 메서드를 활용해서 단계별로 레코드의 상태를 확인할 수도 있습니다.
 
 ```kotlin
 // [payment-stream]: 5a54041d-2cce-43f5-8194-299acb8e8766, StreamMessage(channel=OFFLINE, action=PAYMENT, data=Payment(paymentType=OFFLINE, amount=65218, payoutDate=2025-05-21, confirmDate=2025-05-21, merchantNumber=merchant-1881, paymentDate=2025-05-19T21:48:15.989609, paymentActionType=PAYMENT, paymentMethodType=CARD))
@@ -458,3 +452,7 @@ KafkaStreams(builder.build(), streamsConfig)
 .. 메서드를 활용하여 스트림 파이프라인을 구성해 보았는데 그밖에도 카프카 스트림즈 
 https://kafka.apache.org/30/documentation/streams/developer-guide/dsl-api.html#id10
 
+
+**Reference**
+
+- https://docs.confluent.io/platform/current/streams/developer-guide/dsl-api.html#
