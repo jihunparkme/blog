@@ -165,6 +165,9 @@ val builder = StreamsBuilder()
 
 
 
+
+
+
 ### 토픽으로부터 결제 데이터 받기
 
 `Stream` 메서드는 토픽으로부터 소비한 메시지를 명시한 Serdes 객체 형태에 맞게 매핑하고 [KStream](https://kafka.apache.org/40/javadoc/org/apache/kafka/streams/kstream/KStream.html)을 생성합니다.
