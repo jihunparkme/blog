@@ -187,18 +187,15 @@ paymentStream.print(Printed.toSysOut<String, StreamMessage<Payment>>().withLabel
 
 ### 2단계. 결제 메시지 저장
 
+<center>
+  <img src="https://github.com/jihunparkme/blog/blob/main/img/kafka-streams/example-peek.png?raw=true" width="60%">
+</center>
 
-
-
-
-
-
-
-
-
-토픽으로 수신한 결제 데이터를 로그성으로 저장하려고 한다면 [peek](https://kafka.apache.org/40/javadoc/org/apache/kafka/streams/kstream/KStream.html#peek(org.apache.kafka.streams.kstream.ForeachAction)) 메서드를 활용할 수 있습니다.
+`stream` 메서드를 통해 수신한 결제 데이터를 [peek](https://docs.confluent.io/platform/7.9/streams/javadocs/javadoc/org/apache/kafka/streams/kstream/KStream.html#peek-org.apache.kafka.streams.kstream.ForeachAction-) 연산에 적용된 람다 함수를 통해 로그에 저장합니다.
 
 `peek` 메서드는 각 레코드에 대해 작업을 수행하고 변경되지 않은 스트림을 반환합니다.
+- peek는 로깅이나 메트릭 추적, 디버깅 및 트러블슈팅과 같은 상황에 유용하게 사용할 수 있습니다.
+- 스트림 데이터에 대한 수정 작업이 필요할 경우 map, mapValues 같은 메서드를 사용할 수 있습니다.
 
 ```kotlin
 paymentStream
@@ -206,6 +203,17 @@ paymentStream
 ```
 
 ### 결제 데이터로 정산 베이스 생성
+
+
+
+
+
+
+
+
+
+
+
 
 레코드의 값을 새로운 형태로 매핑하기 위해서 [mapValues](https://kafka.apache.org/40/javadoc/org/apache/kafka/streams/kstream/KStream.html#mapValues(org.apache.kafka.streams.kstream.ValueMapper)) 메서드를 활용할 수 있습니다.
 
