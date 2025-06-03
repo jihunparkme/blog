@@ -195,57 +195,62 @@ paymentStream.print(Printed.toSysOut<String, StreamMessage<Payment>>().withLabel
 
 `peek` 메서드는 각 레코드에 대해 작업을 수행하고 변경되지 않은 스트림을 반환합니다.
 - peek는 로깅이나 메트릭 추적, 디버깅 및 트러블슈팅과 같은 상황에 유용하게 사용할 수 있습니다.
-- 스트림 데이터에 대한 수정 작업이 필요할 경우 map, mapValues 같은 메서드를 사용할 수 있습니다.
+- 스트림 데이터에 대한 수정 작업이 필요할 경우 `map`, `mapValues` 같은 메서드를 사용할 수 있습니다.
 
 ```kotlin
 paymentStream
     .peek({ _, message -> settlementService.savePaymentMessageLog(message) })
 ```
 
-### 결제 데이터로 정산 베이스 생성
+### 3단계. 결제 데이터로 정산 베이스 생성
 
+<center>
+  <img src="https://github.com/jihunparkme/blog/blob/main/img/kafka-streams/example-mapValue.png?raw=true" width="60%">
+</center>
 
-
-
-
-
-
-
-
-
-
-
-레코드의 값을 새로운 형태로 매핑하기 위해서 [mapValues](https://kafka.apache.org/40/javadoc/org/apache/kafka/streams/kstream/KStream.html#mapValues(org.apache.kafka.streams.kstream.ValueMapper)) 메서드를 활용할 수 있습니다.
-
-각 입력 레코드의 키값은 유지하면서 새로운 값으로 변환합니다.
+[mapValues](https://docs.confluent.io/platform/7.9/streams/javadocs/javadoc/org/apache/kafka/streams/kstream/KStream.html#map-org.apache.kafka.streams.kstream.KeyValueMapper-) 메서드를 통해 기존 스트림의 메시지 키는 유지하면서 값을 기존 타입(`StreamMessage<Payment>`)에서 새로운 타입(`Base`)으로 변환합니다.
 
 ```kotlin
 paymentStream
     .mapValues(BaseMapper())
 ```
 
-Mapper 구현
-- `ValueMapper` 인터페이스를 구현하고, 입력으로 `value type`, 출력으로 `mapped value type` 을 명시합니다.
-- 여기서는 `StreamMessage<Payment>` 타입을 `Base` 타입으로 매핑하였습니다.
+mapValues 연산자에 전달하기 위한 `ValueMapper` 구현체를 정의합니다.
+- `ValueMapper<V, VR>` 인터페이스는 입력 값 타입 `V`를 출력 값 타입 `VR`로 변환하는 역할을 합니다.
+- 여기서 `V`는 `StreamMessage<Payment>`이고, `VR`은 `Base`입니다.
+- 기존 스트림의 각 `StreamMessage<Payment>` 값을 `Base` 객체로 어떻게 변환할지에 대한 구체적인 로직을 정의합니다.
 
 ```kotlin
 class BaseMapper() : ValueMapper<StreamMessage<Payment>, Base> {
+  // 스트림의 각 메시지에 대해 apply 메서드를 호출하며, 메시지의 값을 인자로 전달
   override fun apply(payment: StreamMessage<Payment>): Base {
     return Base(
-      paymentType = payment.data?.paymentType,
+      paymentType = payment.data?.paymentType ?: throw IllegalArgumentException(),
       amount = payment.data.amount,
       payoutDate = payment.data.payoutDate,
       confirmDate = payment.data.confirmDate,
-      merchantNumber = payment.data.merchantNumber,
+      merchantNumber = payment.data.merchantNumber ?: throw IllegalArgumentException(),
       paymentDate = payment.data.paymentDate,
-      paymentActionType = payment.data.paymentActionType,
-      paymentMethodType = payment.data.paymentMethodType,
+      paymentActionType = payment.data.paymentActionType ?: throw IllegalArgumentException(),
+      paymentMethodType = payment.data.paymentMethodType ?: throw IllegalArgumentException(),
     )
   }
 }
+
 ```
 
-### 비정산 또는 중복 결제건 필터링
+### 4단계. 비정산 또는 중복 결제건 필터링
+
+
+
+
+
+
+
+
+
+
+
 
 결제 데이터 중에서도 비정산(테스트 결제, 비정산 가맹점, 망취소, 미확인 등)또는 중복 결제건에 해당하는 데이터는 UnSettlement로 분류하고, 정산 대상의 데이터만 파이프라인을 이어갈 수 있도록 [filter](https://kafka.apache.org/40/javadoc/org/apache/kafka/streams/kstream/KStream.html#filter(org.apache.kafka.streams.kstream.Predicate)) 메서드를 사용할 수 있습니다.
 
