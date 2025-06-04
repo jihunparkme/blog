@@ -256,54 +256,54 @@ paymentStream
     .filter { _, base -> settlementService.isSettlement(base) }
 ```
 
+### 5단계. 지급룰 조회 및 세팅
 
+<center>
+  <img src="https://github.com/jihunparkme/blog/blob/main/img/kafka-streams/example-processValues.png?raw=true" width="100%">
+</center>
 
+정산 대상의 데이터에 지급룰 정보를 세팅하려고 합니다.<br/>
+지급룰은 API 호출을 통해 제공받고 있는데, 중복되는 지급룰은 따로 저장해서 API 호출로 인한 네트워크 통신 비용을 절약하고자 합니다.
 
+이 상황에서 단순하게 레디스를 활용할 수도 있지만 카프카 스트림즈의 `상태 저장소`를 사용해 보려고 합니다.<br/>
+상태 저장소는 `RocksDB`와 같은 로컬 저장소를 활용하여 `KTable`로 키-값 데이터를 관리하고, `변경 로그 토픽`을 통해 상태를 복원하여 내결함성을 제공하며, `윈도우 기반 처리`로 특정 기간 내 데이터 집계 및 분석이 가능합니다.
 
-
-
-
-### 지급룰 조회 및 세팅
-
-`상태 저장소`를 연결해서 레코드를 하나씩 처리하기 위해 [processValues](https://kafka.apache.org/40/javadoc/org/apache/kafka/streams/kstream/KStream.html#processValues(org.apache.kafka.streams.processor.api.FixedKeyProcessorSupplier,java.lang.String...)) 메서드를 활용할 수 있습니다.
-- 상태 저장소를 연결하기 위해 `FixedKeyProcessorSupplier` 에서 제공하는 `FixedKeyProcessor`를 적용해야 합니다.
-
-여기서 `상태 저장소`를 간략하게 살펴보면<br/> 
-`RocksDB`와 같은 로컬 저장소를 활용하여 `KTable`로 키-값 데이터를 관리하고, `변경 로그 토픽`을 통해 상태를 복원하여 내결함성을 제공하며, `윈도우 기반 처리`로 특정 기간 내 데이터 집계 및 분석이 가능합니다.
-
-상태 저장소의 한 가지 단점이 있다면, 데이터가 파티션마다 분산되어 저장되므로 조회 시 파티션 전체로 조회가 필요합니다.<br/>
-그렇지 않을 경우 파티션 별로 데이터가 달라질 수 있습니다.<br/>
-이 단점은 `Interactive Queries`를 활용하여, 특정 key를 담당하는 파티션의 인스턴스의 호스트 정보를 알아내고, 만약 key가 다른 인스턴스에 있다면, 해당 인스턴스의 HTTP 엔드포인트로 요청을 보내 데이터를 가져올 수 있습니다.
-
-대안으로 `GlobalKTable`을 사용할 수 있는데<br/>
-별도의 토픽으로 데이터를 관리하고, 이 토픽을 소스로 하는 GlobalKTable을 생성합니다.<br/>
-GlobalKTable은 해당 토픽의 모든 데이터를 각 Kafka Streams 인스턴스에 복제합니다.<br/>
-따라서 각 인스턴스는 전체 Rule 데이터의 로컬 복사본을 가지게 되어, 어떤 key에 대해서도 로컬에서 빠르게 조회할 수 있습니다.<br/>
-이 방법은 "글로벌 캐시"와 유사하게 동작하며, 모든 인스턴스가 전체 데이터셋에 접근해야 할 때 매우 유용합니다<br/>
-
-참고. 단순하게 레디스를 활용할 수 있지만 상태 저장소의 활용을 위해 적용해 보겠습니다.
+`상태 저장소`를 연결해서 레코드를 하나씩 처리하기 위해 [processValues()](https://docs.confluent.io/platform/7.9/streams/javadocs/javadoc/org/apache/kafka/streams/kstream/KStream.html#processValues-org.apache.kafka.streams.processor.api.FixedKeyProcessorSupplier-java.lang.String...-) 메서드를 사용합니다.<br/>
+`.processValues()` 메서드는 스트림의 각 레코드에 대해 키는 변경되지 않고, 값만을 대상으로 사용자 정의 로직을 실행하고자 할 때 사용할 수 있습니다.<br/>
+`FixedKeyProcessorSupplier` 인터페이스를 구현한 객체를 인자로 전달하기 위해 구현체가 필요합니다.
 
 ```kotlin
-builder.globalTable(
-  kafkaProperties.paymentRulesGlobalTopic,
-  Materialized.`as`<String, Rule, KeyValueStore<Bytes, ByteArray>>(GLOBAL_PAYOUT_RULE_STATE_STORE_NAME)
-    .withKeySerde(Serdes.String())
-    .withValueSerde(serdeFactory.ruleSerde())
+// SettlementKafkaStreamsApp.kt
+builder.globalTable( // 토폴로지에 GlobalKTable 정의
+  kafkaProperties.paymentRulesGlobalTopic, //  GlobalKTable이 데이터를 읽어올 토픽 이름
+  // 상태 저장소 설정
+  Materialized.`as`<String, Rule, KeyValueStore<Bytes, ByteArray>>( // GlobalKTable이 String 키와 Rule 값을 가지며, 내부적으로 KeyValueStore 타입의 상태 저장소를 사용할 것임을 명시
+    kafkaProperties.globalPayoutRuleStateStoreName // 내부 상태 저장소에 부여하는 고유한 이름
+  ) 
+    .withKeySerde(Serdes.String()) // GlobalKTable의 소스 토픽에서 레코드를 읽을 때 키를 역직렬화하고, 내부 상태 저장소에 키를 직렬화/역직렬화할 때 사용
+    .withValueSerde(serdeFactory.ruleSerde()) // GlobalKTable의 소스 토픽에서 레코드를 읽을 때 값을 역직렬화하고, 내부 상태 저장소에 값을 직렬화/역직렬화할 때 사용
 )
 
 // ...
 
-paymentStream.processValues(
-  PayoutRuleProcessValues(
-    rulesGlobalTopic = kafkaProperties.paymentRulesGlobalTopic,
-    stateStoreName = GLOBAL_PAYOUT_RULE_STATE_STORE_NAME,
-    payoutRuleClient = payoutRuleClient,
-    ruleKafkaTemplate = ruleKafkaTemplate,
-  ),
-)
+paymentStream 
+    .processValues( // 사용자 정의 상태 기반 값 처리 로직을 적용
+      PayoutRuleProcessValues(
+        rulesGlobalTopic = kafkaProperties.paymentRulesGlobalTopic,
+        stateStoreName = kafkaProperties.globalPayoutRuleStateStoreName,
+        payoutRuleClient = payoutRuleClient,
+        ruleKafkaTemplate = ruleKafkaTemplate,
+      ),
+    )
 ```
 
-`FixedKeyProcessorSupplier`, `FixedKeyProcessor` 구현
+
+
+
+
+
+
+`FixedKeyProcessorSupplier` 구현체
 
 ```kotlin
 class PayoutRuleProcessValues(
@@ -485,3 +485,15 @@ https://kafka.apache.org/30/documentation/streams/developer-guide/dsl-api.html#i
 rocksDB 가 로컬에 저장되는 방식
 장애로 종료되어도 상태 저장소는 살아 있음
 파티션 개수
+GlobalTable KTable 차이. 파티션별로 복사하는 것과 아닌 것 
+
+
+상태 저장소의 한 가지 단점이 있다면, 데이터가 파티션마다 분산되어 저장되므로 조회 시 파티션 전체로 조회가 필요합니다.<br/>
+그렇지 않을 경우 파티션 별로 데이터가 달라질 수 있습니다.<br/>
+이 단점은 `Interactive Queries`를 활용하여, 특정 key를 담당하는 파티션의 인스턴스의 호스트 정보를 알아내고, 만약 key가 다른 인스턴스에 있다면, 해당 인스턴스의 HTTP 엔드포인트로 요청을 보내 데이터를 가져올 수 있습니다.
+
+대안으로 `GlobalKTable`을 사용할 수 있는데<br/>
+별도의 토픽으로 데이터를 관리하고, 이 토픽을 소스로 하는 GlobalKTable을 생성합니다.<br/>
+GlobalKTable은 해당 토픽의 모든 데이터를 각 Kafka Streams 인스턴스에 복제합니다.<br/>
+따라서 각 인스턴스는 전체 Rule 데이터의 로컬 복사본을 가지게 되어, 어떤 key에 대해서도 로컬에서 빠르게 조회할 수 있습니다.<br/>
+이 방법은 "글로벌 캐시"와 유사하게 동작하며, 모든 인스턴스가 전체 데이터셋에 접근해야 할 때 매우 유용합니다<br/>
