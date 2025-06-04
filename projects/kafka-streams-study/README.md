@@ -188,7 +188,7 @@ paymentStream.print(Printed.toSysOut<String, StreamMessage<Payment>>().withLabel
 ### 2단계. 결제 메시지 저장
 
 <center>
-  <img src="https://github.com/jihunparkme/blog/blob/main/img/kafka-streams/example-peek.png?raw=true" width="60%">
+  <img src="https://github.com/jihunparkme/blog/blob/main/img/kafka-streams/example-peek.png?raw=true" width="80%">
 </center>
 
 `stream` 메서드를 통해 수신한 결제 데이터를 [peek](https://docs.confluent.io/platform/7.9/streams/javadocs/javadoc/org/apache/kafka/streams/kstream/KStream.html#peek-org.apache.kafka.streams.kstream.ForeachAction-) 연산에 적용된 람다 함수를 통해 로그에 저장합니다.
@@ -205,7 +205,7 @@ paymentStream
 ### 3단계. 결제 데이터로 정산 베이스 생성
 
 <center>
-  <img src="https://github.com/jihunparkme/blog/blob/main/img/kafka-streams/example-mapValue.png?raw=true" width="60%">
+  <img src="https://github.com/jihunparkme/blog/blob/main/img/kafka-streams/example-mapValue.png?raw=true" width="100%">
 </center>
 
 [mapValues](https://docs.confluent.io/platform/7.9/streams/javadocs/javadoc/org/apache/kafka/streams/kstream/KStream.html#map-org.apache.kafka.streams.kstream.KeyValueMapper-) 메서드를 통해 기존 스트림의 메시지 키는 유지하면서 값을 기존 타입(`StreamMessage<Payment>`)에서 새로운 타입(`Base`)으로 변환합니다.
@@ -241,25 +241,27 @@ class BaseMapper() : ValueMapper<StreamMessage<Payment>, Base> {
 
 ### 4단계. 비정산 또는 중복 결제건 필터링
 
+<center>
+  <img src="https://github.com/jihunparkme/blog/blob/main/img/kafka-streams/example-filter.png?raw=true" width="100%">
+</center>
 
+베이스가 생성되고 결제 데이터 중에서도 비정산(테스트 결제, 비정산 가맹점, 망취소, 미확인 등) 또는 중복 결제건에 해당하는 데이터는 UnSettlement, Duplicated로 분류하고,<br/>
+정산 대상의 데이터만 다음 파이프라인을 이어갈 수 있도록 [filter](https://docs.confluent.io/platform/7.9/streams/javadocs/javadoc/org/apache/kafka/streams/kstream/KStream.html#filter-org.apache.kafka.streams.kstream.Predicate-) 메서드를 사용합니다.
+- 비정산과 중복 대상은 별도의 filter 프로세서로 처리하는 것이 명확하지만, 설명의 간소화를 위해 합치게 되었습니다.  
 
-
-
-
-
-
-
-
-
-
-결제 데이터 중에서도 비정산(테스트 결제, 비정산 가맹점, 망취소, 미확인 등)또는 중복 결제건에 해당하는 데이터는 UnSettlement로 분류하고, 정산 대상의 데이터만 파이프라인을 이어갈 수 있도록 [filter](https://kafka.apache.org/40/javadoc/org/apache/kafka/streams/kstream/KStream.html#filter(org.apache.kafka.streams.kstream.Predicate)) 메서드를 사용할 수 있습니다.
-
-`filter` 메서드는 주어진 조건을 만족하는 레코드의 KStream 을 반환하고, 조건을 만족하지 않는 레코드는 삭제됩니다.
+`filter` 메서드는 주어진 조건을 만족하는 레코드의 KStream을 반환하고, 조건을 만족하지 않는 레코드는 삭제됩니다.
 
 ```kotlin
 paymentStream
-        .filter { _, base -> settlementService.isSettlement(base) }
+    .filter { _, base -> settlementService.isSettlement(base) }
 ```
+
+
+
+
+
+
+
 
 ### 지급룰 조회 및 세팅
 
@@ -399,7 +401,7 @@ GlobalKTable 전용 토픽(payout-rules-global-topic)
   ```
 
 
-TODO: GlobalKTable 어떻게 저장되는지,
+TODO: GlobalKTable 어떻게 저장되는지, 토픽이랑 
 - stateStore 어떤 구조로 저장되는지
 
 ### 정산 베이스 저장
@@ -465,6 +467,8 @@ baseStream.groupBy(
 },
 ```
 
+TODO: 집계 어떻게 저장되는지 토픽이랑 해서
+
 ## 카프카 스트림즈 인스턴스 생성
 
 ```kotlin
@@ -476,3 +480,8 @@ KafkaStreams(builder.build(), streamsConfig)
 .. 메서드를 활용하여 스트림 파이프라인을 구성해 보았는데 그밖에도 카프카 스트림즈 
 https://kafka.apache.org/30/documentation/streams/developer-guide/dsl-api.html#id10
 
+## 기타
+
+rocksDB 가 로컬에 저장되는 방식
+장애로 종료되어도 상태 저장소는 살아 있음
+파티션 개수
