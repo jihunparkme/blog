@@ -297,20 +297,14 @@ paymentStream
     )
 ```
 
-
-
-
-
-
-
-`FixedKeyProcessorSupplier` 구현체
+`FixedKeyProcessorSupplier` 인터페이스 구현체
 
 ```kotlin
 class PayoutRuleProcessValues(
-  private val rulesGlobalTopic: String,
-  private val stateStoreName: String,
-  private val payoutRuleClient: PayoutRuleClient,
-  private val ruleKafkaTemplate: KafkaTemplate<String, Rule>,
+  private val rulesGlobalTopic: String, // GlobalKTable의 소스 토픽 이름
+  private val stateStoreName: String, // GlobalKTable의 로컬 상태 저장소 이름
+  private val payoutRuleClient: PayoutRuleClient, // 외부 API 호출을 위한 클라이언트
+  private val ruleKafkaTemplate: KafkaTemplate<String, Rule>, // 지급룰 정보를 토픽으로 보내기 위한 템플릿
 ) : FixedKeyProcessorSupplier<String, Base, Base> {
   override fun get(): FixedKeyProcessor<String, Base, Base> {
     return PayoutRuleProcessor(rulesGlobalTopic, stateStoreName, payoutRuleClient, ruleKafkaTemplate)
@@ -324,13 +318,15 @@ class PayoutRuleProcessor(
   private val ruleKafkaTemplate: KafkaTemplate<String, Rule>,
 ) : FixedKeyProcessor<String, Base, Base> {
   private var context: FixedKeyProcessorContext<String, Base>? = null
-  private var payoutRuleStore: ReadOnlyKeyValueStore<String, Rule>? = null
+  private var payoutRuleStore: ReadOnlyKeyValueStore<String, ValueAndTimestamp<Rule>>? = null
 
+  // 초기화 메서드
   override fun init(context: FixedKeyProcessorContext<String, Base>) {
     this.context = context
-    this.payoutRuleStore = this.context?.getStateStore(stateStoreName)
+    this.payoutRuleStore = this.context?.getStateStore(stateStoreName) // 상태 저장소 이름을 통해 GlobalKTable의 로컬 복제본에 접근
   }
 
+  // 레코드 처리 메서드
   override fun process(record: FixedKeyRecord<String, Base>) {
     val key = record.key()
     val base = record.value()
@@ -341,12 +337,15 @@ class PayoutRuleProcessor(
       return
     }
 
-    // stateStore에 저장된 지급룰 조회
+    // 지급 규칙 조회를 위한 키 생성 (가맹점번호/결제일/결제액션타입/결제수단타입)
     val ruleKey = "${base.merchantNumber}/${base.paymentDate.toLocalDate()}/${base.paymentActionType}/${base.paymentMethodType}"
-    var rule = payoutRuleStore?.get(ruleKey)
-    // stateStore에 지급룰이 저장되어 있지 않을 경우 API 요청 후 저장
+    // 상태 저장소(GlobalKTable)에서 ruleKey로 지급 규칙 조회
+    val valueAndTimestamp = payoutRuleStore?.get(ruleKey)
+    var rule = valueAndTimestamp?.value()
+    // 상태 저장소에 지급 규칙이 없을 경우
     if (rule == null) {
       log.info(">>> [지급룰 조회] Search payout rule.. $ruleKey")
+      // 외부 API를 통해 지급룰 조회
       val findRule = payoutRuleClient.getPayoutDate(
         PayoutDateRequest(
           merchantNumber = base.merchantNumber ?: throw IllegalArgumentException(),
@@ -355,6 +354,7 @@ class PayoutRuleProcessor(
           paymentMethodType = base.paymentMethodType ?: throw IllegalArgumentException(),
         )
       )
+      // 조회된 지급룰을 GlobalKTable의 소스 토픽으로 전송하여 GlobalKTable이 업데이트되고, 다른 인스턴스에서도 이 지급룰을 사용
       ruleKafkaTemplate.send(rulesGlobalTopic, ruleKey, findRule)
       rule = findRule
     }
@@ -367,15 +367,12 @@ class PayoutRuleProcessor(
 
     // 지급룰 업데이트 대상일 경우
     if (rule != null && (rule.payoutDate != base.payoutDate || rule.confirmDate != base.confirmDate)) {
-      log.info(">>> [지급룰 저장] Save payout date.. $ruleKey")
+      log.info(">>> [지급룰 업데이트] Update payout date.. $ruleKey")
       base.updatePayoutDate(rule)
     }
 
+    // 처리된 Base 객체를 다음 스트림 단계로 전달
     context?.forward(record.withValue(base))
-  }
-
-  override fun close() {
-    this.close()
   }
 
   companion object {
@@ -384,21 +381,29 @@ class PayoutRuleProcessor(
 }
 ```
 
-GlobalKTable 전용 토픽(payout-rules-global-topic)
-- key: merchant-8694/2025-05-25/CANCEL/MONEY 
-- value:
+상태 저장소에 저장되는 데이터는 `변경 로그 토픽`을 통해 상태를 복원할 수 있다고 했었는데요.<br/>
+토폴로지에 GlobalKTable을 정의할 때 GlobalKTable이 데이터를 읽어올 토픽 이름을 지정했었는데 바로 해당 토픽을 보면 지급룰 정보가 저장되어 있는 것을 확인할 수 있습니다.
 
-  ```json
-  {
-    "ruleId": "7a88c5b1-0202-486c-be0c-239f7776f857",
-    "payoutDate": "2025-05-29",
-    "confirmDate": "2025-05-28",
-    "merchantNumber": "merchant-8694",
-    "paymentDate": "2025-05-25T18:08:00.890907",
-    "paymentActionType": "CANCEL",
-    "paymentMethodType": "MONEY"
-  }
-  ```
+```text
+[key]
+merchant-4436/2025-05-26/PAYMENT/MONEY
+
+[value]
+{
+   "ruleId": "16858a4e-d08c-4ba5-ae44-54ff4d4b219b",
+   "payoutDate": "2025-06-10",
+   "confirmDate": "2025-06-09",
+   "merchantNumber": "merchant-4436",
+   "paymentDate": "2025-05-26T00:00:00",
+   "paymentActionType": "PAYMENT",
+   "paymentMethodType": "MONEY"
+}
+```
+
+
+
+
+
 
 
 TODO: GlobalKTable 어떻게 저장되는지, 토픽이랑 

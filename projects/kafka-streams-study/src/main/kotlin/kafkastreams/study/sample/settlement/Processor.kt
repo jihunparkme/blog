@@ -83,10 +83,6 @@ class PayoutRuleProcessor(
         context?.forward(record.withValue(base))
     }
 
-    override fun close() {
-        this.close()
-    }
-
     companion object {
         private val log by logger()
     }
