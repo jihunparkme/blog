@@ -34,11 +34,13 @@
 실제 정산 과정은 더 복잡하지만, 여기서는 이해를 돕기 위해 핵심 단계로 구성하여 카프카 스트림즈를 적용해 보려고 합니다.
 
 1. 결제 데이터 수신: 카프카를 통해 결제 데이터를 받아옵니다.
-2. 베이스(건별 내역) 생성: 수신된 결제 데이터를 바탕으로 건별 내역을 만듭니다.
-3. 비정산 결제건 필터링: 정산 대상이 아닌 결제건을 걸러냅니다.
-4. 정산 룰(지급 규칙) 조회: 적용할 지급 규칙을 찾아옵니다.
-5. 베이스(건별 내역) 저장: 처리된 개별 내역을 저장합니다.
-6.  건별 내역 집계: 개별 내역들을 모아 최종 정산 금액을 계산합니다.
+2. 결제 메시지 저장: 결제 메시지를 로그로 저장합니다.
+3. 베이스(건별 내역) 생성: 수신된 결제 데이터를 바탕으로 건별 내역을 만듭니다.
+4. 비정산 결제건 필터링: 정산 대상이 아닌 결제건을 걸러냅니다.
+5. 정산 룰(지급 규칙) 조회: 적용할 지급 규칙을 찾아옵니다.
+6. 베이스(건별 내역) 저장: 처리된 개별 내역을 저장합니다.
+7. 건별 내역 집계: 개별 내역들을 모아 최종 정산 금액을 계산합니다.
+8. 집계 결과 전송: 집계 결과를 토픽으로 전송합니다.
 
 # Kafka Streams 적용
 
@@ -62,7 +64,7 @@
 Streams DSL 에서 제공하는 추상화된 메서드는 [Kafka Streams Domain Specific Language for Confluent Platform](https://docs.confluent.io/platform/current/streams/developer-guide/dsl-api.html#)에서 확인할 수 있습니다.
 
 
-## 1. StreamsConfig 인스턴스 생성
+## StreamsConfig 인스턴스 생성
 
 `StreamsConfig`에는 카프카 스트림즈 애플리케이션의 동작 방식을 정의하는 다양한 설정들이 들어갑니다.
 - 애플리케이션의 기본 동작, Kafka 클러스터 연결, 데이터 직렬화/역직렬화, 상태 관리, 장애 처리, 성능 튜닝 등
@@ -95,7 +97,7 @@ fun streamsConfig(): StreamsConfig =
   - 커스텀한 serde 객체를 사용할 수도 있습니다.
 - `consumer.auto.offset.reset`: 카프카 컨슈머의 오프셋을 설정합니다.
 
-## 2. 레코드 역직렬화를 위한 Serde 객체 생성
+## 레코드 역직렬화를 위한 Serde 객체 생성
 
 카프카에서 기본적으로 제공해주는 [Available Serdes](https://docs.confluent.io/platform/current/streams/developer-guide/datatypes.html#available-serdes)를 사용하거나, 필요한 형태의 레코드를 사용하려면 커스텀한 객체 생성이 필요합니다.<br/>
 여기서는 Json 형태의 `StreamMessage<Payment>` 객체로 메시지 값을 역직렬화화기 위해 커스텀한 Serde 객체를 생성해보겠습니다. 
@@ -141,7 +143,7 @@ fun messagePaymentSerde(): JsonSerde<StreamMessage<Payment>> {
 
 📚 [Kafka Streams Data Types and Serialization for Confluent Platform](https://docs.confluent.io/platform/current/streams/developer-guide/datatypes.html#kstreams-data-types-and-serialization-for-cp)
 
-## 3. 처리 토폴로지 구성
+## 처리 토폴로지 구성
 
 카프카 스트림즈 적용을 위한 기본적인 준비는 되었습니다. 이제 생성하게 될 토폴로지의 구성을 살펴보겠습니다.
 
@@ -427,7 +429,7 @@ merchant-4436/2025-05-26/PAYMENT/MONEY
   <img src="https://github.com/jihunparkme/blog/blob/main/img/kafka-streams/example-peek-2.png?raw=true" width="80%">
 </center>
 
-결제 메시지 저장에서 사용했던 [peek](https://docs.confluent.io/platform/7.9/streams/javadocs/javadoc/org/apache/kafka/streams/kstream/KStream.html#peek-org.apache.kafka.streams.kstream.ForeachAction-) 메서드를 활용해서 정산 베이스를 데이터베이스에 저장합니다.
+결제 메시지 저장에서 사용했던 [peek](https://docs.confluent.io/platform/7.9/streams/javadocs/javadoc/org/apache/kafka/streams/kstream/KStream.html#peek-org.apache.kafka.streams.kstream.ForeachAction-)를 활용해서 정산 베이스를 데이터베이스에 저장합니다.
 
 ```kotlin
 paymentStream
@@ -435,6 +437,10 @@ paymentStream
 ```
 
 ### 7단계. 집계
+
+정산 베이스 통계를 만들기 위해 스트림 레코드를 집계하려고 합니다.<br/>
+집계하기 전에 [groupBy](https://docs.confluent.io/platform/7.9/streams/javadocs/javadoc/org/apache/kafka/streams/kstream/KTable.html#groupBy-org.apache.kafka.streams.kstream.KeyValueMapper-)를 활용하여 스트림 레코드의 키와 값을 적절하게 지정합니다.<br/>
+결과로 생성된 `KGroupedStream`에 [aggregate](https://docs.confluent.io/platform/7.9/streams/javadocs/javadoc/org/apache/kafka/streams/kstream/KGroupedStream.html#aggregate-org.apache.kafka.streams.kstream.Initializer-org.apache.kafka.streams.kstream.Aggregator-org.apache.kafka.streams.kstream.Materialized-)를 적용하여 그룹화된 키를 기준으로 레코드의 값을 집계합니다.
 
 ```kotlin
 // SettlementKafkaStreamsApp.kt
@@ -458,8 +464,8 @@ baseStream.groupBy(
       .withValueSerde(serdeFactory.baseAggregateValueSerde())
   )
 
-// Base.kt
-fun toAggregationKey() =
+// 집계에 사용될 키 정의 (Base.kt)
+fun toAggregationKey() = 
   BaseAggregationKey(
     merchantNumber = this.merchantNumber,
     paymentDateDaily = this.paymentDate.toLocalDate(),
@@ -467,7 +473,7 @@ fun toAggregationKey() =
     paymentMethodType = this.paymentMethodType
   )
 
-// BaseAggregateValue.kt
+// 집계를 시작하기 위한 초기값 및 집계 계산식 정의 (BaseAggregateValue.kt)
 data class BaseAggregateValue(
   val totalAmount: Long = 0L,
   val count: Long = 0L
@@ -481,36 +487,11 @@ data class BaseAggregateValue(
 }
 ```
 
-집계 조회
 
-```json
-{
-    "key": {
-        "merchantNumber": "merchant-4436",
-        "paymentActionType": "PAYMENT",
-        "paymentDateDaily": "2025-05-26",
-        "paymentMethodType": "MONEY"
-    },
-    "value": {
-        "count": 5,
-        "totalAmount": 3540674
-    }
-},
-{
-    "key": {
-        "merchantNumber": "merchant-6076",
-        "paymentActionType": "PAYMENT",
-        "paymentDateDaily": "2025-05-26",
-        "paymentMethodType": "CARD"
-    },
-    "value": {
-        "count": 2,
-        "totalAmount": 1550510
-    }
-},
-```
 
 TODO: 집계 어떻게 저장되는지 토픽이랑 해서
+
+### 8단계. 집계 결과 전송
 
 ## 카프카 스트림즈 인스턴스 생성
 
