@@ -450,7 +450,7 @@ paymentStream
 
 ```kotlin
 // SettlementKafkaStreamsApp.kt
-baseStream.groupBy(
+val aggregatedTable: KTable<BaseAggregationKey, BaseAggregateValue> = baseStream.groupBy(
   { _, base -> base.toAggregationKey() }, // 집계에 사용될 키
   Grouped.with( // 그룹화 연산을 수행할 때 키와 값을 어떻게 직렬화/역직렬화할지 명시
     serdeFactory.baseAggregationKeySerde(),
@@ -493,11 +493,25 @@ data class BaseAggregateValue(
 }
 ```
 
-
-
 ### 8단계. 집계 결과 전송
 
+<center>
+  <img src="https://github.com/jihunparkme/blog/blob/main/img/kafka-streams/example-to.png?raw=true" width="100%">
+</center>
 
+KTable 형태의 집계 결과를 [toStream](https://docs.confluent.io/platform/7.9/streams/javadocs/javadoc/org/apache/kafka/streams/kstream/KTable.html#toStream--)을 적용해 KStream으로 변환한 후, [to](https://docs.confluent.io/platform/7.9/streams/javadocs/javadoc/org/apache/kafka/streams/kstream/KStream.html#to-java.lang.String-org.apache.kafka.streams.kstream.Produced-)메서드를 통해 다른 토픽으로 전송합니다.<br/>
+`Interactive Queries`를 활용한 조회로 집계 단계를 마무리할 수 있지만, 토픽으로 결과를 전송하면서 히스토리를 남기거나 집계 결과를 검증하는 데 사용할 수 있습니다.
+
+```kotlin
+aggregatedTable.toStream()
+    .to(
+        kafkaProperties.paymentStatisticsTopic,
+        Produced.with(
+            serdeFactory.baseAggregationKeySerde(),
+            serdeFactory.baseAggregateValueSerde()
+        )
+    )
+```
 
 ## 카프카 스트림즈 인스턴스 생성
 
