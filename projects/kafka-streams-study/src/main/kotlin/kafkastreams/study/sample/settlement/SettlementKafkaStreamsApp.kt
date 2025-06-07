@@ -1,6 +1,8 @@
 package kafkastreams.study.sample.settlement
 
 import kafkastreams.study.sample.settlement.client.PayoutRuleClient
+import kafkastreams.study.sample.settlement.common.PaymentActionType
+import kafkastreams.study.sample.settlement.common.PaymentMethodType
 import kafkastreams.study.sample.settlement.common.StreamMessage
 import kafkastreams.study.sample.settlement.config.KafkaProperties
 import kafkastreams.study.sample.settlement.domain.aggregation.BaseAggregateValue
@@ -17,11 +19,14 @@ import org.apache.kafka.streams.StreamsConfig
 import org.apache.kafka.streams.kstream.Consumed
 import org.apache.kafka.streams.kstream.Grouped
 import org.apache.kafka.streams.kstream.KStream
+import org.apache.kafka.streams.kstream.KTable
 import org.apache.kafka.streams.kstream.Materialized
+import org.apache.kafka.streams.kstream.Produced
 import org.apache.kafka.streams.state.KeyValueStore
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.kafka.core.KafkaTemplate
+import java.time.LocalDateTime
 import java.util.Properties
 
 @Configuration
@@ -61,7 +66,7 @@ class SettlementKafkaStreamsApp(
             .mapValues(BaseMapper())
             // // [스트림 프로세서] 비정산 결제건 필터링
             .filter { _, base -> settlementService.isSettlement(base) }
-            // // [스트림 프로세서] 지급룰 조회 및 세팅
+            // [스트림 프로세서] 지급룰 조회 및 세팅
             .processValues(
                 PayoutRuleProcessValues(
                     rulesGlobalTopic = kafkaProperties.paymentRulesGlobalTopic,
@@ -70,29 +75,37 @@ class SettlementKafkaStreamsApp(
                     ruleKafkaTemplate = ruleKafkaTemplate,
                 ),
             )
-            // // [스트림 프로세서] 정산 베이스 저장
+            // [스트림 프로세서] 정산 베이스 저장
             .peek({ _, message -> settlementService.saveBase(message) })
         // .print(Printed.toSysOut<String, Base>().withLabel("payment-stream"))
 
-        baseStream.groupBy(
-            { _, base -> base.toAggregationKey() },
-            Grouped.with( // 그룹화에 사용될 복합 키, 원본 Base 를 위한 Serdes 지정
+        val aggregatedTable: KTable<BaseAggregationKey, BaseAggregateValue> = baseStream.groupBy(
+            { _, base -> base.toAggregationKey() }, // 집계에 사용될 키
+            Grouped.with( // 그룹화 연산을 수행할 때 키와 값을 어떻게 직렬화/역직렬화할지 명시
                 serdeFactory.baseAggregationKeySerde(),
                 serdeFactory.baseSerde()
             )
         )
-            .aggregate( // 그룹별로 집계 수행
-                { BaseAggregateValue() }, // 각 그룹의 집계가 시작될 때 초기값을 반환
-                // (그룹 키, 새로운 값, 현재 집계값) -> 새로운 집계값
-                { _aggKey, newBaseValue, currentAggregate ->
-                    currentAggregate.updateWith(newBaseValue.amount)
+            .aggregate( // groupBy를 통해 생성된 KGroupedStream에 대해 각 그룹별로 집계 연산을 수행
+                { BaseAggregateValue() }, // 신규 그룹 키가 생성될 때, 해당 그룹의 집계를 시작하기 위한 초기값
+                { _aggKey, newBaseValue, currentAggregate -> // 각 그룹에 새로운 레코드가 도착할 때마다 호출
+                    currentAggregate.updateWith(newBaseValue.amount) // (그룹 키, 새로운 값, 현재 집계값) -> 새로운 집계값
                 },
-                // 집계 결과를 저장할 상태 저장소 및 Serdes 설정
+                // 집계 연산 결과를 상태 저장소에 저장하기 위한 설정
                 Materialized.`as`<BaseAggregationKey, BaseAggregateValue, KeyValueStore<Bytes, ByteArray>>(
                     kafkaProperties.statisticsStoreName
                 )
-                    .withKeySerde(serdeFactory.baseAggregationKeySerde())   // KTable의 키(BaseAggregationKey) Serde
-                    .withValueSerde(serdeFactory.baseAggregateValueSerde()) // KTable의 값(BaseAggregateValue) Serde
+                    .withKeySerde(serdeFactory.baseAggregationKeySerde())
+                    .withValueSerde(serdeFactory.baseAggregateValueSerde())
+            )
+
+        aggregatedTable.toStream() // 집계된 정보를 KStream으로 변환하여 다른 토픽으로 전송
+            .to(
+                kafkaProperties.paymentStatisticsTopic,
+                Produced.with(
+                    serdeFactory.baseAggregationKeySerde(),
+                    serdeFactory.baseAggregateValueSerde()
+                )
             )
 
         /*************************************

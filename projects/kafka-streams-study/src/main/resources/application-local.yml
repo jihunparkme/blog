@@ -2,6 +2,7 @@ kafka:
   servers: localhost:9092
   partition: 4
   payment-topic: test-payment
+  payment-statistics-topic: test-statistics
   payment-rules-global-topic: test-payout-rules-global-topic-1
   payment-application-name: test-settlement-streams-1
   global-payout-rule-state-store-name: global-payout-rules-store

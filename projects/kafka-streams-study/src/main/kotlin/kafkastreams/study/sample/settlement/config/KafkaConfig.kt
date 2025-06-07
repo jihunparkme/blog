@@ -58,6 +58,7 @@ data class KafkaProperties(
     val servers: String,
     val partition: Int,
     val paymentTopic: String,
+    val paymentStatisticsTopic: String,
     val paymentRulesGlobalTopic: String,
     val paymentApplicationName: String,
     val globalPayoutRuleStateStoreName: String,
