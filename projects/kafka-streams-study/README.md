@@ -64,7 +64,7 @@
 Streams DSL 에서 제공하는 추상화된 메서드는 [Kafka Streams Domain Specific Language for Confluent Platform](https://docs.confluent.io/platform/current/streams/developer-guide/dsl-api.html#)에서 확인할 수 있습니다.
 
 
-## StreamsConfig 인스턴스 생성
+## 1. StreamsConfig 인스턴스 생성
 
 `StreamsConfig`에는 카프카 스트림즈 애플리케이션의 동작 방식을 정의하는 다양한 설정들이 들어갑니다.
 - 애플리케이션의 기본 동작, Kafka 클러스터 연결, 데이터 직렬화/역직렬화, 상태 관리, 장애 처리, 성능 튜닝 등
@@ -97,7 +97,7 @@ fun streamsConfig(): StreamsConfig =
   - 커스텀한 serde 객체를 사용할 수도 있습니다.
 - `consumer.auto.offset.reset`: 카프카 컨슈머의 오프셋을 설정합니다.
 
-## 레코드 역직렬화를 위한 Serde 객체 생성
+## 2. 레코드 역직렬화를 위한 Serde 객체 생성
 
 카프카에서 기본적으로 제공해주는 [Available Serdes](https://docs.confluent.io/platform/current/streams/developer-guide/datatypes.html#available-serdes)를 사용하거나, 필요한 형태의 레코드를 사용하려면 커스텀한 객체 생성이 필요합니다.<br/>
 여기서는 Json 형태의 `StreamMessage<Payment>` 객체로 메시지 값을 역직렬화화기 위해 커스텀한 Serde 객체를 생성해보겠습니다. 
@@ -143,7 +143,7 @@ fun messagePaymentSerde(): JsonSerde<StreamMessage<Payment>> {
 
 📚 [Kafka Streams Data Types and Serialization for Confluent Platform](https://docs.confluent.io/platform/current/streams/developer-guide/datatypes.html#kstreams-data-types-and-serialization-for-cp)
 
-## 처리 토폴로지 구성
+## 3. 처리 토폴로지 구성
 
 카프카 스트림즈 적용을 위한 기본적인 준비는 되었습니다. 이제 생성하게 될 토폴로지의 구성을 살펴보겠습니다.
 
@@ -418,7 +418,7 @@ merchant-4436/2025-05-26/PAYMENT/MONEY
 `GlobalKTable`은 `KTable`과 다르게 모든 인스턴스가 소스 토픽을 변경 로그의 원천으로 사용하므로, 각 인스턴스는 소스 토픽에서 읽어온 데이터를 사용하여 자신의 로컬 상태 저장소를 업데이트합니다.<br/>
 이렇게 함으로써 모든 인스턴스가 전체 데이터셋의 완전한 복제본을 로컬에 유지하게 되어, 파티션에 관계없이 로컬에서 빠르게 조회가 가능합니다.
 
-반면, `KTable`은 소스 토픽의 파티션과 1:1로 매핑되는 별도의 변경 로그 토픽을 생성하고 사용합니다.</br>
+반면, `KTable`은 소스 토픽의 파티션과 1:1로 매핑되는 별도의 변경 로그 토픽(이 토픽의 이름은 일반적으로 애플리케이션ID-상태저장소이름-changelog 형태의 패턴을 따름)을 생성하고 사용합니다.</br>
 따라서 각 인스턴스는 자신이 담당하는 파티션의 변경 로그만 소비하여 로컬 상태를 관리하다보니, 데이터가 파티션마다 분산되어 저장되어 조회 시 파티션 전체로 조회가 필요한 단점이 있습니다.<br/>
 이 단점은 `Interactive Queries`를 활용하여, 특정 key를 담당하는 파티션의 인스턴스의 호스트 정보를 알아내고, 만약 key가 다른 인스턴스에 있다면, 해당 인스턴스의 HTTP 엔드포인트로 요청을 보내 데이터를 가져올 수 있지만,<br/>
 지급룰 조회에 불필요한 네트워크 통신이 필요하게 될 수 있어 캐시처럼 활용하기 위해 `GlobalKTable`을 활용하게 되었습니다.
@@ -513,19 +513,103 @@ aggregatedTable.toStream()
     )
 ```
 
-## 카프카 스트림즈 인스턴스 생성
+## 4. 카프카 스트림즈 인스턴스 생성
+
+KafkaStreams 인스턴스의 [start()](https://docs.confluent.io/platform/7.9/streams/javadocs/javadoc/org/apache/kafka/streams/KafkaStreams.html#start--) 메서드를 호출하면 인스턴스를 시작할 수 있습니다.
+
+예제에서는 KafkaStreams를 Bean으로 등록하고 별도의 Runner를 통해 실행하였습니다.
 
 ```kotlin
-KafkaStreams(builder.build(), streamsConfig)
+// SettlementKafkaStreamsApp.kt
+@Bean
+fun settlementStreams(): KafkaStreams {
+    // ...
+    return KafkaStreams(builder.build(), streamsConfig)
+}
+
+// KafkaStreamsRunner.kt
+@Component
+class KafkaStreamsRunner(
+  private val settlementKafkaStreamsApp: SettlementKafkaStreamsApp,
+) : CommandLineRunner {
+
+    private lateinit var settlementStreams: KafkaStreams
+  
+    override fun run(vararg args: String?) {
+        // ...
+        settlementStreams.start()
+        return
+    }
+    // ...
+}
 ```
 
 ## 전체 코드
 
-.. 메서드를 활용하여 스트림 파이프라인을 구성해 보았는데 그밖에도 카프카 스트림즈 
-https://kafka.apache.org/30/documentation/streams/developer-guide/dsl-api.html#id10
+지금까지의 과정을 연결시켜보면 집계 부분이 다소 코드가 길어보일 수 있지만, 카프카 스트림즈를 통해 간결한 코드로 파이프라인을 형성할 수 있게 되었습니다.
 
-## 기타
+```kotlin
+@Bean
+fun settlementStreams(): KafkaStreams {
+    val streamsConfig = streamsConfig()
+    val builder = StreamsBuilder()
+    applyGlobalTable(builder)
 
-rocksDB 가 로컬에 저장되는 방식
-장애로 종료되어도 상태 저장소는 살아 있음
-파티션 개수
+    val paymentStream: KStream<String, StreamMessage<Payment>> = builder.stream(
+        kafkaProperties.paymentTopic,
+        Consumed.with(
+            Serdes.String(),
+            serdeFactory.messagePaymentSerde()
+        )
+    )
+
+    val baseStream = paymentStream
+        .peek({ _, message -> settlementService.savePaymentMessageLog(message) })
+        .mapValues(BaseMapper())
+        .filter { _, base -> settlementService.isSettlement(base) }
+        .processValues(
+            PayoutRuleProcessValues(
+                rulesGlobalTopic = kafkaProperties.paymentRulesGlobalTopic,
+                stateStoreName = kafkaProperties.globalPayoutRuleStateStoreName,
+                payoutRuleClient = payoutRuleClient,
+                ruleKafkaTemplate = ruleKafkaTemplate,
+            ),
+        )
+        .peek({ _, message -> settlementService.saveBase(message) })
+
+    val aggregatedTable: KTable<BaseAggregationKey, BaseAggregateValue> = baseStream.groupBy(
+        { _, base -> base.toAggregationKey() },
+        Grouped.with(
+            serdeFactory.baseAggregationKeySerde(),
+            serdeFactory.baseSerde()
+        )
+    )
+        .aggregate(
+            { BaseAggregateValue() },
+            { _aggKey, newBaseValue, currentAggregate ->
+                currentAggregate.updateWith(newBaseValue.amount)
+            },
+            Materialized.`as`<BaseAggregationKey, BaseAggregateValue, KeyValueStore<Bytes, ByteArray>>(
+                kafkaProperties.statisticsStoreName
+            )
+                .withKeySerde(serdeFactory.baseAggregationKeySerde())
+                .withValueSerde(serdeFactory.baseAggregateValueSerde())
+        )
+
+    aggregatedTable.toStream()
+        .to(
+            kafkaProperties.paymentStatisticsTopic,
+            Produced.with(
+                serdeFactory.baseAggregationKeySerde(),
+                serdeFactory.baseAggregateValueSerde()
+            )
+        )
+
+    return KafkaStreams(builder.build(), streamsConfig)
+}
+```
+
+## 마치며
+
+기존 비실시간으로 처리되던 처리를 실시간으로 스트림하게 처리되도록 적용해 보면서 카프카 스트림즈에 대한 매력을 맛볼 수 있었습니다.<br/>
+카프카를 사용하여 복잡한 로직을 처리중이시다면 카프카 스트림즈를 활용하여 간편하게 스트림 처리 애플리케이션을 구축해보는게 어떨까요?
