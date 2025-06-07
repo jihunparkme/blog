@@ -421,13 +421,17 @@ merchant-4436/2025-05-26/PAYMENT/MONEY
 이 단점은 `Interactive Queries`를 활용하여, 특정 key를 담당하는 파티션의 인스턴스의 호스트 정보를 알아내고, 만약 key가 다른 인스턴스에 있다면, 해당 인스턴스의 HTTP 엔드포인트로 요청을 보내 데이터를 가져올 수 있지만,<br/>
 불필요한 네트워크 통신이 필요하게 될 수 있어 `GlobalKTable`을 활용하게 되었습니다.
 
-### 정산 베이스 저장
+### 6단계. 정산 베이스 저장
 
-결제 메시지 저장과 동일하게 `peek` 메서드를 사용하서 각 레코드를 저장합니다.
+<center>
+  <img src="https://github.com/jihunparkme/blog/blob/main/img/kafka-streams/example-peek-2.png?raw=true" width="80%">
+</center>
+
+결제 메시지 저장에서 사용했던 [peek](https://docs.confluent.io/platform/7.9/streams/javadocs/javadoc/org/apache/kafka/streams/kstream/KStream.html#peek-org.apache.kafka.streams.kstream.ForeachAction-) 메서드를 활용해서 정산 베이스를 데이터베이스에 저장합니다.
 
 ```kotlin
 paymentStream
-    .peek({ _, message -> settlementService.saveBase(message) })
+  .peek({ _, message -> settlementService.saveBase(message) })
 ```
 
 ### 집계
