@@ -421,7 +421,7 @@ merchant-4436/2025-05-26/PAYMENT/MONEY
 반면, `KTable`은 소스 토픽의 파티션과 1:1로 매핑되는 별도의 변경 로그 토픽을 생성하고 사용합니다.</br>
 따라서 각 인스턴스는 자신이 담당하는 파티션의 변경 로그만 소비하여 로컬 상태를 관리하다보니, 데이터가 파티션마다 분산되어 저장되어 조회 시 파티션 전체로 조회가 필요한 단점이 있습니다.<br/>
 이 단점은 `Interactive Queries`를 활용하여, 특정 key를 담당하는 파티션의 인스턴스의 호스트 정보를 알아내고, 만약 key가 다른 인스턴스에 있다면, 해당 인스턴스의 HTTP 엔드포인트로 요청을 보내 데이터를 가져올 수 있지만,<br/>
-불필요한 네트워크 통신이 필요하게 될 수 있어 `GlobalKTable`을 활용하게 되었습니다.
+지급룰 조회에 불필요한 네트워크 통신이 필요하게 될 수 있어 캐시처럼 활용하기 위해 `GlobalKTable`을 활용하게 되었습니다.
 
 ### 6단계. 정산 베이스 저장
 
@@ -438,9 +438,15 @@ paymentStream
 
 ### 7단계. 집계
 
+<center>
+  <img src="https://github.com/jihunparkme/blog/blob/main/img/kafka-streams/example-aggregate.png?raw=true" width="100%">
+</center>
+
 정산 베이스 통계를 만들기 위해 스트림 레코드를 집계하려고 합니다.<br/>
 집계하기 전에 [groupBy](https://docs.confluent.io/platform/7.9/streams/javadocs/javadoc/org/apache/kafka/streams/kstream/KTable.html#groupBy-org.apache.kafka.streams.kstream.KeyValueMapper-)를 활용하여 스트림 레코드의 키와 값을 적절하게 지정합니다.<br/>
 결과로 생성된 `KGroupedStream`에 [aggregate](https://docs.confluent.io/platform/7.9/streams/javadocs/javadoc/org/apache/kafka/streams/kstream/KGroupedStream.html#aggregate-org.apache.kafka.streams.kstream.Initializer-org.apache.kafka.streams.kstream.Aggregator-org.apache.kafka.streams.kstream.Materialized-)를 적용하여 그룹화된 키를 기준으로 레코드의 값을 집계합니다.
+
+집계 결과는 이전 지급룰 조회 및 세팅 단계에서 언급된 `KTable` 형태로 저장되므로 조회를 위해 `Interactive Queries`를 활용할 수 있습니다.
 
 ```kotlin
 // SettlementKafkaStreamsApp.kt
@@ -489,9 +495,9 @@ data class BaseAggregateValue(
 
 
 
-TODO: 집계 어떻게 저장되는지 토픽이랑 해서
-
 ### 8단계. 집계 결과 전송
+
+
 
 ## 카프카 스트림즈 인스턴스 생성
 
