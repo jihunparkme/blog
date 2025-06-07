@@ -434,29 +434,51 @@ paymentStream
   .peek({ _, message -> settlementService.saveBase(message) })
 ```
 
-### 집계
+### 7단계. 집계
 
 ```kotlin
+// SettlementKafkaStreamsApp.kt
 baseStream.groupBy(
-  { _, base -> base.toAggregationKey() },
-  Grouped.with( // 그룹화에 사용될 복합 키, 원본 Base 를 위한 Serdes 지정
+  { _, base -> base.toAggregationKey() }, // 집계에 사용될 키
+  Grouped.with( // 그룹화 연산을 수행할 때 키와 값을 어떻게 직렬화/역직렬화할지 명시
     serdeFactory.baseAggregationKeySerde(),
     serdeFactory.baseSerde()
   )
 )
-  .aggregate( // 그룹별로 집계 수행
-    { BaseAggregateValue() }, // 각 그룹의 집계가 시작될 때 초기값을 반환
-    // (그룹 키, 새로운 값, 현재 집계값) -> 새로운 집계값
-    { _aggKey, newBaseValue, currentAggregate ->
-      currentAggregate.updateWith(newBaseValue.amount)
+  .aggregate( // groupBy를 통해 생성된 KGroupedStream에 대해 각 그룹별로 집계 연산을 수행
+    { BaseAggregateValue() }, // 신규 그룹 키가 생성될 때, 해당 그룹의 집계를 시작하기 위한 초기값
+    { _aggKey, newBaseValue, currentAggregate -> // 각 그룹에 새로운 레코드가 도착할 때마다 호출
+      currentAggregate.updateWith(newBaseValue.amount) // (그룹 키, 새로운 값, 현재 집계값) -> 새로운 집계값
     },
-    // 집계 결과를 저장할 상태 저장소 및 Serdes 설정
+    // 집계 연산 결과를 상태 저장소에 저장하기 위한 설정
     Materialized.`as`<BaseAggregationKey, BaseAggregateValue, KeyValueStore<Bytes, ByteArray>>(
-      STATISTICS_STORE_NAME
+      kafkaProperties.statisticsStoreName
     )
-      .withKeySerde(serdeFactory.baseAggregationKeySerde())   // KTable의 키(BaseAggregationKey) Serde
-      .withValueSerde(serdeFactory.baseAggregateValueSerde()) // KTable의 값(BaseAggregateValue) Serde
+      .withKeySerde(serdeFactory.baseAggregationKeySerde())
+      .withValueSerde(serdeFactory.baseAggregateValueSerde())
   )
+
+// Base.kt
+fun toAggregationKey() =
+  BaseAggregationKey(
+    merchantNumber = this.merchantNumber,
+    paymentDateDaily = this.paymentDate.toLocalDate(),
+    paymentActionType = this.paymentActionType,
+    paymentMethodType = this.paymentMethodType
+  )
+
+// BaseAggregateValue.kt
+data class BaseAggregateValue(
+  val totalAmount: Long = 0L,
+  val count: Long = 0L
+) {
+  fun updateWith(amount: Long): BaseAggregateValue {
+    return this.copy(
+      totalAmount = this.totalAmount + amount,
+      count = this.count + 1
+    )
+  }
+}
 ```
 
 집계 조회
