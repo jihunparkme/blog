@@ -61,39 +61,44 @@
 | 일반적인 스트림 처리 작업을 위한 **고수준의 추상화**를 제공                           |스트림 처리 로직을 직접 정의하고 제어할 수 있는 **낮은 수준의 추상화**를 제공|
 | 필터링, 변환, 결합, 집계 등과 같은 **일반적인 스트림 처리 작업을 간단하고 선언적인 방식으로** 수행 |스트림 프로세서, 상태 저장소, 토폴로지 등을 **직접 정의하고 관리**|
 
-Streams DSL 에서 제공하는 추상화된 모든 메서드는 [Kafka Streams Domain Specific Language for Confluent Platform](https://docs.confluent.io/platform/current/streams/developer-guide/dsl-api.html#)에서 확인할 수 있습니다.
+Streams DSL 에서 제공하는 추상화된 모든 메서드는 [Kafka Streams Domain Specific Language for Confluent Platform](https://docs.confluent.io/platform/current/streams/developer-guide/dsl-api.html#)에서 확인할 수 있습니다.<br/>
+이제 본격적으로 카프카 스트림즈를 적용해 보러 가볼까요~?🚗🚙🏎️
 
 ## 1. StreamsConfig 인스턴스 생성
 
 `StreamsConfig`에는 카프카 스트림즈 애플리케이션의 동작 방식을 정의하는 다양한 설정들이 들어갑니다.
-- 애플리케이션의 기본 동작, Kafka 클러스터 연결, 데이터 직렬화/역직렬화, 상태 관리, 장애 처리, 성능 튜닝 등
+- 애플리케이션의 기본 동작, 카프카 클러스터 연결, 데이터 직렬화/역직렬화, 상태 관리, 장애 처리, 성능 튜닝 등
 
 ```kotlin
 // SettlementKafkaStreamsApp.kt
-val streamsConfig = streamsConfig()
+@Bean
+fun settlementStreams(): KafkaStreams {
+    val streamsConfig = streamsConfig()
+    // ..
+}
 
 // KafkaStreamsConfig.kt
 @Bean
 fun streamsConfig(): StreamsConfig =
-  StreamsConfig(Properties().apply {
-    put(StreamsConfig.APPLICATION_ID_CONFIG, kafkaProperties.paymentApplicationName)
-    put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaProperties.servers)
-    put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().javaClass)
-    put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, serdeFactory.messagePaymentSerde().javaClass)
-    put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")
-  })
+    StreamsConfig(Properties().apply {
+      put(StreamsConfig.APPLICATION_ID_CONFIG, kafkaProperties.paymentApplicationName)
+      put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaProperties.servers)
+      put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().javaClass)
+      put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, serdeFactory.messagePaymentSerde().javaClass)
+      put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")
+    })
 ```
 
 여기서 사용할 카프카 스트림즈 애플리케이션의 설정을 살펴보겠습니다.
 
-- `application.id`: 카프카 스트림즈 애플리케이션의 고유 식별자입니다. 
-  - 카프카 클러스터 내에서 유일해야 하며, Kafka Consumer Group ID로 사용됩니다.
-- `bootstrap.servers`: Kafka 브로커 서버의 주소 목록을 지정합니다. 
-  - 초기 연결을 위해 사용되며, host:port 형태로 쉼표로 구분하여 여러 개 지정 가능합니다.
+- `application.id`: 카프카 스트림즈 애플리케이션의 **고유 식별자**입니다. 
+  - 카프카 클러스터 내에서 유일해야 하며, **Kafka Consumer Group ID**로 사용됩니다.
+- `bootstrap.servers`: 카프카 브로커 서버의 주소 목록을 지정합니다. 
+  - 초기 연결을 위해 사용되며, `host:port` 형태로 쉼표로 구분하여 여러 개 지정이 가능합니다.
 - `default.key.serde`: 카프카 토픽에서 메시지를 읽거나 쓸 때 키(Key)의 기본 직렬화/역직렬화(Serde) 방식을 지정합니다.
 - `default.value.serde`: 카프카 토픽에서 메시지를 읽거나 쓸 때 값(Value)의 기본 직렬화/역직렬화(Serde) 방식을 지정합니다.
-  - 메시지 키/값의 serde 객체는 기본값은 설정되어 있지 않으므로 명시적으로 설정해주어야 합니다.
-  - 커스텀한 serde 객체를 사용할 수도 있습니다.
+  - 메시지 키/값의 Serde 객체는 기본값 설정이 되어 있지 않으므로 명시적으로 설정해 주어야 합니다.
+  - 커스텀한 Serde 객체를 사용할 수도 있습니다.
 - `consumer.auto.offset.reset`: 카프카 컨슈머의 오프셋을 설정합니다.
 
 ## 2. 레코드 역직렬화를 위한 Serde 객체 생성
