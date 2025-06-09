@@ -191,13 +191,9 @@ paymentStream
 
 ### 2단계. 결제 메시지 저장
 
-<center>
-  <img src="https://github.com/jihunparkme/blog/blob/main/img/kafka-streams/example-peek.png?raw=true" width="80%">
-</center>
+![결제 메시지 저장](https://github.com/jihunparkme/blog/blob/main/img/kafka-streams/example-peek.png?raw=true)
 
-`stream` 메서드를 통해 수신되는 결제 데이터를 [peek](https://docs.confluent.io/platform/7.9/streams/javadocs/javadoc/org/apache/kafka/streams/kstream/KStream.html#peek-org.apache.kafka.streams.kstream.ForeachAction-) 연산에 적용된 람다 함수를 통해 로그에 저장합니다. `peek` 메서드는 각 레코드에 대해 작업을 수행하고 변경되지 않은 스트림을 반환합니다.
-- peek는 로깅이나 메트릭 추적, 디버깅 및 트러블슈팅과 같은 상황에 유용하게 사용할 수 있습니다.
-- 스트림 데이터에 대한 수정 작업이 필요할 경우 `map`, `mapValues` 같은 메서드를 사용할 수 있습니다.
+`stream` 메서드를 통해 수신되는 결제 데이터를 [peek](https://docs.confluent.io/platform/7.9/streams/javadocs/javadoc/org/apache/kafka/streams/kstream/KStream.html#peek-org.apache.kafka.streams.kstream.ForeachAction-) 연산에 적용된 람다 함수를 통해 로그에 저장합니다. `peek` 메서드는 각 레코드에 대해 작업을 수행하고 변경되지 않은 스트림을 반환합니다. peek는 로깅이나 메트릭 추적, 디버깅 및 트러블슈팅과 같은 상황에 유용하게 사용할 수 있습니다. 만일 스트림 데이터에 대한 수정 작업이 필요할 경우 `map`, `mapValues` 같은 메서드를 사용할 수 있습니다.
   
 ```kotlin
 paymentStream // 스트림을 통해 들어오는 모든 결제 메시지를 로그로 저장
@@ -206,35 +202,29 @@ paymentStream // 스트림을 통해 들어오는 모든 결제 메시지를 로
 
 ### 3단계. 결제 데이터로 정산 베이스 생성
 
-<center>
-  <img src="https://github.com/jihunparkme/blog/blob/main/img/kafka-streams/example-mapValue.png?raw=true" width="100%">
-</center>
+![결제 데이터로 정산 베이스 생성](https://github.com/jihunparkme/blog/blob/main/img/kafka-streams/example-mapValue.png?raw=true)
 
-[mapValues](https://docs.confluent.io/platform/7.9/streams/javadocs/javadoc/org/apache/kafka/streams/kstream/KStream.html#map-org.apache.kafka.streams.kstream.KeyValueMapper-) 메서드를 통해 기존 스트림의 메시지 키는 유지하면서 값을 기존 타입(`StreamMessage<Payment>`)에서 새로운 타입(`Base`)으로 변환합니다.
-
+[mapValues](https://docs.confluent.io/platform/7.9/streams/javadocs/javadoc/org/apache/kafka/streams/kstream/KStream.html#map-org.apache.kafka.streams.kstream.KeyValueMapper-) 메서드를 통해 스트림의 각 레코드에 대해 키는 그대로 유지하면서, 값만을 새로운 타입(`Base`)으로 변환합니다. 변환 로직은 인자로 전달된 `ValueMapper` 인터페이스의 구현체에 의해 정의됩니다.
 ```kotlin
 paymentStream
     .mapValues(BaseMapper())
 ```
 
-mapValues 연산자에 전달하기 위한 `ValueMapper` 구현체를 정의합니다.
-- `ValueMapper<V, VR>` 인터페이스는 입력 값 타입 `V`를 출력 값 타입 `VR`로 변환하는 역할을 합니다.
-- 여기서 `V`는 `StreamMessage<Payment>`이고, `VR`은 `Base`입니다.
-- 기존 스트림의 각 `StreamMessage<Payment>` 값을 `Base` 객체로 어떻게 변환할지에 대한 구체적인 로직을 정의합니다.
+`mapValues` 메서드에 전달하기 위한 `ValueMapper` 구현체를 정의해 보겠습니다. `ValueMapper<V, VR>` 인터페이스는 입력 값 타입 `V`를 출력 값 타입 `VR`로 변환하는 역할을 합니다. 여기서 입력 값 타입 `V`는 `StreamMessage<Payment>`, 출력 값 타입 `VR`은 `Base`에 해당하고, 기존 스트림의 값을 어떻게 변환할지에 대한 구체적인 로직을 정의합니다.
 
 ```kotlin
-class BaseMapper() : ValueMapper<StreamMessage<Payment>, Base> {
+class BaseMapper() : ValueMapper<StreamMessage<Payment>, Base> { // ValueMapper 인터페이스 구현
   // 스트림의 각 메시지에 대해 apply 메서드를 호출하며, 메시지의 값을 인자로 전달
   override fun apply(payment: StreamMessage<Payment>): Base {
-    return Base(
-      paymentType = payment.data?.paymentType ?: throw IllegalArgumentException(),
+    return Base( // 입력으로 받은 객체의 데이터를 사용하여 새로운 객체를 생성하고 반환
+      paymentType = payment.data?.paymentType,
       amount = payment.data.amount,
       payoutDate = payment.data.payoutDate,
       confirmDate = payment.data.confirmDate,
-      merchantNumber = payment.data.merchantNumber ?: throw IllegalArgumentException(),
+      merchantNumber = payment.data.merchantNumber,
       paymentDate = payment.data.paymentDate,
-      paymentActionType = payment.data.paymentActionType ?: throw IllegalArgumentException(),
-      paymentMethodType = payment.data.paymentMethodType ?: throw IllegalArgumentException(),
+      paymentActionType = payment.data.paymentActionType,
+      paymentMethodType = payment.data.paymentMethodType,
     )
   }
 }
