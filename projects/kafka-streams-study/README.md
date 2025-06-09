@@ -89,9 +89,9 @@ fun streamsConfig(): StreamsConfig =
 
 여기서 사용할 kafka 스트림즈 애플리케이션의 설정을 살펴보겠습니다.
 
-- `application.id`: kafka 스트림즈 애플리케이션의 **고유 식별자**입니다. 
+- `application.id`: kafka 스트림즈 애플리케이션의 **고유 식별자**입니다.
   - kafka 클러스터 내에서 유일해야 하며, **Kafka Consumer Group ID**로 사용됩니다.
-- `bootstrap.servers`: kafka 브로커 서버의 주소 목록을 지정합니다. 
+- `bootstrap.servers`: kafka 브로커 서버의 주소 목록을 지정합니다.
   - 초기 연결을 위해 사용되며, `host:port` 형태로 쉼표로 구분하여 여러 개 지정이 가능합니다.
 - `default.key.serde`: kafka 토픽에서 메시지를 읽거나 쓸 때 키(Key)의 기본 직렬화/역직렬화(Serde) 방식을 지정합니다.
 - `default.value.serde`: kafka 토픽에서 메시지를 읽거나 쓸 때 값(Value)의 기본 직렬화/역직렬화(Serde) 방식을 지정합니다.
@@ -102,7 +102,7 @@ fun streamsConfig(): StreamsConfig =
 ## 2. 레코드 역직렬화를 위한 Serde 객체 생성
 
 kafka에서 기본적으로 제공하는 [Serde](https://docs.confluent.io/platform/current/streams/developer-guide/datatypes.html#available-serdes)를 사용하거나, 필요한 형태의 레코드를 사용하기 위해서 커스텀한 객체 생성이 필요합니다.<br/>
-여기서는 Json 형태의 `StreamMessage<Payment>` 객체로 메시지 값을 역직렬화화기 위해 커스텀한 Serde 객체를 생성해보겠습니다. 
+여기서는 Json 형태의 `StreamMessage<Payment>` 객체로 메시지 값을 역직렬화화기 위해 커스텀한 Serde 객체를 생성해보겠습니다.
 
 ```kotlin
 // SerdeFactory.kt
@@ -130,18 +130,18 @@ fun messagePaymentSerde(): JsonSerde<StreamMessage<Payment>> {
 - **`JsonDeserializer` 생성**
   - 역직렬화 대상 타입 지정
     - `JsonDeserializer`는 JSON 문자열을 어떤 객체로 변환해야 하는지 알아야 하므로 역직렬화 대상 타입을 지정해야 합니다.
-  - JSON 처리를 위한 `ObjectMapper` 
+  - JSON 처리를 위한 `ObjectMapper`
     - 날짜 형식, 특정 필드 무시, null 값 처리 등 다양한 JSON 처리 관련 설정이 적용된 `objectMapper` 인스턴스를 주입받아 일관된 방식으로 JSON을 처리할 수 있습니다.
   - `failOnUnknownProperties` 플래그
     - JsonDeserializer가 알 수 없는 JSON 속성(ex. 대상 객체에 매핑될 필드가 없는 속성)을 만났을 때 어떻게 동작할지를 결정합니다.
       - false: JSON 데이터에 역직렬화 대상 타입 객체에 정의되지 않은 속성이 있더라도 오류를 발생시키지 않고 해당 속성을 무시합니다.
-      - true: 역직렬화 대상 타입 객체에 알 수 없는 속성이 있을 경우 역직렬화 과정에서 예외가 발생합니다. 
+      - true: 역직렬화 대상 타입 객체에 알 수 없는 속성이 있을 경우 역직렬화 과정에서 예외가 발생합니다.
 - **신뢰할 수 있는 패키지 설정**
   - Jackson이 역직렬화를 수행할 때, 아무 클래스나 역직렬화하지 않도록 제한하는 기능입니다.
   - addTrustedPackages() 메서드를 사용하여 역직렬화가 허용되는 패키지 경로를 명시적으로 지정합니다.
 - **`JsonSerde` 객체 생성 및 반환**
   - `JsonSerde`는 kafka 스트림즈에서 사용할 수 있도록 Serializer와 Deserializer를 하나로 묶은 클래스입니다.
-  - 이렇게 생성된 `JsonSerde<StreamMessage<Payment>>` 객체는 kafka 스트림즈 토폴로지에서 `StreamMessage<Payment>` 타입의 데이터를 읽고 쓸 때 사용됩니다. 
+  - 이렇게 생성된 `JsonSerde<StreamMessage<Payment>>` 객체는 kafka 스트림즈 토폴로지에서 `StreamMessage<Payment>` 타입의 데이터를 읽고 쓸 때 사용됩니다.
 
 📚 [Kafka Streams Data Types and Serialization for Confluent Platform](https://docs.confluent.io/platform/current/streams/developer-guide/datatypes.html#kstreams-data-types-and-serialization-for-cp)
 
@@ -149,11 +149,9 @@ fun messagePaymentSerde(): JsonSerde<StreamMessage<Payment>> {
 
 kafka 스트림즈 적용을 위한 기본적인 준비는 되었습니다. 이제 생성하게 될 토폴로지의 구성을 살펴보겠습니다.
 
-<center>
-  <img src="https://github.com/jihunparkme/blog/blob/main/img/kafka-streams/topology-example.png?raw=true" width="60%">
-</center>
+![처리 토폴로지 구성](https://github.com/jihunparkme/blog/blob/main/img/kafka-streams/topology-example.png?raw=true)
 
-토폴로지를 정의하기 위해 먼저 `StreamsBuilder`라는 빌더 생성이 필요합니다. 
+토폴로지를 정의하기 위해 먼저 `StreamsBuilder`라는 빌더 생성이 필요합니다.
 - `StreamsBuilder`를 사용해서 여러 프로세서를 연결하고, 데이터 처리 파이프라인을 구축할 수 있습니다.
 
 ```kotlin
@@ -161,7 +159,7 @@ kafka 스트림즈 적용을 위한 기본적인 준비는 되었습니다. 이�
 val builder = StreamsBuilder()
 ```
 
-이제 정산 데이터 생성을 위해 여섯 단계의 토폴로지를 한 개씩 만들어 보겠습니다. 
+이제 정산 데이터 생성을 위해 여섯 단계의 토폴로지를 한 개씩 만들어 보겠습니다.
 
 ### 1단계. 토픽으로부터 결제 데이터 받기
 
@@ -194,7 +192,7 @@ paymentStream
 ![결제 메시지 저장](https://github.com/jihunparkme/blog/blob/main/img/kafka-streams/example-peek.png?raw=true)
 
 `stream` 메서드를 통해 수신되는 결제 데이터를 [peek](https://docs.confluent.io/platform/7.9/streams/javadocs/javadoc/org/apache/kafka/streams/kstream/KStream.html#peek-org.apache.kafka.streams.kstream.ForeachAction-) 연산에 적용된 람다 함수를 통해 로그에 저장합니다. `peek` 메서드는 각 레코드에 대해 작업을 수행하고 변경되지 않은 스트림을 반환합니다. peek는 로깅이나 메트릭 추적, 디버깅 및 트러블슈팅과 같은 상황에 유용하게 사용할 수 있습니다. 만일 스트림 데이터에 대한 수정 작업이 필요할 경우 `map`, `mapValues` 같은 메서드를 사용할 수 있습니다.
-  
+
 ```kotlin
 paymentStream // 스트림을 통해 들어오는 모든 결제 메시지를 로그로 저장
     .peek({ _, message -> settlementService.savePaymentMessageLog(message) }) 
@@ -232,13 +230,15 @@ class BaseMapper() : ValueMapper<StreamMessage<Payment>, Base> { // ValueMapper 
 
 ### 4단계. 비정산 또는 중복 결제건 필터링
 
-<center>
-  <img src="https://github.com/jihunparkme/blog/blob/main/img/kafka-streams/example-filter.png?raw=true" width="100%">
-</center>
+
+
+
+
+![비정산 또는 중복 결제건 필터링](https://github.com/jihunparkme/blog/blob/main/img/kafka-streams/example-filter.png?raw=true)
 
 베이스가 생성되고 결제 데이터 중에서도 비정산(테스트 결제, 비정산 가맹점, 망취소, 미확인 등) 또는 중복 결제건에 해당하는 데이터는 UnSettlement, Duplicated로 분류하고,<br/>
 정산 대상의 데이터만 다음 파이프라인을 이어갈 수 있도록 [filter](https://docs.confluent.io/platform/7.9/streams/javadocs/javadoc/org/apache/kafka/streams/kstream/KStream.html#filter-org.apache.kafka.streams.kstream.Predicate-) 메서드를 사용합니다.
-- 비정산과 중복 대상은 별도의 filter 프로세서로 처리하는 것이 명확하지만, 설명의 간소화를 위해 합치게 되었습니다.  
+- 비정산과 중복 대상은 별도의 filter 프로세서로 처리하는 것이 명확하지만, 설명의 간소화를 위해 합치게 되었습니다.
 
 `filter` 메서드는 주어진 조건을 만족하는 레코드의 KStream을 반환하고, 조건을 만족하지 않는 레코드는 삭제됩니다.
 
