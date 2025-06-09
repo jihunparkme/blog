@@ -184,8 +184,9 @@ val paymentStream: KStream<String, StreamMessage<Payment>> = builder.stream( // 
 토폴로지에 추가된 스트림이 정상적으로 동작하는지 확인하고 싶다면, 디버깅/테스트 환경에서 [print](https://docs.confluent.io/platform/7.9/streams/javadocs/javadoc/org/apache/kafka/streams/kstream/KStream.html#print-org.apache.kafka.streams.kstream.Printed-) 메서드를 활용해서 단계별로 레코드의 상태를 확인할 수도 있습니다.
 
 ```kotlin
+paymentStream
+    .print(Printed.toSysOut<String, StreamMessage<Payment>>().withLabel("payment-stream"))
 // [payment-stream]: 5a54041d-2cce-43f5-8194-299acb8e8766, StreamMessage(channel=OFFLINE, action=PAYMENT, data=Payment(paymentType=OFFLINE, amount=65218, payoutDate=2025-05-21, confirmDate=2025-05-21, merchantNumber=merchant-1881, paymentDate=2025-05-19T21:48:15.989609, paymentActionType=PAYMENT, paymentMethodType=CARD))
-paymentStream.print(Printed.toSysOut<String, StreamMessage<Payment>>().withLabel("payment-stream"))
 ```
 
 ### 2단계. 결제 메시지 저장
@@ -194,15 +195,13 @@ paymentStream.print(Printed.toSysOut<String, StreamMessage<Payment>>().withLabel
   <img src="https://github.com/jihunparkme/blog/blob/main/img/kafka-streams/example-peek.png?raw=true" width="80%">
 </center>
 
-`stream` 메서드를 통해 수신한 결제 데이터를 [peek](https://docs.confluent.io/platform/7.9/streams/javadocs/javadoc/org/apache/kafka/streams/kstream/KStream.html#peek-org.apache.kafka.streams.kstream.ForeachAction-) 연산에 적용된 람다 함수를 통해 로그에 저장합니다.
-
-`peek` 메서드는 각 레코드에 대해 작업을 수행하고 변경되지 않은 스트림을 반환합니다.
+`stream` 메서드를 통해 수신되는 결제 데이터를 [peek](https://docs.confluent.io/platform/7.9/streams/javadocs/javadoc/org/apache/kafka/streams/kstream/KStream.html#peek-org.apache.kafka.streams.kstream.ForeachAction-) 연산에 적용된 람다 함수를 통해 로그에 저장합니다. `peek` 메서드는 각 레코드에 대해 작업을 수행하고 변경되지 않은 스트림을 반환합니다.
 - peek는 로깅이나 메트릭 추적, 디버깅 및 트러블슈팅과 같은 상황에 유용하게 사용할 수 있습니다.
 - 스트림 데이터에 대한 수정 작업이 필요할 경우 `map`, `mapValues` 같은 메서드를 사용할 수 있습니다.
-
+  
 ```kotlin
-paymentStream
-    .peek({ _, message -> settlementService.savePaymentMessageLog(message) })
+paymentStream // 스트림을 통해 들어오는 모든 결제 메시지를 로그로 저장
+    .peek({ _, message -> settlementService.savePaymentMessageLog(message) }) 
 ```
 
 ### 3단계. 결제 데이터로 정산 베이스 생성
@@ -239,7 +238,6 @@ class BaseMapper() : ValueMapper<StreamMessage<Payment>, Base> {
     )
   }
 }
-
 ```
 
 ### 4단계. 비정산 또는 중복 결제건 필터링
