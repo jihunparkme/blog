@@ -64,8 +64,8 @@ Streams DSL 에서 제공하는 추상화된 모든 메서드는 [Kafka Streams 
 
 ## 1. StreamsConfig 인스턴스 생성
 
-`StreamsConfig`에는 카프카 스트림즈 애플리케이션의 동작 방식을 정의하는 다양한 설정들이 들어갑니다.
-- 애플리케이션의 기본 동작, 카프카 클러스터 연결, 데이터 직렬화/역직렬화, 상태 관리, 장애 처리, 성능 튜닝 등
+`StreamsConfig`에는 kafka 스트림즈 애플리케이션의 동작 방식을 정의하는 다양한 설정들이 들어갑니다.
+- 애플리케이션의 기본 동작, kafka 클러스터 연결, 데이터 직렬화/역직렬화, 상태 관리, 장애 처리, 성능 튜닝 등
 
 ```kotlin
 // SettlementKafkaStreamsApp.kt
@@ -87,21 +87,21 @@ fun streamsConfig(): StreamsConfig =
     })
 ```
 
-여기서 사용할 카프카 스트림즈 애플리케이션의 설정을 살펴보겠습니다.
+여기서 사용할 kafka 스트림즈 애플리케이션의 설정을 살펴보겠습니다.
 
-- `application.id`: 카프카 스트림즈 애플리케이션의 **고유 식별자**입니다. 
-  - 카프카 클러스터 내에서 유일해야 하며, **Kafka Consumer Group ID**로 사용됩니다.
-- `bootstrap.servers`: 카프카 브로커 서버의 주소 목록을 지정합니다. 
+- `application.id`: kafka 스트림즈 애플리케이션의 **고유 식별자**입니다. 
+  - kafka 클러스터 내에서 유일해야 하며, **Kafka Consumer Group ID**로 사용됩니다.
+- `bootstrap.servers`: kafka 브로커 서버의 주소 목록을 지정합니다. 
   - 초기 연결을 위해 사용되며, `host:port` 형태로 쉼표로 구분하여 여러 개 지정이 가능합니다.
-- `default.key.serde`: 카프카 토픽에서 메시지를 읽거나 쓸 때 키(Key)의 기본 직렬화/역직렬화(Serde) 방식을 지정합니다.
-- `default.value.serde`: 카프카 토픽에서 메시지를 읽거나 쓸 때 값(Value)의 기본 직렬화/역직렬화(Serde) 방식을 지정합니다.
+- `default.key.serde`: kafka 토픽에서 메시지를 읽거나 쓸 때 키(Key)의 기본 직렬화/역직렬화(Serde) 방식을 지정합니다.
+- `default.value.serde`: kafka 토픽에서 메시지를 읽거나 쓸 때 값(Value)의 기본 직렬화/역직렬화(Serde) 방식을 지정합니다.
   - 메시지 키/값의 Serde 객체는 기본값 설정이 되어 있지 않으므로 명시적으로 설정해 주어야 합니다.
   - 커스텀한 Serde 객체를 사용할 수도 있습니다.
-- `consumer.auto.offset.reset`: 카프카 컨슈머의 오프셋을 설정합니다.
+- `consumer.auto.offset.reset`: kafka 컨슈머의 오프셋을 설정합니다.
 
 ## 2. 레코드 역직렬화를 위한 Serde 객체 생성
 
-카프카에서 기본적으로 제공하는 [Serde](https://docs.confluent.io/platform/current/streams/developer-guide/datatypes.html#available-serdes)를 사용하거나, 필요한 형태의 레코드를 사용하기 위해서 커스텀한 객체 생성이 필요합니다.<br/>
+kafka에서 기본적으로 제공하는 [Serde](https://docs.confluent.io/platform/current/streams/developer-guide/datatypes.html#available-serdes)를 사용하거나, 필요한 형태의 레코드를 사용하기 위해서 커스텀한 객체 생성이 필요합니다.<br/>
 여기서는 Json 형태의 `StreamMessage<Payment>` 객체로 메시지 값을 역직렬화화기 위해 커스텀한 Serde 객체를 생성해보겠습니다. 
 
 ```kotlin
@@ -140,25 +140,14 @@ fun messagePaymentSerde(): JsonSerde<StreamMessage<Payment>> {
   - Jackson이 역직렬화를 수행할 때, 아무 클래스나 역직렬화하지 않도록 제한하는 기능입니다.
   - addTrustedPackages() 메서드를 사용하여 역직렬화가 허용되는 패키지 경로를 명시적으로 지정합니다.
 - **`JsonSerde` 객체 생성 및 반환**
-  - `JsonSerde`는 카프카 스트림즈에서 사용할 수 있도록 Serializer와 Deserializer를 하나로 묶은 클래스입니다.
-  - 이렇게 생성된 `JsonSerde<StreamMessage<Payment>>` 객체는 카프카 스트림즈 토폴로지에서 `StreamMessage<Payment>` 타입의 데이터를 읽고 쓸 때 사용됩니다. 
+  - `JsonSerde`는 kafka 스트림즈에서 사용할 수 있도록 Serializer와 Deserializer를 하나로 묶은 클래스입니다.
+  - 이렇게 생성된 `JsonSerde<StreamMessage<Payment>>` 객체는 kafka 스트림즈 토폴로지에서 `StreamMessage<Payment>` 타입의 데이터를 읽고 쓸 때 사용됩니다. 
 
 📚 [Kafka Streams Data Types and Serialization for Confluent Platform](https://docs.confluent.io/platform/current/streams/developer-guide/datatypes.html#kstreams-data-types-and-serialization-for-cp)
 
 ## 3. 처리 토폴로지 구성
 
-
-
-
-
-
-
-
-
-
-
-
-카프카 스트림즈 적용을 위한 기본적인 준비는 되었습니다. 이제 생성하게 될 토폴로지의 구성을 살펴보겠습니다.
+kafka 스트림즈 적용을 위한 기본적인 준비는 되었습니다. 이제 생성하게 될 토폴로지의 구성을 살펴보겠습니다.
 
 <center>
   <img src="https://github.com/jihunparkme/blog/blob/main/img/kafka-streams/topology-example.png?raw=true" width="60%">
@@ -176,24 +165,23 @@ val builder = StreamsBuilder()
 
 ### 1단계. 토픽으로부터 결제 데이터 받기
 
-<center>
-  <img src="https://github.com/jihunparkme/blog/blob/main/img/kafka-streams/source-processor.png?raw=true" width="50%">
-</center>
+![토픽으로부터 결제 데이터 받기](https://github.com/jihunparkme/blog/blob/main/img/kafka-streams/source-processor.png?raw=true)
 
-소스 스트림에 해당하는 `stream` 메서드(input topics → KStream)는 토픽으로부터 소비한 메시지를 명시한 Serdes 객체 형태에 맞게 매핑하고 레코드 스트림 [KStream](https://docs.confluent.io/platform/current/streams/concepts.html#kstream)을 생성합니다.
-- `Serdes`를 명시적으로 지정하지 않으면 streamsConfig 구성의 기본 Serdes가 사용되고, Kafka 입력 토픽에 있는 레코드의 키 또는 값 유형이 구성된 기본 Serdes와 일치하지 않는 경우 Serdes를 명시적으로 지정해야 합니다.
+소스 스트림에 해당하는 `stream` 메서드(input topics → KStream)는 토픽으로부터 소비한 메시지를 명시한 Serde 객체 형태에 맞게 매핑하고 레코드 스트림 [KStream](https://docs.confluent.io/platform/current/streams/concepts.html#kstream)을 생성합니다.
+- `Serde`를 명시적으로 지정하지 않으면 streamsConfig 구성의 기본 Serde가 사용되고, Kafka 입력 토픽에 있는 레코드의 키/값 유형이 구성된 기본 Serde와 일치하지 않는 경우 Serde를 명시적으로 지정해야 합니다.
 
 ```kotlin
-val paymentStream: KStream<String, StreamMessage<Payment>> = builder.stream(
-  kafkaProperties.paymentTopic,
-  Consumed.with(
+// SettlementKafkaStreamsApp.kt
+val paymentStream: KStream<String, StreamMessage<Payment>> = builder.stream( // 입력 스트림(소스 프로세서)을 토폴로지에 추가
+  kafkaProperties.paymentTopic, // 데이터를 읽어올 Kafka 토픽 이름
+  Consumed.with( // 키와 값의 직렬화/역직렬화기(Serde) 지정
     Serdes.String(),
-    serdeFactory.messagePaymentSerde()
+    serdeFactory.messagePaymentSerde() // Serde 객체 생성 단계에서 생성한 Serde를 사용
   )
 )
 ```
 
-디버깅/테스트 환경에서 print 메서드를 활용해서 단계별로 레코드의 상태를 확인할 수도 있습니다.
+토폴로지에 추가된 스트림이 정상적으로 동작하는지 확인하고 싶다면, 디버깅/테스트 환경에서 [print](https://docs.confluent.io/platform/7.9/streams/javadocs/javadoc/org/apache/kafka/streams/kstream/KStream.html#print-org.apache.kafka.streams.kstream.Printed-) 메서드를 활용해서 단계별로 레코드의 상태를 확인할 수도 있습니다.
 
 ```kotlin
 // [payment-stream]: 5a54041d-2cce-43f5-8194-299acb8e8766, StreamMessage(channel=OFFLINE, action=PAYMENT, data=Payment(paymentType=OFFLINE, amount=65218, payoutDate=2025-05-21, confirmDate=2025-05-21, merchantNumber=merchant-1881, paymentDate=2025-05-19T21:48:15.989609, paymentActionType=PAYMENT, paymentMethodType=CARD))
@@ -280,7 +268,7 @@ paymentStream
 정산 대상의 데이터에 지급룰 정보를 세팅하려고 합니다.<br/>
 지급룰은 API 호출을 통해 제공받고 있는데, 중복되는 지급룰은 따로 저장해서 API 호출로 인한 네트워크 통신 비용을 절약하고자 합니다.
 
-이 상황에서 단순하게 레디스를 활용할 수도 있지만 카프카 스트림즈의 `상태 저장소`를 사용해 보려고 합니다.<br/>
+이 상황에서 단순하게 레디스를 활용할 수도 있지만 kafka streams의 `상태 저장소`를 사용해 보려고 합니다.<br/>
 상태 저장소는 `RocksDB`와 같은 로컬 저장소를 활용하여 `KTable`로 키-값 데이터를 관리하고, `변경 로그 토픽`을 통해 상태를 복원하여 내결함성을 제공하며, `윈도우 기반 처리`로 특정 기간 내 데이터 집계 및 분석이 가능합니다.
 
 `상태 저장소`를 연결해서 레코드를 하나씩 처리하기 위해 [processValues()](https://docs.confluent.io/platform/7.9/streams/javadocs/javadoc/org/apache/kafka/streams/kstream/KStream.html#processValues-org.apache.kafka.streams.processor.api.FixedKeyProcessorSupplier-java.lang.String...-) 메서드를 사용합니다.<br/>
@@ -417,7 +405,7 @@ merchant-4436/2025-05-26/PAYMENT/MONEY
 
 💡**상태 저장소를 사용하는 방식**
 
-카프카 스트림즈에서 상태를 관리하고 상태 저장소를 활용하는 주요 방법으로 `KTable`과 `GlobalKTable`이 있습니다.
+kafka streams에서 상태를 관리하고 상태 저장소를 활용하는 주요 방법으로 `KTable`과 `GlobalKTable`이 있습니다.
 
 두 방식에 대한 차이를 잠시 보고 넘어가보려고 합니다.
 
@@ -526,7 +514,7 @@ aggregatedTable.toStream()
     )
 ```
 
-## 4. 카프카 스트림즈 인스턴스 생성
+## 4. kafka streams 인스턴스 생성
 
 KafkaStreams 인스턴스의 [start()](https://docs.confluent.io/platform/7.9/streams/javadocs/javadoc/org/apache/kafka/streams/KafkaStreams.html#start--) 메서드를 호출하면 인스턴스를 시작할 수 있습니다.
 
@@ -559,7 +547,7 @@ class KafkaStreamsRunner(
 
 ## 전체 코드
 
-지금까지의 과정을 연결시켜보면 집계 부분이 다소 코드가 길어보일 수 있지만, 카프카 스트림즈를 통해 간결한 코드로 파이프라인을 형성할 수 있게 되었습니다.
+지금까지의 과정을 연결시켜보면 집계 부분이 다소 코드가 길어보일 수 있지만, kafka streams를 통해 간결한 코드로 파이프라인을 형성할 수 있게 되었습니다.
 
 ```kotlin
 @Bean
@@ -624,8 +612,8 @@ fun settlementStreams(): KafkaStreams {
 
 ## 마치며
 
-기존 비실시간으로 처리되던 처리를 실시간으로 스트림하게 처리되도록 적용해 보면서 카프카 스트림즈에 대한 매력을 맛볼 수 있었습니다.<br/>
-카프카를 사용하여 복잡한 로직을 처리중이시다면 카프카 스트림즈를 활용하여 간편하게 스트림 처리 애플리케이션을 구축해보는게 어떨까요?
+기존 비실시간으로 처리되던 처리를 실시간으로 스트림하게 처리되도록 적용해 보면서 kafka streams에 대한 매력을 맛볼 수 있었습니다.<br/>
+kafka를 사용하여 복잡한 로직을 처리중이시다면 kafka streams를 활용하여 간편하게 스트림 처리 애플리케이션을 구축해보는게 어떨까요?
 
 ## 참고
 - [Kafka Streams Domain Specific Language for Confluent Platform](https://docs.confluent.io/platform/current/streams/developer-guide/dsl-api.html)
