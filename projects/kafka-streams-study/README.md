@@ -156,7 +156,12 @@ kafka 스트림즈 적용을 위한 기본적인 준비는 되었습니다. 이�
 
 ```kotlin
 // SettlementKafkaStreamsApp.kt
-val builder = StreamsBuilder()
+@Bean
+fun settlementStreams(): KafkaStreams {
+    // ...
+    val builder = StreamsBuilder()
+    // ...
+}
 ```
 
 이제 정산 데이터 생성을 위해 여섯 단계의 토폴로지를 한 개씩 만들어 보겠습니다.
@@ -170,43 +175,66 @@ val builder = StreamsBuilder()
 
 ```kotlin
 // SettlementKafkaStreamsApp.kt
-val paymentStream: KStream<String, StreamMessage<Payment>> = builder.stream( // 입력 스트림(소스 프로세서)을 토폴로지에 추가
-  kafkaProperties.paymentTopic, // 데이터를 읽어올 Kafka 토픽 이름
-  Consumed.with( // 키와 값의 직렬화/역직렬화기(Serde) 지정
-    Serdes.String(),
-    serdeFactory.messagePaymentSerde() // Serde 객체 생성 단계에서 생성한 Serde를 사용
-  )
-)
+@Bean
+fun settlementStreams(): KafkaStreams {
+    // ...
+    val paymentStream: KStream<String, StreamMessage<Payment>> = builder.stream( // 입력 스트림(소스 프로세서)을 토폴로지에 추가
+        kafkaProperties.paymentTopic, // 데이터를 읽어올 Kafka 토픽 이름
+        Consumed.with( // 키와 값의 직렬화/역직렬화기(Serde) 지정
+            Serdes.String(),
+            serdeFactory.messagePaymentSerde() // Serde 객체 생성 단계에서 생성한 Serde를 사용
+        )
+    )
+    // ...
+}
 ```
 
-토폴로지에 추가된 스트림이 정상적으로 동작하는지 확인하고 싶다면, 디버깅/테스트 환경에서 [print](https://docs.confluent.io/platform/7.9/streams/javadocs/javadoc/org/apache/kafka/streams/kstream/KStream.html#print-org.apache.kafka.streams.kstream.Printed-) 메서드를 활용해서 단계별로 레코드의 상태를 확인할 수도 있습니다.
+토폴로지에 추가된 스트림이 정상적으로 동작하는지 확인하고 싶다면, 디버깅/테스트 환경에서 [print()](https://docs.confluent.io/platform/7.9/streams/javadocs/javadoc/org/apache/kafka/streams/kstream/KStream.html#print-org.apache.kafka.streams.kstream.Printed-) 메서드를 활용해서 단계별로 레코드의 상태를 확인할 수도 있습니다.
 
 ```kotlin
-paymentStream
-    .print(Printed.toSysOut<String, StreamMessage<Payment>>().withLabel("payment-stream"))
-// [payment-stream]: 5a54041d-2cce-43f5-8194-299acb8e8766, StreamMessage(channel=OFFLINE, action=PAYMENT, data=Payment(paymentType=OFFLINE, amount=65218, payoutDate=2025-05-21, confirmDate=2025-05-21, merchantNumber=merchant-1881, paymentDate=2025-05-19T21:48:15.989609, paymentActionType=PAYMENT, paymentMethodType=CARD))
+// SettlementKafkaStreamsApp.kt
+@Bean
+fun settlementStreams(): KafkaStreams {
+    // ...
+    paymentStream 
+        .print(Printed.toSysOut<String, StreamMessage<Payment>>().withLabel("payment-stream"))
+        // [payment-stream]: 5a54041d-2cce-43f5-8194-299acb8e8766, StreamMessage(channel=OFFLINE, action=PAYMENT, data=Payment(paymentType=OFFLINE, amount=65218, payoutDate=2025-05-21, confirmDate=2025-05-21, merchantNumber=merchant-1881, paymentDate=2025-05-19T21:48:15.989609, paymentActionType=PAYMENT, paymentMethodType=CARD))
+  // ...
+}
 ```
 
 ### 2단계. 결제 메시지 저장
 
 ![결제 메시지 저장](https://github.com/jihunparkme/blog/blob/main/img/kafka-streams/example-peek.png?raw=true)
 
-`stream` 메서드를 통해 수신되는 결제 데이터를 [peek](https://docs.confluent.io/platform/7.9/streams/javadocs/javadoc/org/apache/kafka/streams/kstream/KStream.html#peek-org.apache.kafka.streams.kstream.ForeachAction-) 연산에 적용된 람다 함수를 통해 로그에 저장합니다. `peek` 메서드는 각 레코드에 대해 작업을 수행하고 변경되지 않은 스트림을 반환합니다. peek는 로깅이나 메트릭 추적, 디버깅 및 트러블슈팅과 같은 상황에 유용하게 사용할 수 있습니다. 만일 스트림 데이터에 대한 수정 작업이 필요할 경우 `map`, `mapValues` 같은 메서드를 사용할 수 있습니다.
+`stream` 메서드를 통해 수신되는 결제 데이터를 [peek()](https://docs.confluent.io/platform/7.9/streams/javadocs/javadoc/org/apache/kafka/streams/kstream/KStream.html#peek-org.apache.kafka.streams.kstream.ForeachAction-) 연산에 적용된 람다 함수를 통해 로그에 저장합니다. `peek` 메서드는 각 레코드에 대해 작업을 수행하고 변경되지 않은 스트림을 반환합니다. peek는 로깅이나 메트릭 추적, 디버깅 및 트러블슈팅과 같은 상황에 유용하게 사용할 수 있습니다. 만일 스트림 데이터에 대한 수정 작업이 필요할 경우 `map`, `mapValues` 같은 메서드를 사용할 수 있습니다.
 
 ```kotlin
-paymentStream // 스트림을 통해 들어오는 모든 결제 메시지를 로그로 저장
-    .peek({ _, message -> settlementService.savePaymentMessageLog(message) }) 
+// SettlementKafkaStreamsApp.kt
+@Bean
+fun settlementStreams(): KafkaStreams {
+    // ...
+    paymentStream // 스트림을 통해 들어오는 모든 결제 메시지를 로그로 저장
+        .peek({ _, message -> settlementService.savePaymentMessageLog(message) })
+    // ...
+}
 ```
 
 ### 3단계. 결제 데이터로 정산 베이스 생성
 
 ![결제 데이터로 정산 베이스 생성](https://github.com/jihunparkme/blog/blob/main/img/kafka-streams/example-mapValue.png?raw=true)
 
-[mapValues](https://docs.confluent.io/platform/7.9/streams/javadocs/javadoc/org/apache/kafka/streams/kstream/KStream.html#map-org.apache.kafka.streams.kstream.KeyValueMapper-) 메서드를 통해 스트림의 각 레코드에 대해 키는 그대로 유지하면서, 값만을 새로운 타입(`Base`)으로 변환합니다. 변환 로직은 인자로 전달된 `ValueMapper` 인터페이스의 구현체에 의해 정의됩니다.
+[mapValues()](https://docs.confluent.io/platform/7.9/streams/javadocs/javadoc/org/apache/kafka/streams/kstream/KStream.html#map-org.apache.kafka.streams.kstream.KeyValueMapper-) 메서드를 통해 스트림의 각 레코드에 대해 키는 그대로 유지하면서, 값만을 새로운 타입(`Base`)으로 변환합니다. 변환 로직은 인자로 전달된 `ValueMapper` 인터페이스의 구현체에 의해 정의됩니다.
 
 ```kotlin
-paymentStream
-    .mapValues(BaseMapper())
+// SettlementKafkaStreamsApp.kt
+@Bean
+fun settlementStreams(): KafkaStreams {
+    // ...
+    paymentStream
+        .mapValues(BaseMapper())
+    // ...
+}
 ```
 
 `mapValues` 메서드에 전달하기 위한 `ValueMapper` 구현체를 정의해 보겠습니다. `ValueMapper<V, VR>` 인터페이스는 입력 값 타입 `V`를 출력 값 타입 `VR`로 변환하는 역할을 합니다. 여기서 입력 값 타입 `V`는 `StreamMessage<Payment>`, 출력 값 타입 `VR`은 `Base`에 해당하고, 기존 스트림의 값을 어떻게 변환할지에 대한 구체적인 로직을 정의합니다.
@@ -233,54 +261,59 @@ class BaseMapper() : ValueMapper<StreamMessage<Payment>, Base> { // ValueMapper 
 
 ![비정산 또는 중복 결제건 필터링](https://github.com/jihunparkme/blog/blob/main/img/kafka-streams/example-filter.png?raw=true)
 
-베이스가 생성된 후, 결제 데이터 중에서 비정산(테스트 결제, 비정산 가맹점, 망 취소, 미확인 등) 또는 중복된 건들은 UnSettlement, Duplicated로 분류합니다. 이렇게 분류된 데이터 중 정산 대상에 해당하는 데이터만 다음 파이프라인으로 이어지도록 [filter](https://docs.confluent.io/platform/7.9/streams/javadocs/javadoc/org/apache/kafka/streams/kstream/KStream.html#filter-org.apache.kafka.streams.kstream.Predicate-) 메서드를 사용합니다. 
+베이스가 생성된 후, 결제 데이터 중에서 비정산(테스트 결제, 비정산 가맹점, 망 취소, 미확인 등) 또는 중복된 건들은 UnSettlement, Duplicated로 분류합니다. 이렇게 분류된 데이터 중 정산 대상에 해당하는 데이터만 다음 파이프라인으로 이어지도록 [filter()](https://docs.confluent.io/platform/7.9/streams/javadocs/javadoc/org/apache/kafka/streams/kstream/KStream.html#filter-org.apache.kafka.streams.kstream.Predicate-) 메서드를 사용합니다. 
 
 원칙적으로 비정산 결제 건과 중복 결제 건 필터링은 각각 별도의 프로세서로 구현하는 것이 더 명확하겠지만, 이 글에서는 설명의 간결함을 위해 하나의 단계로 합쳤습니다. filter 메서드는 주어진 조건을 만족하는 레코드만으로 구성된 새로운 KStream을 반환하며, 조건을 만족하지 않는 레코드는 스트림에서 제외됩니다.
 
 ```kotlin
-paymentStream
-    .filter { _, base -> settlementService.isSettlement(base) }
+// SettlementKafkaStreamsApp.kt
+@Bean
+fun settlementStreams(): KafkaStreams {
+    // ...
+    paymentStream
+        .filter { _, base -> settlementService.isSettlement(base) }
+    // ...
+}
 ```
 
 ### 5단계. 지급룰 조회 및 세팅
 
-<center>
-  <img src="https://github.com/jihunparkme/blog/blob/main/img/kafka-streams/example-processValues.png?raw=true" width="100%">
-</center>
+![지급룰 조회 및 세팅](https://github.com/jihunparkme/blog/blob/main/img/kafka-streams/example-processValues.png?raw=true)
 
-정산 대상의 데이터에 지급룰 정보를 세팅하려고 합니다.<br/>
-지급룰은 API 호출을 통해 제공받고 있는데, 중복되는 지급룰은 따로 저장해서 API 호출로 인한 네트워크 통신 비용을 절약하고자 합니다.
+이제 필터링된 정산 대상 데이터에 지급 규칙 정보를 설정할 차례입니다. 지급 규칙은 API 호출을 통해 조회하는데, 동일한 규칙을 사용하는 데이터에 대해 중복 API 호출을 방지하고 네트워크 통신 비용을 절감하기 위해 지급 규칙을 별도로 관리하고자 합니다.
 
-이 상황에서 단순하게 레디스를 활용할 수도 있지만 kafka streams의 `상태 저장소`를 사용해 보려고 합니다.<br/>
-상태 저장소는 `RocksDB`와 같은 로컬 저장소를 활용하여 `KTable`로 키-값 데이터를 관리하고, `변경 로그 토픽`을 통해 상태를 복원하여 내결함성을 제공하며, `윈도우 기반 처리`로 특정 기간 내 데이터 집계 및 분석이 가능합니다.
+이러한 요구사항을 해결하기 위해 `Redis`를 사용할 수도 있지만, 여기서는 Kafka Streams의 `상태 저장소`를 활용해 보겠습니다. 상태 저장소는 `RocksDB`와 같은 로컬 저장소를 사용하여 `KTable` 형태로 키-값 데이터를 관리하며, `변경 로그 토픽`을 통해 상태를 복원하여 내결함성을 보장합니다. 이렇게 구성된 상태 저장소와 연동하여 레코드를 개별적으로 처리하기 위해 [processValues()](https://docs.confluent.io/platform/7.9/streams/javadocs/javadoc/org/apache/kafka/streams/kstream/KStream.html#processValues-org.apache.kafka.streams.processor.api.FixedKeyProcessorSupplier-java.lang.String...-) 메서드를 사용합니다.
 
-`상태 저장소`를 연결해서 레코드를 하나씩 처리하기 위해 [processValues()](https://docs.confluent.io/platform/7.9/streams/javadocs/javadoc/org/apache/kafka/streams/kstream/KStream.html#processValues-org.apache.kafka.streams.processor.api.FixedKeyProcessorSupplier-java.lang.String...-) 메서드를 사용합니다.<br/>
-`.processValues()` 메서드는 스트림의 각 레코드에 대해 키는 변경되지 않고, 값만을 대상으로 사용자 정의 로직을 실행하고자 할 때 사용할 수 있습니다.<br/>
-`FixedKeyProcessorSupplier` 인터페이스를 구현한 객체를 인자로 전달하기 위해 구현체가 필요합니다.
+`processValues()` 메서드는 스트림의 각 레코드에 대해 키는 그대로 유지하면서 값만을 대상으로 사용자 정의 로직을 실행할 때 유용합니다. 이 사용자 정의 로직은 `FixedKeyProcessorSupplier` 인터페이스를 구현한 객체를 processValues() 메서드의 인자로 전달하여 정의합니다
 
 ```kotlin
 // SettlementKafkaStreamsApp.kt
-builder.globalTable( // 토폴로지에 GlobalKTable 정의
-  kafkaProperties.paymentRulesGlobalTopic, //  GlobalKTable이 데이터를 읽어올 토픽 이름
-  // 상태 저장소 설정
-  Materialized.`as`<String, Rule, KeyValueStore<Bytes, ByteArray>>( // GlobalKTable이 String 키와 Rule 값을 가지며, 내부적으로 KeyValueStore 타입의 상태 저장소를 사용할 것임을 명시
-    kafkaProperties.globalPayoutRuleStateStoreName // 내부 상태 저장소에 부여하는 고유한 이름
-  ) 
-    .withKeySerde(Serdes.String()) // GlobalKTable의 소스 토픽에서 레코드를 읽을 때 키를 역직렬화하고, 내부 상태 저장소에 키를 직렬화/역직렬화할 때 사용
-    .withValueSerde(serdeFactory.ruleSerde()) // GlobalKTable의 소스 토픽에서 레코드를 읽을 때 값을 역직렬화하고, 내부 상태 저장소에 값을 직렬화/역직렬화할 때 사용
-)
-
-// ...
-
-paymentStream 
-    .processValues( // 사용자 정의 상태 기반 값 처리 로직을 적용
-      PayoutRuleProcessValues(
-        rulesGlobalTopic = kafkaProperties.paymentRulesGlobalTopic,
-        stateStoreName = kafkaProperties.globalPayoutRuleStateStoreName,
-        payoutRuleClient = payoutRuleClient,
-        ruleKafkaTemplate = ruleKafkaTemplate,
-      ),
+@Bean
+fun settlementStreams(): KafkaStreams {
+    // ...
+    builder.globalTable( // 토폴로지에 GlobalKTable 정의
+        kafkaProperties.paymentRulesGlobalTopic, //  GlobalKTable이 데이터를 읽어올 토픽 이름
+        // 상태 저장소 설정
+        Materialized.`as`<String, Rule, KeyValueStore<Bytes, ByteArray>>( // GlobalKTable이 String 키와 Rule 값을 가지며, 내부적으로 KeyValueStore 타입의 상태 저장소를 사용할 것임을 명시
+            kafkaProperties.globalPayoutRuleStateStoreName // 내부 상태 저장소에 부여하는 고유한 이름
+        )
+            .withKeySerde(Serdes.String()) // GlobalKTable의 소스 토픽에서 레코드를 읽을 때 키를 역직렬화하고, 내부 상태 저장소에 키를 직렬화/역직렬화할 때 사용
+            .withValueSerde(serdeFactory.ruleSerde()) // GlobalKTable의 소스 토픽에서 레코드를 읽을 때 값을 역직렬화하고, 내부 상태 저장소에 값을 직렬화/역직렬화할 때 사용
     )
+
+    // ...
+    paymentStream
+        .processValues(
+            // 사용자 정의 상태 기반 값 처리 로직을 적용
+            PayoutRuleProcessValues(
+                rulesGlobalTopic = kafkaProperties.paymentRulesGlobalTopic,
+                stateStoreName = kafkaProperties.globalPayoutRuleStateStoreName,
+                payoutRuleClient = payoutRuleClient,
+                ruleKafkaTemplate = ruleKafkaTemplate,
+            ),
+        )
+    // ...
+}
 ```
 
 `FixedKeyProcessorSupplier` 인터페이스 구현체
@@ -290,7 +323,7 @@ class PayoutRuleProcessValues(
   private val rulesGlobalTopic: String, // GlobalKTable의 소스 토픽 이름
   private val stateStoreName: String, // GlobalKTable의 로컬 상태 저장소 이름
   private val payoutRuleClient: PayoutRuleClient, // 외부 API 호출을 위한 클라이언트
-  private val ruleKafkaTemplate: KafkaTemplate<String, Rule>, // 지급룰 정보를 토픽으로 보내기 위한 템플릿
+  private val ruleKafkaTemplate: KafkaTemplate<String, Rule>, // 지급룰 정보를 토픽으로 보내기 위한 카프카 템플릿
 ) : FixedKeyProcessorSupplier<String, Base, Base> {
   override fun get(): FixedKeyProcessor<String, Base, Base> {
     return PayoutRuleProcessor(rulesGlobalTopic, stateStoreName, payoutRuleClient, ruleKafkaTemplate)
@@ -330,7 +363,6 @@ class PayoutRuleProcessor(
     var rule = valueAndTimestamp?.value()
     // 상태 저장소에 지급 규칙이 없을 경우
     if (rule == null) {
-      log.info(">>> [지급룰 조회] Search payout rule.. $ruleKey")
       // 외부 API를 통해 지급룰 조회
       val findRule = payoutRuleClient.getPayoutDate(
         PayoutDateRequest(
@@ -367,8 +399,7 @@ class PayoutRuleProcessor(
 }
 ```
 
-상태 저장소에 저장되는 데이터는 `변경 로그 토픽`을 통해 상태를 복원할 수 있다고 했었는데요.<br/>
-토폴로지에 GlobalKTable을 정의할 때 GlobalKTable이 데이터를 읽어올 토픽 이름을 지정했었는데 바로 해당 토픽을 보면 지급룰 정보가 저장되어 있는 것을 확인할 수 있습니다.
+상태 저장소에 저장된 데이터는 `변경 로그 토픽`을 통해 복원됩니다. `GlobalKTable`의 경우, 정의 시 지정했던 소스 토픽 자체가 변경 로그 토픽 역할을 합니다. 해당 토픽에서 지급룰 정보의 변경 내역을 확인할 수 있습니다
 
 ```text
 [key]
