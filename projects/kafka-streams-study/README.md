@@ -435,7 +435,7 @@ Kafka Streams에서 상태를 관리하는 주요 방법으로 `KTable`과 `Glob
 
 ![정산 베이스 저장](https://github.com/jihunparkme/blog/blob/main/img/kafka-streams/example-peek-2.png?raw=true)
 
-결제 메시지 로그 저장 단계에서 사용했던 [peek()](https://docs.confluent.io/platform/7.9/streams/javadocs/javadoc/org/apache/kafka/streams/kstream/KStream.html#peek-org.apache.kafka.streams.kstream.ForeachAction-) 메서드를 활용해서 정산 베이스를 데이터베이스에 저장합니다.
+'2단계. 결제 메시지 저장' 단계에서 사용되었던 [peek()](https://docs.confluent.io/platform/7.9/streams/javadocs/javadoc/org/apache/kafka/streams/kstream/KStream.html#peek-org.apache.kafka.streams.kstream.ForeachAction-) 메서드를 활용해서 정산 베이스를 데이터베이스에 저장합니다.
 
 ```kotlin
 // SettlementKafkaStreamsApp.kt
@@ -450,39 +450,38 @@ fun settlementStreams(): KafkaStreams {
 
 ### 7단계. 집계
 
-<center>
-  <img src="https://github.com/jihunparkme/blog/blob/main/img/kafka-streams/example-aggregate.png?raw=true" width="100%">
-</center>
+![집계](https://github.com/jihunparkme/blog/blob/main/img/kafka-streams/example-aggregate.png?raw=true)
 
-정산 베이스 통계를 만들기 위해 스트림 레코드를 집계하려고 합니다.<br/>
-집계하기 전에 [groupBy](https://docs.confluent.io/platform/7.9/streams/javadocs/javadoc/org/apache/kafka/streams/kstream/KTable.html#groupBy-org.apache.kafka.streams.kstream.KeyValueMapper-)를 활용하여 스트림 레코드의 키와 값을 적절하게 지정합니다.<br/>
-결과로 생성된 `KGroupedStream`에 [aggregate](https://docs.confluent.io/platform/7.9/streams/javadocs/javadoc/org/apache/kafka/streams/kstream/KGroupedStream.html#aggregate-org.apache.kafka.streams.kstream.Initializer-org.apache.kafka.streams.kstream.Aggregator-org.apache.kafka.streams.kstream.Materialized-)를 적용하여 그룹화된 키를 기준으로 레코드의 값을 집계합니다.
-
-집계 결과는 이전 지급룰 조회 및 세팅 단계에서 언급된 `KTable` 형태로 저장되므로 조회를 위해 `Interactive Queries`를 활용할 수 있습니다.
+정산 베이스 데이터에 대한 통계를 생성하기 위해 스트림 레코드를 집계합니다. 먼저, [groupBy()](https://docs.confluent.io/platform/7.9/streams/javadocs/javadoc/org/apache/kafka/streams/kstream/KTable.html#groupBy-org.apache.kafka.streams.kstream.KeyValueMapper-) 메서드를 사용하여 집계 기준이 될 키와 값을 스트림 레코드에서 추출하여 `KGroupedStream`을 생성합니다. 그런 다음, 이 `KGroupedStream`에 [aggregate()](https://docs.confluent.io/platform/7.9/streams/javadocs/javadoc/org/apache/kafka/streams/kstream/KGroupedStream.html#aggregate-org.apache.kafka.streams.kstream.Initializer-org.apache.kafka.streams.kstream.Aggregator-org.apache.kafka.streams.kstream.Materialized-) 메서드를 적용하여 그룹화된 키를 기준으로 레코드 값을 집계합니다. 집계 결과는 `KTable` 형태로 저장되며, 이는 '5단계. 지급룰 조회 및 세팅'에서 언급된 것처럼 `Interactive Queries`를 통해 조회할 수 있습니다.
 
 ```kotlin
 // SettlementKafkaStreamsApp.kt
-val aggregatedTable: KTable<BaseAggregationKey, BaseAggregateValue> = baseStream.groupBy(
-  { _, base -> base.toAggregationKey() }, // 집계에 사용될 키
-  Grouped.with( // 그룹화 연산을 수행할 때 키와 값을 어떻게 직렬화/역직렬화할지 명시
-    serdeFactory.baseAggregationKeySerde(),
-    serdeFactory.baseSerde()
-  )
-)
-  .aggregate( // groupBy를 통해 생성된 KGroupedStream에 대해 각 그룹별로 집계 연산을 수행
-    { BaseAggregateValue() }, // 신규 그룹 키가 생성될 때, 해당 그룹의 집계를 시작하기 위한 초기값
-    { _aggKey, newBaseValue, currentAggregate -> // 각 그룹에 새로운 레코드가 도착할 때마다 호출
-      currentAggregate.updateWith(newBaseValue.amount) // (그룹 키, 새로운 값, 현재 집계값) -> 새로운 집계값
-    },
-    // 집계 연산 결과를 상태 저장소에 저장하기 위한 설정
-    Materialized.`as`<BaseAggregationKey, BaseAggregateValue, KeyValueStore<Bytes, ByteArray>>(
-      kafkaProperties.statisticsStoreName
+@Bean
+fun settlementStreams(): KafkaStreams {
+    // ...
+    val aggregatedTable: KTable<BaseAggregationKey, BaseAggregateValue> = baseStream.groupBy( // baseStream을 그룹화하고 집계하여 KTable을 생성
+        { _, base -> base.toAggregationKey() }, // 각 Base 객체에서 집계에 사용할 키 추출
+        Grouped.with( // 그룹화 연산 시 사용할 키와 값의 직렬화/역직렬화기(Serde) 설정
+            serdeFactory.baseAggregationKeySerde(), // 그룹화 키를 위한 Serde
+            serdeFactory.baseSerde() // 그룹화될 값을 위한 Serde
+        )
     )
-      .withKeySerde(serdeFactory.baseAggregationKeySerde())
-      .withValueSerde(serdeFactory.baseAggregateValueSerde())
-  )
+        .aggregate( // 그룹화된 스트림(KGroupedStream)에 대해 집계 연산을 수행
+            { BaseAggregateValue() }, // 새로운 그룹이 생성될 때 사용할 초기 집계값 정의
+            { _aggKey, newBaseValue, currentAggregate -> // (그룹 키, 새로운 값, 현재 집계값) -> 새로운 집계값
+                currentAggregate.updateWith(newBaseValue.amount) // 각 그룹에 새로운 레코드가 도착할 때마다 현재 집계값을 업데이트
+            },
+            // 집계 결과를 상태 저장소에 저장하기 위한 설정 정의
+            Materialized.`as`<BaseAggregationKey, BaseAggregateValue, KeyValueStore<Bytes, ByteArray>>(
+                kafkaProperties.statisticsStoreName // 상태 저장소 이름 정의
+            )
+                .withKeySerde(serdeFactory.baseAggregationKeySerde()) // 상태 저장소 및 집계 결과 KTable의 키를 위한 Serde
+                .withValueSerde(serdeFactory.baseAggregateValueSerde()) // 상태 저장소 및 집계 결과 KTable의 값을 위한 Serde
+        )
+    // ...
+}
 
-// 집계에 사용될 키 정의 (Base.kt)
+// Base.kt (집계에 사용할 키 정의)
 fun toAggregationKey() = 
   BaseAggregationKey(
     merchantNumber = this.merchantNumber,
@@ -491,7 +490,7 @@ fun toAggregationKey() =
     paymentMethodType = this.paymentMethodType
   )
 
-// 집계를 시작하기 위한 초기값 및 집계 계산식 정의 (BaseAggregateValue.kt)
+// BaseAggregateValue.kt (초기 집계값 및 집계 계산식 정의)
 data class BaseAggregateValue(
   val totalAmount: Long = 0L,
   val count: Long = 0L
