@@ -170,8 +170,7 @@ fun settlementStreams(): KafkaStreams {
 
 ![토픽으로부터 결제 데이터 받기](https://github.com/jihunparkme/blog/blob/main/img/kafka-streams/source-processor.png?raw=true)
 
-소스 스트림에 해당하는 `stream` 메서드(input topics → KStream)는 토픽으로부터 소비한 메시지를 명시한 Serde 객체 형태에 맞게 매핑하고 레코드 스트림 [KStream](https://docs.confluent.io/platform/current/streams/concepts.html#kstream)을 생성합니다.
-- `Serde`를 명시적으로 지정하지 않으면 streamsConfig 구성의 기본 Serde가 사용되고, Kafka 입력 토픽에 있는 레코드의 키/값 유형이 구성된 기본 Serde와 일치하지 않는 경우 Serde를 명시적으로 지정해야 합니다.
+싱크 프로세서에 해당하는 `stream()` 메서드(input topics → KStream)는 토픽으로부터 소비한 메시지를 명시한 Serde 객체 형태에 맞게 매핑하고 레코드 스트림 [KStream](https://docs.confluent.io/platform/current/streams/concepts.html#kstream)을 생성합니다. `Serde`를 명시적으로 지정하지 않으면 streamsConfig 구성의 기본 Serde가 사용되고, Kafka 입력 토픽에 있는 레코드의 키/값 유형이 구성된 기본 Serde와 일치하지 않는 경우 Serde를 명시적으로 지정해야 합니다.
 
 ```kotlin
 // SettlementKafkaStreamsApp.kt
@@ -506,25 +505,33 @@ data class BaseAggregateValue(
 
 ### 8단계. 집계 결과 전송
 
-<center>
-  <img src="https://github.com/jihunparkme/blog/blob/main/img/kafka-streams/example-to.png?raw=true" width="100%">
-</center>
+![집계 결과 전송](https://github.com/jihunparkme/blog/blob/main/img/kafka-streams/example-to.png?raw=true)
 
-KTable 형태의 집계 결과를 [toStream](https://docs.confluent.io/platform/7.9/streams/javadocs/javadoc/org/apache/kafka/streams/kstream/KTable.html#toStream--)을 적용해 KStream으로 변환한 후, [to](https://docs.confluent.io/platform/7.9/streams/javadocs/javadoc/org/apache/kafka/streams/kstream/KStream.html#to-java.lang.String-org.apache.kafka.streams.kstream.Produced-)메서드를 통해 다른 토픽으로 전송합니다.<br/>
-`Interactive Queries`를 활용한 조회로 집계 단계를 마무리할 수 있지만, 토픽으로 결과를 전송하면서 히스토리를 남기거나 집계 결과를 검증하는 데 사용할 수 있습니다.
+집계 결과인 `KTable`은 [toStream()](https://docs.confluent.io/platform/7.9/streams/javadocs/javadoc/org/apache/kafka/streams/kstream/KTable.html#toStream--) 메서드를 통해 `KStream`으로 변환한 후, 싱크 프로세서인 [to()](https://docs.confluent.io/platform/7.9/streams/javadocs/javadoc/org/apache/kafka/streams/kstream/KStream.html#to-java.lang.String-org.apache.kafka.streams.kstream.Produced-) 메서드를 사용하여 다른 Kafka 토픽으로 전송할 수 있습니다. 물론 `Interactive Queries`를 활용하여 집계 결과를 직접 조회하는 것으로 마무리할 수도 있지만, 결과를 토픽으로 전송하면 데이터 변경 이력을 남기거나 집계 결과를 검증하는 데 유용하게 활용할 수 있습니다.
 
 ```kotlin
-aggregatedTable.toStream()
-    .to(
-        kafkaProperties.paymentStatisticsTopic,
-        Produced.with(
-            serdeFactory.baseAggregationKeySerde(),
-            serdeFactory.baseAggregateValueSerde()
+@Bean
+fun settlementStreams(): KafkaStreams {
+    // ...
+    aggregatedTable.toStream() // 집계 결과인 KTable을 KStream으로 변환
+        .to( // KStream의 데이터를 특정 토픽으로 전송
+            kafkaProperties.paymentStatisticsTopic, // 데이터를 전송할 대상 토픽 이름
+            Produced.with(
+                serdeFactory.baseAggregationKeySerde(),
+                serdeFactory.baseAggregateValueSerde()
+            )
         )
-    )
+    // ...
+}
 ```
 
 ## 4. kafka streams 인스턴스 생성
+
+
+
+
+
+
 
 KafkaStreams 인스턴스의 [start()](https://docs.confluent.io/platform/7.9/streams/javadocs/javadoc/org/apache/kafka/streams/KafkaStreams.html#start--) 메서드를 호출하면 인스턴스를 시작할 수 있습니다.
 
