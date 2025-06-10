@@ -203,6 +203,7 @@ paymentStream // 스트림을 통해 들어오는 모든 결제 메시지를 로
 ![결제 데이터로 정산 베이스 생성](https://github.com/jihunparkme/blog/blob/main/img/kafka-streams/example-mapValue.png?raw=true)
 
 [mapValues](https://docs.confluent.io/platform/7.9/streams/javadocs/javadoc/org/apache/kafka/streams/kstream/KStream.html#map-org.apache.kafka.streams.kstream.KeyValueMapper-) 메서드를 통해 스트림의 각 레코드에 대해 키는 그대로 유지하면서, 값만을 새로운 타입(`Base`)으로 변환합니다. 변환 로직은 인자로 전달된 `ValueMapper` 인터페이스의 구현체에 의해 정의됩니다.
+
 ```kotlin
 paymentStream
     .mapValues(BaseMapper())
@@ -230,17 +231,11 @@ class BaseMapper() : ValueMapper<StreamMessage<Payment>, Base> { // ValueMapper 
 
 ### 4단계. 비정산 또는 중복 결제건 필터링
 
-
-
-
-
 ![비정산 또는 중복 결제건 필터링](https://github.com/jihunparkme/blog/blob/main/img/kafka-streams/example-filter.png?raw=true)
 
-베이스가 생성되고 결제 데이터 중에서도 비정산(테스트 결제, 비정산 가맹점, 망취소, 미확인 등) 또는 중복 결제건에 해당하는 데이터는 UnSettlement, Duplicated로 분류하고,<br/>
-정산 대상의 데이터만 다음 파이프라인을 이어갈 수 있도록 [filter](https://docs.confluent.io/platform/7.9/streams/javadocs/javadoc/org/apache/kafka/streams/kstream/KStream.html#filter-org.apache.kafka.streams.kstream.Predicate-) 메서드를 사용합니다.
-- 비정산과 중복 대상은 별도의 filter 프로세서로 처리하는 것이 명확하지만, 설명의 간소화를 위해 합치게 되었습니다.
+베이스가 생성된 후, 결제 데이터 중에서 비정산(테스트 결제, 비정산 가맹점, 망 취소, 미확인 등) 또는 중복된 건들은 UnSettlement, Duplicated로 분류합니다. 이렇게 분류된 데이터 중 정산 대상에 해당하는 데이터만 다음 파이프라인으로 이어지도록 [filter](https://docs.confluent.io/platform/7.9/streams/javadocs/javadoc/org/apache/kafka/streams/kstream/KStream.html#filter-org.apache.kafka.streams.kstream.Predicate-) 메서드를 사용합니다. 
 
-`filter` 메서드는 주어진 조건을 만족하는 레코드의 KStream을 반환하고, 조건을 만족하지 않는 레코드는 삭제됩니다.
+원칙적으로 비정산 결제 건과 중복 결제 건 필터링은 각각 별도의 프로세서로 구현하는 것이 더 명확하겠지만, 이 글에서는 설명의 간결함을 위해 하나의 단계로 합쳤습니다. filter 메서드는 주어진 조건을 만족하는 레코드만으로 구성된 새로운 KStream을 반환하며, 조건을 만족하지 않는 레코드는 스트림에서 제외됩니다.
 
 ```kotlin
 paymentStream
