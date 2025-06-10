@@ -433,21 +433,19 @@ Kafka Streams에서 상태를 관리하는 주요 방법으로 `KTable`과 `Glob
 
 ### 6단계. 정산 베이스 저장
 
+![정산 베이스 저장](https://github.com/jihunparkme/blog/blob/main/img/kafka-streams/example-peek-2.png?raw=true)
 
-
-
-
-
-
-<center>
-  <img src="https://github.com/jihunparkme/blog/blob/main/img/kafka-streams/example-peek-2.png?raw=true" width="80%">
-</center>
-
-결제 메시지 저장에서 사용했던 [peek](https://docs.confluent.io/platform/7.9/streams/javadocs/javadoc/org/apache/kafka/streams/kstream/KStream.html#peek-org.apache.kafka.streams.kstream.ForeachAction-)를 활용해서 정산 베이스를 데이터베이스에 저장합니다.
+결제 메시지 로그 저장 단계에서 사용했던 [peek()](https://docs.confluent.io/platform/7.9/streams/javadocs/javadoc/org/apache/kafka/streams/kstream/KStream.html#peek-org.apache.kafka.streams.kstream.ForeachAction-) 메서드를 활용해서 정산 베이스를 데이터베이스에 저장합니다.
 
 ```kotlin
-paymentStream
-  .peek({ _, message -> settlementService.saveBase(message) })
+// SettlementKafkaStreamsApp.kt
+@Bean
+fun settlementStreams(): KafkaStreams {
+    // ...
+    paymentStream
+        .peek({ _, message -> settlementService.saveBase(message) })
+    // ...
+}
 ```
 
 ### 7단계. 집계
