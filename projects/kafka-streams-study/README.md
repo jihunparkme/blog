@@ -62,7 +62,7 @@ Streams DSL 에서 제공하는 추상화된 모든 메서드는 [Kafka Streams 
 
 이제 본격적으로 Kafka Streams를 적용해 보러 가볼까요~?🚗🚙🏎️
 
-## 1. StreamsConfig 인스턴스 생성
+## StreamsConfig 인스턴스 생성
 
 `StreamsConfig`에는 kafka 스트림즈 애플리케이션의 동작 방식을 정의하는 다양한 설정들이 들어갑니다.
 - 애플리케이션의 기본 동작, kafka 클러스터 연결, 데이터 직렬화/역직렬화, 상태 관리, 장애 처리, 성능 튜닝 등
@@ -99,7 +99,7 @@ fun streamsConfig(): StreamsConfig =
   - 커스텀한 Serde 객체를 사용할 수도 있습니다.
 - `consumer.auto.offset.reset`: kafka 컨슈머의 오프셋을 설정합니다.
 
-## 2. 레코드 역직렬화를 위한 Serde 객체 생성
+## 레코드 역직렬화를 위한 Serde 객체 생성
 
 kafka에서 기본적으로 제공하는 [Serde](https://docs.confluent.io/platform/current/streams/developer-guide/datatypes.html#available-serdes)를 사용하거나, 필요한 형태의 레코드를 사용하기 위해서 커스텀한 객체 생성이 필요합니다.<br/>
 여기서는 Json 형태의 `StreamMessage<Payment>` 객체로 메시지 값을 역직렬화화기 위해 커스텀한 Serde 객체를 생성해보겠습니다.
@@ -145,7 +145,7 @@ fun messagePaymentSerde(): JsonSerde<StreamMessage<Payment>> {
 
 📚 [Kafka Streams Data Types and Serialization for Confluent Platform](https://docs.confluent.io/platform/current/streams/developer-guide/datatypes.html#kstreams-data-types-and-serialization-for-cp)
 
-## 3. 처리 토폴로지 구성
+## 처리 토폴로지 구성
 
 kafka 스트림즈 적용을 위한 기본적인 준비는 되었습니다. 이제 생성하게 될 토폴로지의 구성을 살펴보겠습니다.
 
@@ -260,7 +260,7 @@ class BaseMapper() : ValueMapper<StreamMessage<Payment>, Base> { // ValueMapper 
 
 ![비정산 또는 중복 결제건 필터링](https://github.com/jihunparkme/blog/blob/main/img/kafka-streams/example-filter.png?raw=true)
 
-베이스가 생성된 후, 결제 데이터 중에서 비정산(테스트 결제, 비정산 가맹점, 망 취소, 미확인 등) 또는 중복된 건들은 UnSettlement, Duplicated로 분류합니다. 이렇게 분류된 데이터 중 정산 대상에 해당하는 데이터만 다음 파이프라인으로 이어지도록 [filter()](https://docs.confluent.io/platform/7.9/streams/javadocs/javadoc/org/apache/kafka/streams/kstream/KStream.html#filter-org.apache.kafka.streams.kstream.Predicate-) 메서드를 사용합니다. 
+베이스가 생성된 후, 결제 데이터 중에서 비정산(테스트 결제, 비정산 가맹점, 망 취소, 미확인 등) 또는 중복된 건들은 UnSettlement, Duplicated로 분류합니다. 이렇게 분류된 데이터 중 정산 대상에 해당하는 데이터만 다음 파이프라인으로 이어지도록 [filter()](https://docs.confluent.io/platform/7.9/streams/javadocs/javadoc/org/apache/kafka/streams/kstream/KStream.html#filter-org.apache.kafka.streams.kstream.Predicate-) 메서드를 사용합니다.
 
 원칙적으로 비정산 결제 건과 중복 결제 건 필터링은 각각 별도의 프로세서로 구현하는 것이 더 명확하겠지만, 이 글에서는 설명의 간결함을 위해 하나의 단계로 합쳤습니다. filter 메서드는 주어진 조건을 만족하는 레코드만으로 구성된 새로운 KStream을 반환하며, 조건을 만족하지 않는 레코드는 스트림에서 제외됩니다.
 
@@ -525,17 +525,9 @@ fun settlementStreams(): KafkaStreams {
 }
 ```
 
-## 4. kafka streams 인스턴스 생성
+## kafka streams 인스턴스 생성
 
-
-
-
-
-
-
-KafkaStreams 인스턴스의 [start()](https://docs.confluent.io/platform/7.9/streams/javadocs/javadoc/org/apache/kafka/streams/KafkaStreams.html#start--) 메서드를 호출하면 인스턴스를 시작할 수 있습니다.
-
-예제에서는 KafkaStreams를 Bean으로 등록하고 별도의 Runner를 통해 실행하였습니다.
+KafkaStreams 인스턴스는 [start()](https://docs.confluent.io/platform/7.9/streams/javadocs/javadoc/org/apache/kafka/streams/KafkaStreams.html#start--) 메서드를 호출하여 시작할 수 있습니다. 이 글에서는 KafkaStreams를 Spring Bean으로 등록하고, 별도의 CommandLineRunner를 통해 애플리케이션 시작 시 자동으로 실행되도록 구현했습니다.
 
 ```kotlin
 // SettlementKafkaStreamsApp.kt
@@ -562,75 +554,11 @@ class KafkaStreamsRunner(
 }
 ```
 
-## 전체 코드
-
-지금까지의 과정을 연결시켜보면 집계 부분이 다소 코드가 길어보일 수 있지만, kafka streams를 통해 간결한 코드로 파이프라인을 형성할 수 있게 되었습니다.
-
-```kotlin
-@Bean
-fun settlementStreams(): KafkaStreams {
-    val streamsConfig = streamsConfig()
-    val builder = StreamsBuilder()
-    applyGlobalTable(builder)
-
-    val paymentStream: KStream<String, StreamMessage<Payment>> = builder.stream(
-        kafkaProperties.paymentTopic,
-        Consumed.with(
-            Serdes.String(),
-            serdeFactory.messagePaymentSerde()
-        )
-    )
-
-    val baseStream = paymentStream
-        .peek({ _, message -> settlementService.savePaymentMessageLog(message) })
-        .mapValues(BaseMapper())
-        .filter { _, base -> settlementService.isSettlement(base) }
-        .processValues(
-            PayoutRuleProcessValues(
-                rulesGlobalTopic = kafkaProperties.paymentRulesGlobalTopic,
-                stateStoreName = kafkaProperties.globalPayoutRuleStateStoreName,
-                payoutRuleClient = payoutRuleClient,
-                ruleKafkaTemplate = ruleKafkaTemplate,
-            ),
-        )
-        .peek({ _, message -> settlementService.saveBase(message) })
-
-    val aggregatedTable: KTable<BaseAggregationKey, BaseAggregateValue> = baseStream.groupBy(
-        { _, base -> base.toAggregationKey() },
-        Grouped.with(
-            serdeFactory.baseAggregationKeySerde(),
-            serdeFactory.baseSerde()
-        )
-    )
-        .aggregate(
-            { BaseAggregateValue() },
-            { _aggKey, newBaseValue, currentAggregate ->
-                currentAggregate.updateWith(newBaseValue.amount)
-            },
-            Materialized.`as`<BaseAggregationKey, BaseAggregateValue, KeyValueStore<Bytes, ByteArray>>(
-                kafkaProperties.statisticsStoreName
-            )
-                .withKeySerde(serdeFactory.baseAggregationKeySerde())
-                .withValueSerde(serdeFactory.baseAggregateValueSerde())
-        )
-
-    aggregatedTable.toStream()
-        .to(
-            kafkaProperties.paymentStatisticsTopic,
-            Produced.with(
-                serdeFactory.baseAggregationKeySerde(),
-                serdeFactory.baseAggregateValueSerde()
-            )
-        )
-
-    return KafkaStreams(builder.build(), streamsConfig)
-}
-```
-
 ## 마치며
 
-기존 비실시간으로 처리되던 처리를 실시간으로 스트림하게 처리되도록 적용해 보면서 kafka streams에 대한 매력을 맛볼 수 있었습니다.<br/>
-kafka를 사용하여 복잡한 로직을 처리중이시다면 kafka streams를 활용하여 간편하게 스트림 처리 애플리케이션을 구축해보는게 어떨까요?
+이 글을 통해 Kafka Streams를 활용하여 기존의 비실시간 정산 데이터 처리 과정을 실시간 스트리밍 방식으로 전환하는 여정을 함께 살펴보았습니다. Kafka를 이미 사용하고 계시다면, 별도의 복잡한 클러스터 구축 없이도 강력한 스트림 처리 기능을 애플리케이션에 통합할 수 있다는 점이 Kafka Streams의 큰 매력입니다. 단순한 데이터 필터링부터 상태 기반의 복잡한 연산, 그리고 데이터 집계에 이르기까지, Kafka Streams는 다양한 기능을 직관적인 DSL로 제공하여 개발 과정을 한결 수월하게 만들어 줍니다. 특히, GlobalKTable과 같은 상태 저장소 활용은 외부 시스템 의존도를 낮추고 실시간 조회 성능을 극대화하는 데 큰 도움이 되었습니다. 만약 여러분의 시스템에서도 대용량 데이터를 실시간으로 처리해야 하는 도전 과제가 있다면, 혹은 기존 Kafka 인프라를 더욱 효과적으로 활용하고 싶다면, Kafka Streams 도입을 적극적으로 고려해 보시길 권합니다. 
+
+이 글에서 다룬 예제가 여러분의 스트리밍 여정에 작은 영감이 되기를 바랍니다. 지금 바로 Kafka Streams의 강력함을 경험해 보세요!
 
 ## 참고
 - [Kafka Streams Domain Specific Language for Confluent Platform](https://docs.confluent.io/platform/current/streams/developer-guide/dsl-api.html)
