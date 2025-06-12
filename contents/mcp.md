@@ -1,14 +1,14 @@
 # MCP Start
 
-## 
+MCP(Model Context Protocol). 말로만 들어보았지 실제로 사용해 보지는 못 했습니다. 처음에는 진입장벽이 높을 것이라고 생각했지만 막상 하다보니 생각보다 너무 간단하게 활용할 수 있다는 것을 깨닫게 되었습니다.
+
+## GitHub MCP Server
+
+[GitHub MCP Server](https://github.com/github/github-mcp-server?tab=readme-ov-file#installation) 설명을 보면서 차근차근 따라해 보면 생각보다 쉽다.
 
 
 
-
-
-
-
-
+[Use MCP servers in VS Code (Preview)](https://code.visualstudio.com/docs/copilot/chat/mcp-servers)
 
 
 
