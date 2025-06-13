@@ -3,7 +3,7 @@
 MCP(Model Context Protocol).  
 들어만 보았던 MCP. 이제 직접 사용해 보려고 합니다. 처음에는 진입장벽이 높을 것이라고 생각했지만, 막상 딸깍딸깍 하다보니 생각보다 너무 간단하게 AI를 활용할 수 있다는 것을 느끼게 되었습니다.
 
-자! 그럼 가장 쉽고 빠르게 MCP를 사용해 볼 수 있는 `GitHub MCP`를 사용해 봅시다.
+자! 그럼 가장 쉽고 빠르게 MCP를 사용해 볼 수 있는 `GitHub MCP`를 사용해 봅시다~!
 
 ## MCP
 
@@ -22,7 +22,70 @@ MCP는 다양한 인공지능 모델과 도구, 그리고 개발 환경 간의 �
 
 ## GitHub MCP Server
 
-[GitHub MCP Server](https://github.com/github/github-mcp-server?tab=readme-ov-file#installation) 설명을 보면서 차근차근 따라해 보면 생각보다 쉽다.
+[GitHub MCP Server](https://github.com/github/github-mcp-server?tab=readme-ov-file#installation)를 사용하는 방법은 README 파일에 작성된 설명만으로도 손쉽게 따라할 수 있습니다.
+
+이 글에서는 다른 MCP Hosts를 사용하지 않고 로컬에 GitHub MCP 서버를 띄워보려고 합니다.  
+로컬 컨테이너에서 GitHub MCP 서버를 실행시키기 위해 `Docker` 설치가 필요합니다.  
+추가로 VS Code를 사용하여 진행할 것이므로 `VS Code`도  설치가 되어있지 않다면 설치가 필요합니다.
+
+준비물
+- Docker
+- VS Code + Copilot MCP Extensions 설치
+- GitHub Personal Access Token
+
+1️⃣ 이제 VS code를 실행시키고 작업 디렉토리의 루트 경로에 `.vscode` 디렉토리를 생성한 후 `mcp.json` 파일을 작성합니다.
+
+**.vscode/mcp.json**
+
+
+```json
+{
+  "inputs": [
+    {
+      "type": "promptString",
+      "id": "github_token",
+      "description": "GitHub Personal Access Token",
+      "password": true
+    }
+  ],
+  "servers": {
+    "github": {
+      "command": "docker",
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "-e",
+        "GITHUB_PERSONAL_ACCESS_TOKEN",
+        "ghcr.io/github/github-mcp-server"
+      ],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "${input:github_token}"
+      }
+    }
+  }
+}
+```
+
+2️⃣ `Copilot Chat`에서 `Agent` 모드로 세팅해 줍니다.
+- Command Palette(cmd + shift + p) > `Chat: Open Chat`을 통해 `Copilot Chat` 모드에 진입할 수 있습니다.
+
+<img src="../img/mcp/chat-tool.png" width="60%">
+
+3️⃣ 이제 다시 `mcp.json` 파일을 보면 "servers" 하단에 `Start` 라는 실행 버튼이 보이게 됩니다. Click!
+
+<img src="../img/mcp/mcp-md.png" width="60%">
+
+4️⃣ GitHub MCP 서버가 정상적으로 실행되었다면 Start 버튼은 `Running | Stop | Restart`으로 대체되고 
+
+<img src="../img/mcp/mcp-running.png" width="40%">
+
+도커를 확인해 보면 `trusting_ramanujan`라는 이름의 컨테이너가 실행된 것을 확인할 수 있습니다.
+
+<img src="../img/mcp/trusting_ramanujan.png" width="30%">
+
+
+
 
 
 
