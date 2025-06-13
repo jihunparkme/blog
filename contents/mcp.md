@@ -81,78 +81,36 @@ MCP는 다양한 인공지능 모델과 도구, 그리고 개발 환경 간의 �
 <img src="../img/mcp/mcp-running.png" width="40%">
 
 도커를 확인해 보면 `trusting_ramanujan`라는 이름의 컨테이너가 실행된 것을 확인할 수 있습니다.
+- 컨테이너 이름은 재미난 이름으로 랜덤 생성되고 있습니다. 이것도 AI가 생성해 주는 거겠죠?🧐
+- ex. angry beaver, quizzical merkle, kind chaplygin...
 
 <img src="../img/mcp/trusting_ramanujan.png" width="30%">
 
 
+5️⃣ 이제 끝입니다.
+
+뭐라우욧 ⁉️ 그렇습니다. 이제 `Copilot Chat`으로 명령만 하면 하라는 대로 다 해줍니다.  
+가장 심플하게 "내가 지금 어떤 레파지토리들을 가지고 있는지 찾아줘" 라고 작성해 봅시다.
+
+그럼 착한 Copilot은 "GitHub 토큰을 사용하여 귀하의 GitHub 레포지토리 목록을 확인해보겠습니다."라는 멘트와 함께 로컬에 실행된 Github MCP 서버를 통해 GitHub API 요청이 처리되어 제가 가진 레파지토리 목록을 보여주고 있습니다.
+
+Github MCP 서버를 통해 요청할 수 있는 것은 정말 다양해 보이는데 [Tools](https://github.com/github/github-mcp-server?tab=readme-ov-file#tools)쪽을 보면 확인할 수 있습니다.
+
+그밖에 시도해본 요청들을 나열해 보며 글을 마치려고 합니다.
+- "xxx 레파지토리의 aaa 브랜치에 최근 커밋된 커밋 메시지를 알려줘"
 
 
 
+## 마치며
+
+기존에는 `GitHub REST API`사용을 위해 문서를 읽어보며 테스트하고 API 요청 코드를 작성하는 등 다양한 작업이 필요했지만 이제 `GitHub MCP Server`를 통해 단 몇 분만에 모든 작업이 가능해졌습니다. Github 말고도 MCP 서버를 제공하는 곳이라면 유사한 방식으로 API 요청을 쉽게 할 수 있게 되었습니다.
+
+기술이 빠르게 발전하는 만큼 저도 발빠르게 사용해 보며 글을 작성하게 되었는데요.  
+확실히 들어만 보았을 때와 다르게 직접 사용해 보니 신기하기도 하고 재미있었답니다.  
+앞으로도 어떤 AI 기술들이 소개될지.. 걱정반 기대반이랄까요..
+
+## 참고
 
 [Use MCP servers in VS Code (Preview)](https://code.visualstudio.com/docs/copilot/chat/mcp-servers)
-
-
-
-
-
-
-log 에 필요한 데이터
-- action FINISH INSERT
-- channelType ONLINE, OFFLINE
-- group-id 로 묶음을 확인
-- source_Type PAYMENT, CANCEL
-- status 로 성공 실패 중복 미확인 .. 확인
-
-
-금액은
-NumberDecimal
-
-
-
-
-
-### 상태 기반 ⁉️
-
-상태 기반의 의미를 잠시 짚고 가자면, 네 가지 키워드로 설명할 수 있습니다.
-- **상태 저장소**(State Store):
-  - RocksDB 같은 임베디드 데이터베이스를 사용하여 처리 과정에서 발생하는 상태 정보를 저장
-- **KTable**:
-  - 키-값 형태의 데이터를 테이블처럼 관리하는 추상화
-  - 입력 스트림의 각 키에 대한 최신 상태를 저장하고 관리하며, 상태 저장소에 저장
-- **변경 로그 토픽(Changelog Topic)**:
-  - 상태 저장소에 저장된 상태 변경 사항을 기록(내부적으로 토픽 생성)
-  - 애플리케이션이 재시작되거나 장애가 발생했을 때 상태를 복원하는 데 사용
-- **윈도우 기반 처리(Windowing)**:
-  - 특정 시간 범위 또는 이벤트 범위 내에서 상태를 관리하여, 특정 기간 동안의 데이터 집계, 추이 분석 등을 수행 가능
-
-
-
-
-
-
-
-
-
-
-
-
-  
-
-2️⃣ 결제 데이터 생성
-
-```http
-http://localhost:8080/api/payment/send
-```
-
-- 비실시간 데이터이므로 메시지의 끝을 알기 위해 메시지 전송이 끝날 때 FINISH action type 의 메시지를 각 파티션에 전송
-
-3️⃣ 지급 규칙 조회
-
-지급 규칙 데이터는 `KTable`을 활용
-- KTable은 업데이트 스트림이고, 데이터베이스에 데이터를 변경하는 것과 유사
-- KTable 크기는 계속 증가하지 않으며, 기존 레코드는 새 레코드로 교체
-
-
-
 
 
