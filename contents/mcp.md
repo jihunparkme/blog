@@ -71,21 +71,19 @@ MCP는 다양한 인공지능 모델과 도구, 그리고 개발 환경 간의 �
 2️⃣ `Copilot Chat`에서 `Agent` 모드로 설정합니다.
 - Command Palette(cmd + shift + p) > `Chat: Open Chat`을 통해 `Copilot Chat` 모드를 실행할 수 있습니다.
 
-<img src="../img/mcp/chat-tool.png" width="60%">
+<img src="https://github.com/jihunparkme/blog/blob/main/img/mcp/chat-tool.png?raw=true" width="60%">
 
 3️⃣ 이제 `mcp.json` 파일을 보면 "servers" 하단에 `Start` 버튼이 표시됩니다. 이 버튼을 클릭합니다.
 
-<img src="../img/mcp/mcp-md.png" width="60%">
+<img src="https://github.com/jihunparkme/blog/blob/main/img/mcp/mcp-md.png?raw=true" width="60%">
 
 4️⃣ GitHub MCP 서버가 정상적으로 실행되면 Start 버튼이 `Running | Stop | Restart`로 변경되고 
 
-<img src="../img/mcp/mcp-running.png" width="40%">
+<img src="https://github.com/jihunparkme/blog/blob/main/img/mcp/mcp-running.png?raw=true" width="40%">
 
 도커에서 `trusting_ramanujan`이라는 이름의 컨테이너가 실행된 것을 확인할 수 있습니다.
 - 컨테이너 이름은 재미있는 이름으로 무작위 생성됩니다. 이것도 AI가 만들어주는 거겠죠? 🧐
 - 예시: angry_beaver, quizzical_merkle, kind_chaplygin...
-
-<img src="../img/mcp/trusting_ramanujan.png" width="30%">
 
 5️⃣ 이제 설정이 완료되었습니다!
 
