@@ -4,7 +4,7 @@
 
 ## MongoDB MCP Server
 
-[mongodb-mcp-server](https://github.com/mongodb-developer/mongodb-mcp-server) 역시 지나번에 다룬 GitHub MCP Server와 유사합니다.  
+[mongodb-mcp-server](https://github.com/mongodb-js/mongodb-mcp-server) 역시 지나번에 다룬 GitHub MCP Server와 유사합니다.  
 MongoDB와 연동하려면 `mcp.json` 파일만 수정하면 준비가 완료됩니다.
 
 **실제 MongoDB 클러스터에 연동**
@@ -46,6 +46,6 @@ MongoDB와 연동하려면 `mcp.json` 파일만 수정하면 준비가 완료됩
 }
 ```
 
-
-
-
+추가가 완료되었다면 `mcp.json` 파일에서 Start 버튼을 누르거나,  
+Command Palette(cmd + shift + p) > MCP: List Servers > mongodb  
+를 선택해 MongoDB MCP Server를 실행합니다.
