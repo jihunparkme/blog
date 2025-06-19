@@ -64,7 +64,7 @@ Command Palette(cmd + shift + p) > MCP: List Servers > mongodb
 데이터베이스에 있는 컬렉션 목록을 보여줘
 ```
 
-응답
+결과
 
 ```text
 먼저 데이터베이스 목록을 조회하겠습니다:
@@ -109,6 +109,7 @@ xxx_field 기준으로 상위 10개만 보여주세요.
 ```
 
 결과
+
 ```text
 MongoDB에서 xxx_collection 컬렉션에서 데이터를 추출해드리겠습니다. 먼저 어떤 데이터베이스와 컬렉션이 있는지 확인해보겠습니다.
 > mongodb (MCP Server)...
@@ -137,3 +138,61 @@ MongoDB에서 xxx_collection 컬렉션에서 데이터를 추출해드리겠습�
 이정도 간단한 조회 요청은 그래도 당연히 정확하게 조회할 수 있을 것이라고 생각은 했다.  
 표 정리를 포함하여 조회 결과도 요약해 주는 것을 볼 수 있다.
 
+---
+
+**두 번째 질문**
+
+이제 간단한 조회가 아닌 조인이 포함된 요청을 해보겠습니다.
+
+```text
+apple 컬렉션과 banana 컬렉션을 조인해서 데이터를 추출해 주세요
+ 
+---
+ 
+apple 컬렉션 기준 조회 조건.
+- payout_date: 2025-06-01 이후
+- init_payout_date: 2025-06-01 이후
+ 
+apple 컬렉션 기준 그룹 조건.
+- payout_rule_id
+- channel_type
+- merchant_id
+- payment_method_type
+ 
+조인 조건.
+왼쪽은 banana 컬렉션 기준, 오른쪽은 apple 컬렉션 기준이고, apple 컬렉션의 left join 으로 banana 컬렉션에 조인되는 데이터가 없다면 공백으로 치환해 주세요.
+- payout_rule.id : payout_rule_id
+- channel_type : channel_type
+- merchant_id : merchant_id
+- payment_method_type : payment_method_type
+ 
+결과 필드
+- "a": "apple.channelType",
+- "b": "banana.description"
+- "c": "apple.merchant_id",
+...생략
+```
+
+결과
+
+```text
+MongoDB에서 apple와 banana 컬렉션을 LEFT JOIN하여 데이터를 추출해드리겠습니다. LEFT JOIN으로 설정하여 banana에 매칭되는 데이터가 없어도 apple 데이터는 표시되도록 하겠습니다.
+> mongodb (MCP Server)...
+
+LEFT JOIN 결과가 조회되었습니다. 총 3개의 그룹이 조회되었으며, banana과 매칭되지 않는 데이터는 공백으로 표시되었습니다. 결과를 표로 정리해드리겠습니다:
+
+조회 결과
+...
+
+조회 결과 요약
+...
+
+주요 특징
+...
+```
+
+생각보다 복잡한 쿼리가 필요한 조회였는데 놀랍게도 결과가 정확하게 나왔다.  
+조회 결과뿐만 아니라 조회 결과 요약, 주요 특징까지 작성해 주었다.  
+그렇다면 의도한 쿼리대로 조회가 잘 되었는지, 조회에 사용된 쿼리도 확인해 보겠습니다.
+
+---
