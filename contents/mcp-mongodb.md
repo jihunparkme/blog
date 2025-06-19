@@ -68,13 +68,13 @@ Command Palette(cmd + shift + p) > MCP: List Servers > mongodb
 
 ```text
 먼저 데이터베이스 목록을 조회하겠습니다:
-mongodb (MCP Server)...
+> mongodb (MCP Server)...
 
 다음으로 각 데이터베이스의 컬렉션을 조회하겠습니다. 먼저 'aaa' 데이터베이스의 컬렉션을 확인해보겠습니다:
-mongodb (MCP Server)...
+> mongodb (MCP Server)...
 
 'bbb' 데이터베이스의 컬렉션도 확인해보겠습니다:
-mongodb (MCP Server)...
+> mongodb (MCP Server)...
 
 데이터베이스별 컬렉션 목록은 다음과 같습니다:
 
@@ -92,4 +92,48 @@ mongodb (MCP Server)...
 
 개인 PC의 로컬 MongoDB에 연동 후 테스트한 결과인데 데이터베이스 목록과 컬렉션 목록을 정확하게 조회하였습니다.
 
+다음 질문부터는 데이터가 많은 데이터베이스에 연동해서 테스트해보기 위해 회사 테스트 데이터베이스에 연동하여 테스트 해보았습니다.
+
 ---
+
+**첫 번째 질문**
+
+```text
+xxx_collection 데이터를 추출해 주세요.
+xxx_field 기준으로 상위 10개만 보여주세요.
+
+조건은 아래와 같습니다.
+- merchant_id : ZXC1234
+- created_date : 2025-06-01 이후
+- 추출 데이터 : merchant_id, total_amount
+```
+
+결과
+```text
+MongoDB에서 xxx_collection 컬렉션에서 데이터를 추출해드리겠습니다. 먼저 어떤 데이터베이스와 컬렉션이 있는지 확인해보겠습니다.
+> mongodb (MCP Server)...
+
+이제 aaa 데이터베이스의 컬렉션을 확인해보겠습니다.
+> mongodb (MCP Server)...
+
+이제 xxx_collection 컬렉션의 스키마를 확인해보겠습니다.
+> mongodb (MCP Server)...
+
+이제 요청하신 조건에 맞는 데이터를 추출해보겠습니다. merchant_id가 "ZXC1234"이고 created_date이 2025-06-01 이후인 데이터에서 total_amount와 merchant_id를 가져와서 total_amount 기준으로 상위 10개를 조회하겠습니다.
+
+검색 결과를 확인해보겠습니다. 현재 2건의 데이터가 조회되었습니다. 표로 정리해드리겠습니다:
+
+(표 생략)
+
+조회 결과 요약:
+- 조건: merchant_id = "ZXC1234", created_date >= 2025-06-01
+- 조회된 레코드 수: 2건
+- 정렬: total_amount 내림차순
+- 상위 10개 요청했지만 조건에 맞는 데이터가 2건만 존재합니다.
+
+두 레코드 모두 total_amount가 3,000원으로 동일하며, 2025년 6월 12일에 생성된 데이터입니다.
+```
+
+이정도 간단한 조회 요청은 그래도 당연히 정확하게 조회할 수 있을 것이라고 생각은 했다.  
+표 정리를 포함하여 조회 결과도 요약해 주는 것을 볼 수 있다.
+
