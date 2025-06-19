@@ -196,3 +196,39 @@ LEFT JOIN 결과가 조회되었습니다. 총 3개의 그룹이 조회되었으
 그렇다면 의도한 쿼리대로 조회가 잘 되었는지, 조회에 사용된 쿼리도 확인해 보겠습니다.
 
 ---
+
+**세 번째 질문**
+
+```text
+위 추출 결과에 사용된 몽고디비 쿼리를 작성해 주세요
+```
+
+결과
+
+```text
+위에서 사용된 MongoDB 쿼리를 작성해드리겠습니다. 이 쿼리는 apple와 banana 컬렉션을 LEFT JOIN하여 데이터를 추출하는 aggregation pipeline입니다.
+
+...
+
+MongoDB 쿼리를 mongodb_query.js 파일로 작성했습니다. 이 쿼리는 다음과 같은 특징을 가지고 있습니다:
+
+쿼리 구조
+...
+
+실행 방법
+...
+```
+
+의도한대로 쿼리를 작성해주어서 더 놀라웠다.  
+쿼리는 복잡한 요청이었던 만큼 길어서 별도 파일로 작성해 준 것 같고 쿼리 구조와 실행 방법도 친절하게 알려주었다.
+
+## 마치며
+
+
+
+## 참고
+
+- https://github.com/mongodb-js/mongodb-mcp-server
+- https://www.mongodb.com/blog/post/announcing-mongodb-mcp-server
+- https://www.mongodb.com/ko-kr/docs/manual/mcp/
+
