@@ -1,6 +1,8 @@
 # MongoDB Sharding
 
-`MongoDB Sharding`에 대한 내용을 간략하게 정리하고자 합니다.
+`MongoDB Sharding`에 대한 빠른 이해를 위해 [공식 문서](https://www.mongodb.com/docs/manual/sharding/)를 간략하게 정리하고자 합니다.
+
+
 
 ## Sharding?
 
@@ -20,8 +22,19 @@ MongoDB는 샤딩을 통한 수평적 확장을 지원
 - `config servers`: config 서버는 클러스터에 대한 메타데이터와 구성 설정을 저장
   - config 서버는 복제본 세트(CSRS)로 배포되어야 함
 
+## Shard Keys
 
+> MongoDB는 샤드 키를 사용하여 샤드 전반에서 컬렉션 문서를 분산
+> 
+> 샤드 키는 문서의 필드 하나 또는 여러 필드로 구성
 
-## Reference
+샤딩된 컬렉션의 문서에는 샤드 키 필드가 누락될 수 있습니다. 
+- 누락된 샤드 키 필드는 문서를 여러 샤드에 분산할 때 null 값이 있는 것으로 처리
+- null이 아닌 값으로 채워지도록 설정도 가능
 
-- [https://www.mongodb.com/docs/manual/sharding/]
+**Shard Key Index**
+- 채워진 컬렉션을 샤딩하려면 컬렉션에 샤드 키로 시작하는 인덱스가 있어야 합니다. 
+- 빈 컬렉션을 샤딩할 때, 컬렉션에 지정된 샤드 키에 대한 적절한 인덱스가 아직 없는 경우 MongoDB는 지원 인덱스를 생성힙니다.
+
+**Shard Key Strategy**
+- 샤드 키 선택은 샤딩된 클러스터의 성능, 효율성 및 확장성에 영향을 줄 수 있습니다.
