@@ -31,7 +31,7 @@ MongoDB의 `$bucket (aggregation)`에 대한 빠른 이해를 위해 [공식 문
 
 |Field|Type|Description|
 |---|---|---|
-|groupBy|expression||
-|boundaries|array||
+|groupBy|expression|문서를 그룹화하는 표현식. (필드 경로를 지정하려면 필드 이름 앞에 `$`를 붙이고 따옴표로 묶음)|
+|boundaries|array|각 버킷의 경계를 지정하는 groupBy 표현식을 기반으로 한 값 배열. 인접한 각 값 쌍은 버킷의 포괄적인 하한과 배타적인 상한으로 작용. (최소 두 개의 경계를 지정)|
 |default|Iiteral||
 |output|document||
