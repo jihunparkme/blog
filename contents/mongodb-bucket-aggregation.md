@@ -12,3 +12,19 @@ MongoDB의 `$bucket (aggregation)`에 대한 빠른 이해를 위해 [공식 문
 - 해당 한도를 초과하면 `$bucket`이 기본값으로 오류를 반환
 - 처리 공간을 더 확보하려면 `allowDiskUse` 옵션을 사용하여 집계 파이프라인 단계가 임시 파일에 데이터를 쓸 수 있도록 설정 필요
 
+## Syntax
+
+```json
+{
+  $bucket: {
+      groupBy: <expression>,
+      boundaries: [ <lowerbound1>, <lowerbound2>, ... ],
+      default: <literal>,
+      output: {
+         <output1>: { <$accumulator expression> },
+         ...
+         <outputN>: { <$accumulator expression> }
+      }
+   }
+}
+```
