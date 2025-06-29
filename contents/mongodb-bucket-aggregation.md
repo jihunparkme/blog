@@ -28,3 +28,10 @@ MongoDB의 `$bucket (aggregation)`에 대한 빠른 이해를 위해 [공식 문
    }
 }
 ```
+
+|Field|Type|Description|
+|---|---|---|
+|groupBy|expression||
+|boundaries|array||
+|default|Iiteral||
+|output|document||
