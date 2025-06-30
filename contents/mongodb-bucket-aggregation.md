@@ -46,7 +46,7 @@ groupBy 표현식이 배열이나 문서로 해석되면 $bucket은 $sort의 비
 
 ### Example
 
-**`artists` 이름의 샘플 컬렉션 생성**
+`artists` 이름의 샘플 컬렉션 생성
 
 ```json
 db.artists.insertMany([
@@ -65,7 +65,7 @@ db.artists.insertMany([
 
 ```json
 db.artists.aggregate( [
-  // First Stage
+  // First Stage: year_born 필드에 따라 문서를 버킷으로 그룹화
   {
     $bucket: {
       groupBy: "$year_born",                       
@@ -83,27 +83,29 @@ db.artists.aggregate( [
       }
     }
   },
-  // Second Stage
+  // Second Stage: 이전 단계의 출력을 필터링하여 3개 이상의 문서가 포함된 버킷만 반환
   {
     $match: { count: {$gt: 3} }
   }
 ] )
 ```
 
+<br/>
+
 `$bucket` 단계에서는 `year_born` 필드에 따라 문서를 버킷으로 그룹화
 - [1840, 1850)에서 1840이 하한값(포함)이며 1850이 상한값(제외)
 - [1850, 1860)에서 1850이 하한값(포함)이며 1860이 상한값(제외)
 - [1860, 1870)에서 1860이 하한값(포함)이며 1870이 상한값(제외)
 - [1870, 1880)에서 1870이 하한값(포함)이며 1880이 상한값(제외)
-- 문서에 year_born 필드가 없거나 year_born 필드가 위의 범위를 벗어난 경우, _id값 "Other"를 사용하여 기본 버킷에 배치됩니다.
+- 문서에 `year_born` 필드가 없거나 `year_born` 필드가 위의 범위를 벗어난 경우, `_id`값 "Other"를 사용하여 기본 버킷에 배치
 
 **결과**
 
 ```json
 {
-  _id: 1860,
-  count: 4,
-  artists: [
+  _id: 1860, // 버킷의 하한값
+  count: 4, // 버킷에 있는 문서 개수
+  artists: [ // 버킷에 있는 각 아티스트에 대한 정보가 포함된 문서의 배열
     {
       name: 'Emil Bernard',
       year_born: 1868
@@ -123,3 +125,4 @@ db.artists.aggregate( [
   ]
 }
 ```
+
