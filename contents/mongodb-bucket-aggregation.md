@@ -43,3 +43,83 @@ MongoDB의 `$bucket (aggregation)`에 대한 빠른 이해를 위해 [공식 문
 - 기본값은 groupBy 값이 경계를 벗어나거나 경계 내 값과 다른 BSON 유형의 버킷 문서에 지정된다.
 
 groupBy 표현식이 배열이나 문서로 해석되면 $bucket은 $sort의 비교 논리를 사용하여 입력 문서를 버킷으로 정렬
+
+### Example
+
+**`artists` 이름의 샘플 컬렉션 생성**
+
+```json
+db.artists.insertMany([
+  { "_id" : 1, "last_name" : "Bernard", "first_name" : "Emil", "year_born" : 1868, "year_died" : 1941, "nationality" : "France" },
+  { "_id" : 2, "last_name" : "Rippl-Ronai", "first_name" : "Joszef", "year_born" : 1861, "year_died" : 1927, "nationality" : "Hungary" },
+  { "_id" : 3, "last_name" : "Ostroumova", "first_name" : "Anna", "year_born" : 1871, "year_died" : 1955, "nationality" : "Russia" },
+  { "_id" : 4, "last_name" : "Van Gogh", "first_name" : "Vincent", "year_born" : 1853, "year_died" : 1890, "nationality" : "Holland" },
+  { "_id" : 5, "last_name" : "Maurer", "first_name" : "Alfred", "year_born" : 1868, "year_died" : 1932, "nationality" : "USA" },
+  { "_id" : 6, "last_name" : "Munch", "first_name" : "Edvard", "year_born" : 1863, "year_died" : 1944, "nationality" : "Norway" },
+  { "_id" : 7, "last_name" : "Redon", "first_name" : "Odilon", "year_born" : 1840, "year_died" : 1916, "nationality" : "France" },
+  { "_id" : 8, "last_name" : "Diriks", "first_name" : "Edvard", "year_born" : 1855, "year_died" : 1930, "nationality" : "Norway" }
+])
+```
+
+**`year_born` 필드에 따라 문서를 버킷으로 그룹화하고 버킷에 있는 문서 수를 기준으로 필터링**
+
+```json
+db.artists.aggregate( [
+  // First Stage
+  {
+    $bucket: {
+      groupBy: "$year_born",                       
+      boundaries: [ 1840, 1850, 1860, 1870, 1880 ],
+      default: "Other",
+      output: {
+        "count": { $sum: 1 },
+        "artists" :
+          {
+            $push: {
+              "name": { $concat: [ "$first_name", " ", "$last_name"] },
+              "year_born": "$year_born"
+            }
+          }
+      }
+    }
+  },
+  // Second Stage
+  {
+    $match: { count: {$gt: 3} }
+  }
+] )
+```
+
+`$bucket` 단계에서는 `year_born` 필드에 따라 문서를 버킷으로 그룹화
+- [1840, 1850)에서 1840이 하한값(포함)이며 1850이 상한값(제외)
+- [1850, 1860)에서 1850이 하한값(포함)이며 1860이 상한값(제외)
+- [1860, 1870)에서 1860이 하한값(포함)이며 1870이 상한값(제외)
+- [1870, 1880)에서 1870이 하한값(포함)이며 1880이 상한값(제외)
+- 문서에 year_born 필드가 없거나 year_born 필드가 위의 범위를 벗어난 경우, _id값 "Other"를 사용하여 기본 버킷에 배치됩니다.
+
+**결과**
+
+```json
+{
+  _id: 1860,
+  count: 4,
+  artists: [
+    {
+      name: 'Emil Bernard',
+      year_born: 1868
+    },
+    {
+      name: 'Joszef Rippl-Ronai',
+      year_born: 1861
+    },
+    {
+      name: 'Alfred Maurer',
+      year_born: 1868
+    },
+    {
+      name: 'Edvard Munch',
+      year_born: 1863
+    }
+  ]
+}
+```
