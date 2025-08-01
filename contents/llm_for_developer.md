@@ -6,7 +6,7 @@
 ## LLM 내부 동작 원리 6단계
 
 - 1단계: Tokenization
-- 2단계: 임베딩 (Embedding) 의미 부여하기
+- 2단계: Embedding
 - 3단계: 위치 인코딩 (Positional Encoding) 순서 기억하기
 - 4단계: 트랜스포머 - 어텐션 (Attention) 핵심 파악하기
 - 5단계: 다음 토큰 예측 (Prediction) 단어 생성하기
@@ -17,6 +17,10 @@
 사용자의 프롬프트를 LLM이 이해할 수 있는 최소 단위인 **토큰(Token)** 으로 분리하는 단계입니다. 이 단계는 JSON 문자열을 파싱하여 객체로 만드는 것과 비슷합니다.
 - 예를 들어, "LLM의 원리"라는 문장은 `['LLM', '의', ' ', '원리']` 와 같이 의미 있는 단위로 쪼개집니다.
 - 각 토큰은 고유한 정수 ID에 매핑됩니다. (예: `[73, 12, 5, 96]`)
+
+<figure><img src="../img/llm-for-developer/llm-tokenizers.png" alt=""><figcaption></figcaption></figure>
+
+reference: https://blog.cubed.run/tokenizer-in-llm-060b1a35694b
 
 ✅ **토큰화(Tokenization)**
 
@@ -120,3 +124,24 @@ print(decoded_sentence) # 나는 LLM 내부 동작 원리를 공부한다.
 - 어휘 집합의 크기를 줄여나가는 과정
   - 전체 확률 분포에 미치는 영향이 가장 작은 서브워드를 제거
   - 이 과정을 미리 정해둔 vocab_size에 도달할 때까지 반복
+
+## 2단계: Embedding
+
+임베딩은 토큰화된 숫자 ID를 **의미를 가진 다차원 공간의 좌표인 벡터**로 변환하는 단계입니다. 단순히 숫자를 다른 숫자로 바꾸는 것이 아니라, 단어의 의미와 뉘앙스를 수치적으로 표현하는 핵심 단계입니다.
+
+**Embedding Table**: 토큰 ID와 벡터를 짝지어 놓은 좌표 사전(임베딩 테이블)
+- 예를 들어, 12833번 단어에 해당하는 768차원의 좌표 [0.12, -0.45, 0.89, ...]가 미리 저장되어 있습니다. 
+- 이 좌표값들은 수많은 데이터를 학습하며 얻은 결과물입니다.
+
+**Semantic Proximity**: 이 좌표 공간에서 비슷한 의미를 가진 단어들은 서로 가까운 위치에, 관련 없는 단어들은 먼 위치에 존재합
+- '자동차'와 '자전거'의 좌표는 비교적 가깝고, '자동차'와 '행복'의 좌표는 매우 멀다.
+- 이러한 거리(유사도)를 통해 단어 간의 관계를 수학적으로 이해하고 추론할 수 있습니다.
+
+**문맥적 유연성**: 임베딩은 단어 하나뿐만 아니라 문장이나 문단 전체에 대해서도 생성될 수 있습니다. 
+- 이를 통해 글 전체의 종합적인 의미를 하나의 벡터로 압축하여 표현할 수 있습니다.
+
+<figure><img src="../img/llm-for-developer/embedding.jpg" alt=""><figcaption></figcaption></figure>
+
+reference: https://medium.com/@vipra_singh/llm-architectures-explained-word-embeddings-part-2-ff6b9cf1d82d
+
+
