@@ -44,7 +44,9 @@ MongoDB의 `$bucket (aggregation)`에 대한 빠른 이해를 위해 [공식 문
 
 groupBy 표현식이 배열이나 문서로 해석되면 $bucket은 $sort의 비교 논리를 사용하여 입력 문서를 버킷으로 정렬
 
-### Example
+## Example
+
+### 연도별 버킷 및 버킷 결과별 필터링
 
 `artists` 이름의 샘플 컬렉션 생성
 
@@ -126,3 +128,6 @@ db.artists.aggregate( [
 }
 ```
 
+### $bucket을 $facet과 함께 사용하여 여러 필드로 버킷 수행
+
+`$facet` 단계를 사용하여 단일 단계에서 여러 개의 `$bucket` 집계를 수행 가능
