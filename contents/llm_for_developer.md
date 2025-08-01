@@ -140,9 +140,9 @@ print(decoded_sentence) # 나는 LLM 내부 동작 원리를 공부한다.
 **문맥적 유연성**: 임베딩은 단어 하나뿐만 아니라 문장이나 문단 전체에 대해서도 생성될 수 있습니다. 
 - 이를 통해 글 전체의 종합적인 의미를 하나의 벡터로 압축하여 표현할 수 있습니다.
 
-<figure><img src="../img/llm-for-developer/embedding.jpg" alt=""><figcaption></figcaption></figure>
+<figure><img src="../img/llm-for-developer/embedding-example-1.png" alt=""><figcaption></figcaption></figure>
 
-reference: https://medium.com/@vipra_singh/llm-architectures-explained-word-embeddings-part-2-ff6b9cf1d82d
+<figure><img src="../img/llm-for-developer/embedding-example-2.png" alt=""><figcaption></figcaption></figure>
 
 한국어 특화 모델인 [ko-sentence-transformers](https://github.com/jhgan00/ko-sentence-transformers)를 로컬에 직접 다운로드하고, 텍스트를 의미가 담긴 벡터로 변환하기 위해 [sentence-transformers](https://www.sbert.net/) 라이브러리를 활용하여 Embedding 단계를 재현해 보겠습니다.  
 
@@ -184,5 +184,11 @@ print(f"'{words[0]}'와(과) '{words[2]}'의 코사인 유사도: {sim_car_happi
 '자동차'와(과) '자전거'의 코사인 유사도: 0.8315 # '탈 것'이라는 공통된 의미로 높은 유사도
 '자동차'와(과) '행복'의 코사인 유사도: 0.1854 # 의미적 관련성이 없어 낮은 유사도
 ```
+
+
+
+
+
+
 
 
