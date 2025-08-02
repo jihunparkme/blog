@@ -1,16 +1,16 @@
-# 궁금해서 살짝(?) 파본 LLM 내부 동작 원리 
+# 비전문가가 궁금해서 살짝(?) 파본 LLM 내부 동작 원리 
 
 해당 글은 백엔드 개발자의 관점에서 작성된 글로, LLM 전문가의 시각과는 다를 수 있습니다.  
 내용 중 오류를 발견하시면 언제든 피드백 부탁드립니다.
 
 ## LLM 내부 동작 원리 6단계
 
-- 1단계: Tokenization
-- 2단계: Embedding
-- 3단계: Positional Encoding
-- 4단계: Transformer and Attention
-- 5단계: 다음 토큰 예측 (Prediction) 단어 생성하기
-- 6단계: 디코딩 및 반복 (Decoding & Loop) 문장 완성하기 🔄
+- 1단계: Tokenization (프롬프트를 토큰으로 분리하고 고유 ID 매핑하기)
+- 2단계: Embedding (토큰화된 숫자 ID를 의미를 가진 벡터로 변환하기)
+- 3단계: Positional Encoding (단어의 순서를 파악하기 위해 위치 정보 더하기)
+- 4단계: Transformer and Attention (문맥 관계를 파악하고 각 단어의 표현을 정제하기)
+- 5단계: Prediction (다음 토큰 예측하기)
+- 6단계: Decoding & Loop (디코딩 및 반복으로 문장 완성하기)
 
 ## 1단계: Tokenization
 
@@ -140,10 +140,6 @@ print(decoded_sentence) # 나는 LLM 내부 동작 원리를 공부한다.
 **문맥적 유연성**: 임베딩은 단어 하나뿐만 아니라 문장이나 문단 전체에 대해서도 생성될 수 있습니다. 
 - 이를 통해 글 전체의 종합적인 의미를 하나의 벡터로 압축하여 표현할 수 있습니다.
 
-<figure><img src="../img/llm-for-developer/embedding-example-1.png" alt=""><figcaption></figcaption></figure>
-
-<figure><img src="../img/llm-for-developer/embedding-example-2.png" alt=""><figcaption></figcaption></figure>
-
 한국어 특화 모델인 [ko-sentence-transformers](https://github.com/jhgan00/ko-sentence-transformers)를 로컬에 직접 다운로드하고, 텍스트를 의미가 담긴 벡터로 변환하기 위해 [sentence-transformers](https://www.sbert.net/) 라이브러리를 활용하여 Embedding 단계를 재현해 보겠습니다.  
 
 ```python
@@ -184,6 +180,14 @@ print(f"'{words[0]}'와(과) '{words[2]}'의 코사인 유사도: {sim_car_happi
 '자동차'와(과) '자전거'의 코사인 유사도: 0.8315 # '탈 것'이라는 공통된 의미로 높은 유사도
 '자동차'와(과) '행복'의 코사인 유사도: 0.1854 # 의미적 관련성이 없어 낮은 유사도
 ```
+
+**코사인 유사도 샘플**
+
+<figure><img src="../img/llm-for-developer/embedding-example-1.png" alt=""><figcaption></figcaption></figure>
+
+**차원 축소 샘플**
+
+<figure><img src="../img/llm-for-developer/embedding-example-2.png" alt=""><figcaption></figcaption></figure>
 
 ## 3단계: Positional Encoding
 
@@ -249,26 +253,18 @@ PE(pos, 2i+1) = cos(pos / 10000^(2i / d_model))  # 홀수 인덱스 차원
 - `Encoder-Decoder Attention`: 디코더에만 있는 독특한 부분으로, 인코더의 출력(입력 문장의 정보)을 참조하여 번역이나 요약 같은 작업을 수행할 때 입력 문장과 생성할 문장 사이의 관계를 파악
 - `Feed-Forward Neural Network`: 앞선 어텐션 레이어들의 출력을 받아 각 단어별 특징을 강화
 
-> 요약하면, `Transformer`는 기본적으로 **셀프 어텐션(Self-Attention) 메커니즘**으로 문맥 관계를 파악하고, **피드 포워드 신경망(Feed-Forward Neural Network, FFN)** 으로 각 단어의 표현을 정제하고 강화하는 과정을 반복하며 텍스트를 이해하고 생성합니다. 
+> 요약하면, `Transformer`는 기본적으로 **Self-Attention 메커니즘**으로 문맥 관계를 파악하고, **Feed-Forward Neural Network** 으로 각 단어의 표현을 정제하고 강화하는 과정을 반복하며 텍스트를 이해하고 생성합니다. 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-## 5단계: 다음 토큰 예측 (Prediction) 단어 생성하기 ✍️
+## 5단계: Prediction
 
 문맥을 파악한 최종 벡터를 바탕으로, 다음에 올 가장 확률 높은 단어(토큰)를 예측합니다.
+
+
+
+
+
+
+
 
 모델은 어휘 사전에 있는 모든 단어에 대해 다음 순서에 올 확률을 계산합니다. 이 확률 분포에서 하나의 토큰을 선택합니다. (예: 'LLM의 원리는' 다음에 '매우', '복잡', '합니다' 등의 토큰이 높은 확률을 가짐)
 
