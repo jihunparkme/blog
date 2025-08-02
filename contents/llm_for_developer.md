@@ -20,7 +20,7 @@
 
 <figure><img src="../img/llm-for-developer/llm-tokenizers.png" alt=""><figcaption></figcaption></figure>
 
-reference: https://blog.cubed.run/tokenizer-in-llm-060b1a35694b
+reference: https://blog.cubed.run/tokenizer-in-llm-060b1a35694b > `직접 이미지 만들기`
 
 ✅ **토큰화(Tokenization)**
 
@@ -142,6 +142,8 @@ print(decoded_sentence) # 나는 LLM 내부 동작 원리를 공부한다.
 
 한국어 특화 모델인 [ko-sentence-transformers](https://github.com/jhgan00/ko-sentence-transformers)를 로컬에 직접 다운로드하고, 텍스트를 의미가 담긴 벡터로 변환하기 위해 [sentence-transformers](https://www.sbert.net/) 라이브러리를 활용하여 Embedding 단계를 재현해 보겠습니다.  
 
+> `직접 이미지 만들기`
+
 ```python
 # pip install -U sentence-transformers
 from sentence_transformers import SentenceTransformer
@@ -231,6 +233,8 @@ PE(pos, 2i+1) = cos(pos / 10000^(2i / d_model))  # 홀수 인덱스 차원
    [ 0.1211 -0.3653 -0.6168 -0.7059  0.0853]... ('잠을'의 최종 임베딩 일부)
 ```
 
+> `직접 이미지 만들기`
+
 ## 4단계: Transformer and Attention
 
 복잡한 문장을 이해하고 생성하는 기능을 가능하게 한 핵심 기술이 `Transformer`라는 **신경망 구조**와 그 안에 있는 `Attention`이라는 **메커니즘**
@@ -254,6 +258,8 @@ PE(pos, 2i+1) = cos(pos / 10000^(2i / d_model))  # 홀수 인덱스 차원
 - `Feed-Forward Neural Network`: 앞선 어텐션 레이어들의 출력을 받아 각 단어별 특징을 강화
 
 > 요약하면, `Transformer`는 기본적으로 **Self-Attention 메커니즘**으로 문맥 관계를 파악하고, **Feed-Forward Neural Network** 으로 각 단어의 표현을 정제하고 강화하는 과정을 반복하며 텍스트를 이해하고 생성합니다. 
+
+> `직접 이미지 만들기`
 
 ## 5단계: Prediction
 
@@ -285,7 +291,22 @@ PE(pos, 2i+1) = cos(pos / 10000^(2i / d_model))  # 홀수 인덱스 차원
 
 <figure><img src="../img/llm-for-developer/prediction.png" alt=""><figcaption></figcaption></figure>
 
-## 6단계: 디코딩 및 반복 (Decoding & Loop) 문장 완성하기 🔄
+ref. https://medium.com/@akash.kesrwani99/understanding-next-token-prediction-concept-to-code-1st-part-7054dabda347 > `직접 이미지 만들기`
+
+## 6단계: Decoding & Loop
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 예측된 토큰을 다시 입력값에 추가하고, 4~6단계를 반복하여 다음 단어를 계속 생성합니다. 이 과정을 `[END]` 토큰이 생성될 때까지 반복하여 최종적으로 완성된 문장을 사용자에게 반환합니다.
 
