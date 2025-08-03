@@ -152,7 +152,7 @@ print(decoded_sentence) # 나는 LLM 내부 동작 원리를 공부한다.
 
 #### Example
 
-한국어 특화 모델인 [ko-sentence-transformers](https://github.com/jhgan00/ko-sentence-transformers)를 로컬에 직접 다운로드하고, 텍스트를 의미가 담긴 벡터로 변환하기 위해 [sentence-transformers](https://www.sbert.net/) 라이브러리를 활용하여 Embedding 단계를 재현해 보겠습니다.  
+한국어 특화 모델인 [ko-sentence-transformers](https://github.com/jhgan00/ko-sentence-transformers)(한국어 사전학습 모델을 활용한 문장 임베딩)를 로컬에 직접 다운로드하고, 텍스트를 의미가 담긴 벡터로 변환하기 위해 [sentence-transformers](https://www.sbert.net/) 라이브러리를 활용하여 Embedding 단계를 재현해 보겠습니다.  
 
 ```python
 # pip install -U sentence-transformers
@@ -169,16 +169,14 @@ except Exception as e:
 # --- 2. 임베딩으로 변환할 단어들을 정의 ---
 words = ["자동차", "자전거", "행복"]
 
-# --- 3. 모델을 사용하여 각 단어를 벡터로 변환 ---
-# 내부적으로 토큰화와 임베딩을 수행
+# --- 3. 모델을 사용하여 각 단어를 벡터로 변환 (내부적으로 토큰화와 임베딩을 수행) ---
 embeddings = model.encode(words)
 
 # --- 4. 생성된 벡터의 형태와 일부 값 확인 ---
 print(f"'{words[0]}' 단어의 임베딩 벡터 차원: {embeddings[0].shape}")
 print(f"'{words[0]}' 단어의 임베딩 벡터 일부: {embeddings[0][:5]}\n")
 
-# --- 5. 단어 간의 코사인 유사도를 계산하여 의미적 거리 확인 ---
-# 결과값이 1에 가까울수록 의미가 가깝다는 의미
+# --- 5. 단어 간의 코사인 유사도를 계산하여 의미적 거리 확인 (결과값이 1에 가까울수록 의미가 가깝다는 의미) ---
 sim_car_bicycle = cosine_similarity([embeddings[0]], [embeddings[1]])
 sim_car_happiness = cosine_similarity([embeddings[0]], [embeddings[2]])
 print(f"'{words[0]}'와(과) '{words[1]}'의 코사인 유사도: {sim_car_bicycle[0][0]:.4f}")
