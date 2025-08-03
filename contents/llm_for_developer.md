@@ -30,6 +30,8 @@ Gemini의 경우 토큰화를 위해 [SentencePiece](https://github.com/google/s
   - 한국어처럼 조사가 단어에 붙어 쓰이거나 공백의 의미가 크지 않은 언어를 처리하는 데 매우 효과적
 - **Subword 기반**: 어휘 사전에 없는 새로운 단어나 긴 단어가 나오면, 이를 더 작은 의미 단위(Subword)로 분해
 
+#### Example
+
 ```python
 # pip install sentencepiece
 import sentencepiece as spm
@@ -135,20 +137,22 @@ print(decoded_sentence) # 나는 LLM 내부 동작 원리를 공부한다.
 
 <figure><img src="../img/llm-for-developer/embedding-table.png" alt=""><figcaption></figcaption></figure>
 
-**의미론적 근접성(Semantic Proximity)**: 이 좌표 공간에서 비슷한 의미를 가진 단어들은 서로 가까운 위치에, 관련 없는 단어들은 먼 위치에 존재합
-- '자동차'와 '오토바이'의 좌표는 비교적 가깝고, '자동차'와 '에어컨'의 좌표는 매우 멀다.
-- 이러한 거리(유사도)를 통해 단어 간의 관계를 수학적으로 이해하고 추론
+**의미론적 근접성(Semantic Proximity)**: 이 좌표 공간에서 비슷한 의미를 가진 단어들은 서로 가까운 위치에, 관련 없는 단어들은 먼 위치에 존재
+- 거리(유사도)를 통해 단어 간의 관계를 수학적으로 이해하고 추론
 
 <figure><img src="../img/llm-for-developer/embedding-example-2.png" alt=""><figcaption></figcaption></figure>
+
+- 문장 임베딩의 PCA 2차원 축소 결과를 보면, '자동차'와 '오토바이'의 좌표는 '탈 것'이라는 공통된 의미로 비교적 가깝고, '자동차'와 '에어컨'의 좌표는 의미적 관련성이 없어 매우 멀다.
+- 문장 임베딩의 코사인 유사도 결과는 아래 이미지와 같이 히트맵으로 확인
 
 <figure><img src="../img/llm-for-developer/embedding-example-1.png" alt=""><figcaption></figcaption></figure>
 
 **문맥적 유연성**: 임베딩은 단어 하나뿐만 아니라 문장이나 문단 전체에 대해서도 생성
 - 이를 통해 글 전체의 종합적인 의미를 하나의 벡터로 압축하여 표현
 
-한국어 특화 모델인 [ko-sentence-transformers](https://github.com/jhgan00/ko-sentence-transformers)를 로컬에 직접 다운로드하고, 텍스트를 의미가 담긴 벡터로 변환하기 위해 [sentence-transformers](https://www.sbert.net/) 라이브러리를 활용하여 Embedding 단계를 재현해 보겠습니다.  
+#### Example
 
-> `직접 이미지 만들기`
+한국어 특화 모델인 [ko-sentence-transformers](https://github.com/jhgan00/ko-sentence-transformers)를 로컬에 직접 다운로드하고, 텍스트를 의미가 담긴 벡터로 변환하기 위해 [sentence-transformers](https://www.sbert.net/) 라이브러리를 활용하여 Embedding 단계를 재현해 보겠습니다.  
 
 ```python
 # pip install -U sentence-transformers
