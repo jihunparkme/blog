@@ -133,9 +133,15 @@ print(decoded_sentence) # 나는 LLM 내부 동작 원리를 공부한다.
 - 예를 들어, 12833번 단어에 해당하는 768차원의 좌표 [0.12, -0.45, 0.89, ...]가 미리 저장
 - 이 좌표값들은 수많은 데이터를 학습하며 얻은 결과물
 
+<figure><img src="../img/llm-for-developer/embedding-table.png" alt=""><figcaption></figcaption></figure>
+
 **의미론적 근접성(Semantic Proximity)**: 이 좌표 공간에서 비슷한 의미를 가진 단어들은 서로 가까운 위치에, 관련 없는 단어들은 먼 위치에 존재합
-- '자동차'와 '자전거'의 좌표는 비교적 가깝고, '자동차'와 '행복'의 좌표는 매우 멀다.
+- '자동차'와 '오토바이'의 좌표는 비교적 가깝고, '자동차'와 '에어컨'의 좌표는 매우 멀다.
 - 이러한 거리(유사도)를 통해 단어 간의 관계를 수학적으로 이해하고 추론
+
+<figure><img src="../img/llm-for-developer/embedding-example-2.png" alt=""><figcaption></figcaption></figure>
+
+<figure><img src="../img/llm-for-developer/embedding-example-1.png" alt=""><figcaption></figcaption></figure>
 
 **문맥적 유연성**: 임베딩은 단어 하나뿐만 아니라 문장이나 문단 전체에 대해서도 생성
 - 이를 통해 글 전체의 종합적인 의미를 하나의 벡터로 압축하여 표현
@@ -182,14 +188,6 @@ print(f"'{words[0]}'와(과) '{words[2]}'의 코사인 유사도: {sim_car_happi
 '자동차'와(과) '자전거'의 코사인 유사도: 0.8315 # '탈 것'이라는 공통된 의미로 높은 유사도
 '자동차'와(과) '행복'의 코사인 유사도: 0.1854 # 의미적 관련성이 없어 낮은 유사도
 ```
-
-**코사인 유사도 샘플**
-
-<figure><img src="../img/llm-for-developer/embedding-example-1.png" alt=""><figcaption></figcaption></figure>
-
-**차원 축소 샘플**
-
-<figure><img src="../img/llm-for-developer/embedding-example-2.png" alt=""><figcaption></figcaption></figure>
 
 ## 3단계: Positional Encoding
 
