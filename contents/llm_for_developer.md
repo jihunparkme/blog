@@ -30,7 +30,7 @@ Gemini의 경우 토큰화를 위해 [SentencePiece](https://github.com/google/s
   - 한국어처럼 조사가 단어에 붙어 쓰이거나 공백의 의미가 크지 않은 언어를 처리하는 데 매우 효과적
 - **Subword 기반**: 어휘 사전에 없는 새로운 단어나 긴 단어가 나오면, 이를 더 작은 의미 단위(Subword)로 분해
 
-#### Example
+#### 📝 Example
 
 ```python
 # pip install sentencepiece
@@ -150,7 +150,7 @@ print(decoded_sentence) # 나는 LLM 내부 동작 원리를 공부한다.
 **문맥적 유연성**: 임베딩은 단어 하나뿐만 아니라 문장이나 문단 전체에 대해서도 생성
 - 이를 통해 글 전체의 종합적인 의미를 하나의 벡터로 압축하여 표현
 
-#### Example
+#### 📝 Example
 
 한국어 특화 모델인 [ko-sentence-transformers](https://github.com/jhgan00/ko-sentence-transformers)(한국어 사전학습 모델을 활용한 문장 임베딩)를 로컬에 직접 다운로드하고, 텍스트를 의미가 담긴 벡터로 변환하기 위해 [sentence-transformers](https://www.sbert.net/) 라이브러리를 활용하여 Embedding 단계를 재현해 보겠습니다.  
 
@@ -200,7 +200,7 @@ LLM의 핵심인 Attention 메커니즘(문장 속에서 어떤 단어가 다른
 **어떤 단어가 먼저 나왔는지 순서를 모른다는 한 가지 단점**이 있습니다. 이 때문에 "고양이가 강아지를 이겼다"와 "강아지가 고양이를 이겼다"를 구분하지 못하는 문제가 생깁니다. 
 
 `Positional Encoding`은 바로 이 문제를 해결하기 위해 각 단어의 순서 정보가 담긴 고유한 벡터를 만들어 단어의 임베딩 벡터에 더해주는 단계입니다.
-- **최종 입력 벡터** = **Word Embedding Vector**(의미) + **Positional Encoding Vector**(순서)
+- **최종 입력 벡터** = **Word Embedding Vector**(의미-*2단계 Embedding 결과*) + **Positional Encoding Vector**(순서)
 
 ⚠️ 잠깐! 어떻게 위치마다 고유한 벡터를 만들까 ⁉️
 - 가장 고전적이고 유명한 방법은 `sine`, `cosine` 함수를 이용하는 방법
@@ -217,7 +217,7 @@ PE(pos, 2i+1) = cos(pos / 10000^(2i / d_model))  # 홀수 인덱스 차원
 - i: 임베딩 벡터의 차원 인덱스 (0 ~ d_model-1)
 ```
 
-#### Example
+#### 📝 Example
 
 👉🏻 **Final Embedding** = **Word Embedding Vector + Positional Encoding Vector**
 
@@ -247,19 +247,55 @@ PE(pos, 2i+1) = cos(pos / 10000^(2i / d_model))  # 홀수 인덱스 차원
 `Transformer`의 핵심적인 구성 요소는 크게 **셀프 어텐션(Self-Attention) 메커니즘**과 **피드 포워드 신경망(Feed-Forward Neural Network, FFN)** 으로 나눌 수 있습니다.  
 또한, `Transformer`는 **인코더**와 **디코더**라는 두 가지 주요 블록으로 구성되어 있는데, 이 각 블록 안에 셀프 어텐션과 피드 포워드 신경망이 반복적으로 나타납니다.
 
+<figure><img src="../img/llm-for-developer/the-transformer.png" alt=""><figcaption></figcaption></figure>
+
+ref. [Attention Is All You Need](https://arxiv.org/abs/1706.03762v7)
+
+### 인코더 레이어
+
+입력 텍스트를 모델이 이해할 수 있는 내부 표현으로 변환하는 역할
+
+👉🏻 **입력 단계**
+- `Input Embedding` 벡터와 `Positional Encoding` 벡터를 더하여 최종 입력 벡터를 생성(3단계 결과)
+
 👉🏻 **인코더 레이어**
-- `Multi-Head Self-Attention`: 문장 내 단어들 간의 **관계를 파악**하여, 각 단어가 **문맥에서 어떤 의미**를 가지는지 이해하는 메커니즘 > 현재 단어가 문장 내 다른 단어들과 얼마나 관련이 있는지를 탐색하는 과정
-  - **Multi-Head**: 하나의 셀프 어텐션을 사용하는 것이 아니라, 여러 개의 독립적인 '어텐션 헤드'를 동시에 사용. 각 헤드는 단어들 간의 다른 종류의 관계(예: 주어-동사 관계, 명사-형용사 관계 등)를 학습하여, 다양한 관점에서 문맥을 이해할 수 있도록 하고, 이렇게 다양한 관점에서 얻은 정보들을 나중에 하나로 결합
-- `Feed-Forward Neural Network`: 셀프 어텐션 레이어를 통과한 벡터를 받아서, 각 단어의 벡터를 더 풍부한 특징 표현으로 생성 > 각 단어가 가진 잠재적인 정보를 더욱 명확히 다듬는 과정
+- `Multi-Head Self-Attention`: 입력 문장 내의 모든 단어들(토큰들)이 서로에게 얼마나 '집중'해야 하는지, 즉 **서로 간에 어떤 관계**가 있는지를 계산
+  - 예를 들어, "그가 물을 마셨다"에서 '그'가 '마셨다'와 '물을'에 더 집중해야 함을 파악
+  - **Multi-Head**: 여러 개의 독립적인 '주의 집중 장치(헤드)'가 동시에 다양한 관점에서 관계(예: 주어-동사 관계, 명사-형용사 관계 등)를 파악하고, 그 결과를 결합
+- `Feed-Forward Neural Network`: 어텐션 레이어를 통과한 벡터(문맥 정보가 반영된 단어 표현)를 받아, 각 단어의 벡터를 **독립적**으로, 그리고 **비선형적**으로 변환하여 더 풍부하고 복잡한 특징 표현으로 생성
+
+### 디코더 레이어
+
+인코더에서 변환된 정보를 바탕으로 새로운 텍스트를 생성하는 역할
+
+👉🏻 **입력 단계**
+
+- `Outputs (shifted right)`: 생성될 문장의 시작을 알리는 특수 토큰과 이미 생성된 단어들이 입력으로 삽입
+  - `shifted right`: 훈련 시 정답 시퀀스를 한 칸 뒤로 밀어 넣어, 현재 시점의 단어를 예측할 때 미래의 단어를 볼 수 없도록 하는 방식
+- 입력과 마찬가지로 `Output Embedding` 벡터와 `Positional Encoding` 벡터를 더하여 최종 출력 벡터를 생성
 
 👉🏻 **디코더 레이어**
-- `Masked Multi-Head Self-Attention`: 디코더는 단어를 순차적으로 생성해야 하므로, 현재 단어를 예측할 때 미래의 단어(아직 생성되지 않은 단어)를 참조하지 못하도록 '마스킹(Masking)'을 적용한 셀프 어텐션
-- `Encoder-Decoder Attention`: 디코더에만 있는 독특한 부분으로, 인코더의 출력(입력 문장의 정보)을 참조하여 번역이나 요약 같은 작업을 수행할 때 입력 문장과 생성할 문장 사이의 관계를 파악
-- `Feed-Forward Neural Network`: 앞선 어텐션 레이어들의 출력을 받아 각 단어별 특징을 강화
 
-> 요약하면, `Transformer`는 기본적으로 **Self-Attention 메커니즘**으로 문맥 관계를 파악하고, **Feed-Forward Neural Network** 으로 각 단어의 표현을 정제하고 강화하는 과정을 반복하며 텍스트를 이해하고 생성합니다. 
+- `Masked Multi-Head Self-Attention`: 디코더는 단어를 생성하는 역할을 하므로, 현재 단어를 예측할 때 아직 생성되지 않은 **미래의 단어를 참조할 수 없도록** 해야 합니다. 여기서 **Masked**는 미래 단어에 대한 어텐션 점수를 0으로 만들어 참조하지 못하게 하는 것을 의미
+- 이 외의 작동 방식은 인코더의 멀티-헤드 어텐션과 유사
+- `Multi-Head Self-Attention`: **인코더의 출력**과 **디코더의 이전 마스크드 셀프 어텐션의 출력**을 동시에 참조. 이는 디코더가 입력 문맥(인코더 출력)과 자신이 지금까지 생성한 문맥을 모두 고려하여 다음 단어를 예측할 수 있도록 합니다.
+- `Feed-Forward Neural Network`: 앞선 두 어텐션 레이어의 출력을 받아 각 단어별 특징을 강화
 
-> `직접 이미지 만들기`
+👉🏻 **출력 단계**
+- `Linear`: 디코더 스택의 최종 출력을, 모델의 전체 단어 개수만큼의 차원을 가진 벡터로 변환
+- `Softmax`: `Linear`의 출력을 각 단어가 다음 단어로 나올 **확률(Output Probabilities)**로 변환. 가장 높은 확률을 가진 단어가 최종 출력으로 선택.
+
+### 참고
+
+👉🏻 **Add & Norm**
+- `Add` (잔차 연결): 이전 레이어의 입력 값을 현재 레이어의 출력 값에 더해주는 방식
+  - 깊은 신경망 학습, 정보 보존을 위한 단계
+- `Norm` (레이어 정규화): 신경망의 각 레이어 출력에 대해 평균을 0으로, 분산을 1로 맞추어 데이터의 분포를 정규화하는 기법
+  - 학습 안정화, 최적의 해를 찾는 과정(수렴)을 더 빠르고 효율적으로 만들기 위한 단계
+
+> 요약하면, `Transformer`는 기본적으로 **Self-Attention 메커니즘**으로 문맥 관계를 파악하고,  
+> 
+> **Feed-Forward Neural Network** 으로 각 단어의 표현을 정제하고 강화하는 과정을 반복하며 텍스트를 이해하고 생성합니다. 
 
 ## 5단계: Prediction
 
@@ -352,3 +388,9 @@ LLM의 동작 원리를 이해하면 LLM을 단순한 채팅봇이 아닌, **프
 6️⃣ **결과를 비판적으로 검토하고 피드백**: 첫 답변이 만족스럽지 않다면, "그 답변은 이러이러한 점에서 틀렸어. 그 점을 수정해서 다시 설명해줘."와 같이 구체적인 피드백을 주며 대화를 이어가세요. 이는 6단계(Loop) 과정을 개발자가 직접 제어하며 원하는 결과로 유도하는 것과 같습니다.
 
 https://anthropic.skilljar.com/claude-with-the-anthropic-api/287726
+
+## Reference
+
+- [Gemini Tokenization Explained](https://llm-calculator.com/blog/gemini-tokenization-explained/)
+- [LLM Embeddings Explained:A Visual and Intuitive Guide](https://huggingface.co/spaces/hesamation/primer-llm-embedding)
+- [Ashish Vaswani, Noam Shazeer, 2017, "Attention Is All You Need", 『Neural Information Processing Systems』](https://arxiv.org/abs/1706.03762v7)
