@@ -324,16 +324,30 @@ LLM은 자신이 알고 있는 수만 개의 모든 단어(토큰)들을 후보�
 ### 샘플링(Sampling)
 
 가장 확률 높은 단어만 계속 선택하면 매우 예측 가능하고 지루한 문장이 생성되어, LLM은 더 창의적인 문장을 만들기 위해 다양한 **샘플링 전략**을 사용합니다.
-- **Greedy Search**: 무조건 확률 1등 단어만 선택
-- **Top-K Sampling**: 확률 순위가 높은 K개(예: 50개)의 단어만 확률에 따라 선택
-- **Top-P (Nucleus) Sampling**: 확률의 합이 P(예: 95%)가 될 때까지 상위권 단어들을 후보로 올리고, 모델이 다음에 올 단어를 확신할수록 후보가 적어지고, 불확실할수록 후보가 많아지는 유연한 방식입니다. (Gemini와 같은 최신 모델들이 주로 사용하는 핵심 전략)
-- **Temperature**: '예측 불가능성'을 조절. 온도가 높으면(\>1.0) 확률이 낮은 단어도 과감하게 뽑아 창의적인 문장을 생성하고, 낮으면(\<1.0) 확률 높은 단어 위주로 뽑아 안정적인 문장을 생성
+
+**Greedy Search**: 
+- 무조건 확률 1등 단어만 선택
+
+<figure><img src="../img/llm-for-developer/greedy-search.png" alt=""><figcaption></figcaption></figure>
+
+
+
+
+
+
+
+**Top-K Sampling**: 
+- 확률 순위가 높은 K개(예: 50개)의 단어만 확률에 따라 선택
+
+**Top-P (Nucleus) Sampling**: 
+- 확률의 합이 P(예: 95%)가 될 때까지 상위권 단어들을 후보로 올리고, 모델이 다음에 올 단어를 확신할수록 후보가 적어지고, 불확실할수록 후보가 많아지는 유연한 방식
+- Gemini와 같은 최신 모델들이 주로 사용하는 핵심 전략
+
+**Temperature**: 
+- '예측 불가능성'을 조절. 온도가 높으면(\>1.0) 확률이 낮은 단어도 과감하게 뽑아 창의적인 문장을 생성하고, 낮으면(\<1.0) 확률 높은 단어 위주로 뽑아 안정적인 문장을 생성
 
 이 과정을 통해 한 단어를 선택하고, 그 단어를 다시 입력에 추가하여 다음 단어를 예측하는 과정을 반복하면 비로소 하나의 문장이 완성
 
-<figure><img src="../img/llm-for-developer/prediction-2.png" alt=""><figcaption></figcaption></figure>
-
-ref. https://medium.com/@akash.kesrwani99/understanding-next-token-prediction-concept-to-code-1st-part-7054dabda347 > `직접 이미지 만들기`
 
 
 
@@ -411,4 +425,5 @@ https://anthropic.skilljar.com/claude-with-the-anthropic-api/287726
 - [Gemini Tokenization Explained](https://llm-calculator.com/blog/gemini-tokenization-explained/)
 - [LLM Embeddings Explained:A Visual and Intuitive Guide](https://huggingface.co/spaces/hesamation/primer-llm-embedding)
 - [Ashish Vaswani, Noam Shazeer, 2017, "Attention Is All You Need", 『Neural Information Processing Systems』](https://arxiv.org/abs/1706.03762v7)
+- [LLM Prompt Engineering with Random Sampling: Temperature, Top-k, Top-p](https://www.youtube.com/watch?v=-BBulGM6xF0&ab_channel=DataMListic)
 - [Understanding Next Token Prediction: Concept To Code: 1st part!](https://medium.com/@akash.kesrwani99/understanding-next-token-prediction-concept-to-code-1st-part-7054dabda347)
