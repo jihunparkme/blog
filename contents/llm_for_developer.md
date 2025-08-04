@@ -331,20 +331,16 @@ LLM은 자신이 알고 있는 수만 개의 모든 단어(토큰)들을 후보�
 <figure><img src="../img/llm-for-developer/greedy-search.png" alt=""><figcaption></figcaption></figure>
 
 **Top-K Sampling**: 
-- 확률 순위가 높은 K개(예: 50개)의 단어만 확률에 따라 선택
+- 확률 순위가 높은 K개(예: 3개)의 단어들 중 확률에 따라 선택
 
 <figure><img src="../img/llm-for-developer/top-k-sampling.png" alt=""><figcaption></figcaption></figure>
 
-
-
-
-
-
-
-
-**Top-P (Nucleus) Sampling**: 
-- 확률의 합이 P(예: 95%)가 될 때까지 상위권 단어들을 후보로 올리고, 모델이 다음에 올 단어를 확신할수록 후보가 적어지고, 불확실할수록 후보가 많아지는 유연한 방식
+**Top-P Sampling**: 
+- 확률의 합이 P(예: 70%)가 될 때까지 상위권 단어들을 후보로 올리고, 후보에 올라온 단어들 중 확률에 따라 선택
+- 모델이 다음에 올 단어를 확신할수록 후보가 적어지고, 불확실할수록 후보가 많아지는 유연한 방식
 - Gemini와 같은 최신 모델들이 주로 사용하는 핵심 전략
+
+<figure><img src="../img/llm-for-developer/top-p-sampling.png" alt=""><figcaption></figcaption></figure>
 
 **Temperature**: 
 - '예측 불가능성'을 조절. 온도가 높으면(\>1.0) 확률이 낮은 단어도 과감하게 뽑아 창의적인 문장을 생성하고, 낮으면(\<1.0) 확률 높은 단어 위주로 뽑아 안정적인 문장을 생성
