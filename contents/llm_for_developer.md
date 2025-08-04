@@ -330,14 +330,17 @@ LLM은 자신이 알고 있는 수만 개의 모든 단어(토큰)들을 후보�
 
 <figure><img src="../img/llm-for-developer/greedy-search.png" alt=""><figcaption></figcaption></figure>
 
-
-
-
-
-
-
 **Top-K Sampling**: 
 - 확률 순위가 높은 K개(예: 50개)의 단어만 확률에 따라 선택
+
+<figure><img src="../img/llm-for-developer/top-k-sampling.png" alt=""><figcaption></figcaption></figure>
+
+
+
+
+
+
+
 
 **Top-P (Nucleus) Sampling**: 
 - 확률의 합이 P(예: 95%)가 될 때까지 상위권 단어들을 후보로 올리고, 모델이 다음에 올 단어를 확신할수록 후보가 적어지고, 불확실할수록 후보가 많아지는 유연한 방식
