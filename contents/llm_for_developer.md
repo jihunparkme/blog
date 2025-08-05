@@ -325,34 +325,32 @@ LLM은 자신이 알고 있는 수만 개의 모든 단어(토큰)들을 후보�
 
 가장 확률 높은 단어만 계속 선택하면 매우 예측 가능하고 지루한 문장이 생성되어, LLM은 더 창의적인 문장을 만들기 위해 다양한 **샘플링 전략**을 사용합니다.
 
-**Greedy Search**: 
+#### 👉🏻 Greedy Search:
 - 무조건 확률 1등 단어만 선택
 
 <figure><img src="../img/llm-for-developer/greedy-search.png" alt=""><figcaption></figcaption></figure>
 
-**Top-K Sampling**: 
+#### 👉🏻Top-K Sampling: 
 - 확률 순위가 높은 K개(예: 3개)의 단어들 중 확률에 따라 선택
 
 <figure><img src="../img/llm-for-developer/top-k-sampling.png" alt=""><figcaption></figcaption></figure>
 
-**Top-P Sampling**: 
+#### 👉🏻 Top-P Sampling: 
 - 확률의 합이 P(예: 70%)가 될 때까지 상위권 단어들을 후보로 올리고, 후보에 올라온 단어들 중 확률에 따라 선택
 - 모델이 다음에 올 단어를 확신할수록 후보가 적어지고, 불확실할수록 후보가 많아지는 유연한 방식
 - Gemini와 같은 최신 모델들이 주로 사용하는 핵심 전략
 
 <figure><img src="../img/llm-for-developer/top-p-sampling.png" alt=""><figcaption></figcaption></figure>
 
-**Temperature**: 
-- '예측 불가능성'을 조절. 온도가 높으면(\>1.0) 확률이 낮은 단어도 과감하게 뽑아 창의적인 문장을 생성하고, 낮으면(\<1.0) 확률 높은 단어 위주로 뽑아 안정적인 문장을 생성
+#### 👉🏻 Temperature: 
+- 소프트맥스 함수를 통해 **모델의 확률 분포를 조절**. 
+- 온도가 높으면(T > 1) 가장 높은 확률을 가진 단어의 확률은 낮아지고, 다른 단어들의 확률은 상대적으로 높아지면서, 모델이 다양하고 예측 불가능한 단어를 선택할 가능성을 높여 창의적인 출력을 생성
+- 온도가 낮으면(T < 1) 가장 높은 확률을 가진 단어의 확률은 더 높아지고, 다른 단어들의 확률은 더 낮아지면서, 모델이 가장 확실한 선택을 하도록 유도하여 보수적이고 반복적인 출력을 생성할 가능성을 높임
 
-이 과정을 통해 한 단어를 선택하고, 그 단어를 다시 입력에 추가하여 다음 단어를 예측하는 과정을 반복하면 비로소 하나의 문장이 완성
+Temperature 매개변수가 적용되지 않았을 때의 일반적인 예측 과정
+- `T = 1` 이 적용되어 원래 점수와 동일
 
-
-
-
-
-
-
+<figure><img src="../img/llm-for-developer/no-temperature.png" alt=""><figcaption></figcaption></figure>
 
 
 
@@ -360,6 +358,7 @@ LLM은 자신이 알고 있는 수만 개의 모든 단어(토큰)들을 후보�
 
 
 
+> 이 과정을 통해 한 단어를 선택하고, 그 단어를 다시 입력에 추가하여 다음 단어를 예측하는 과정을 반복하면 비로소 하나의 문장이 완성
 
 ## 6단계: Decoding & Loop
 
