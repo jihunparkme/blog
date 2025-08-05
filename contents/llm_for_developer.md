@@ -332,31 +332,37 @@ LLM은 자신이 알고 있는 수만 개의 모든 단어(토큰)들을 후보�
 
 #### 👉🏻Top-K Sampling: 
 - 확률 순위가 높은 K개(예: 3개)의 단어들 중 확률에 따라 선택
+- 전체 어휘가 아닌, 확률이 가장 높은 K개의 단어 중에서만 샘플링하므로 다양성을 어느 정도 유지하면서도 엉뚱한 단어가 나오는 것을 방지
+- K값 설정에 따라 출력 품질이 크게 변화되고, K값이 너무 작으면 선택 가능한 단어의 폭이 좁아져 특정 구절이나 단어가 반복
 
 <figure><img src="../img/llm-for-developer/top-k-sampling.png" alt=""><figcaption></figcaption></figure>
 
 #### 👉🏻 Top-P Sampling: 
 - 확률의 합이 P(예: 70%)가 될 때까지 상위권 단어들을 후보로 올리고, 후보에 올라온 단어들 중 확률에 따라 선택
-- 모델이 다음에 올 단어를 확신할수록 후보가 적어지고, 불확실할수록 후보가 많아지는 유연한 방식
-- Gemini와 같은 최신 모델들이 주로 사용하는 핵심 전략
+- 문맥에 따라 동적으로 선택할 단어의 수를 조절. 누적 확률을 기준으로 단어를 선택하기 때문에, 다양한 단어가 나올 수 있는 확률의 핵심 영역에 집중하여 더 자연스러운 다양성을 보장
+  - 확실한 예측이 가능한 문맥에서는 적은 수의 단어만 고려하고, 다양한 예측이 가능한 문맥에서는 더 많은 단어를 고려
+  - Gemini와 같은 최신 모델들이 주로 사용하는 핵심 전략
+- 최적의 p값을 찾는 것의 어려움. p값이 너무 높으면 Top-k와 마찬가지로 관련성 없는 단어가 선택되어 일관성이 떨어질 가능성이 존재
 
 <figure><img src="../img/llm-for-developer/top-p-sampling.png" alt=""><figcaption></figcaption></figure>
 
 #### 👉🏻 Temperature: 
-- 소프트맥스 함수를 통해 **모델의 확률 분포를 조절**. 
+- 소프트맥스 함수를 통해 **모델의 확률 분포를 조절**.
+- 매번 가장 확실한 단어만 선택하는 경직된 패턴에서 벗어날 수 있음.
 
-Temperature 매개변수가 적용되지 않았을 때의 영향
+**Temperature 매개변수가 적용되지 않았을 때의 영향**
 - `T = 1` 이 적용되어 원래 점수와 동일
 
 <figure><img src="../img/llm-for-developer/no-temperature.png" alt=""><figcaption></figcaption></figure>
 
-높은 Temperature 매개변수가 적용되었을 때 확률 분포에 미치는 영향
+**높은 Temperature 매개변수가 적용되었을 때 확률 분포에 미치는 영향**
 - 온도가 높으면(T > 1) 가장 높은 확률을 가진 단어의 확률은 낮아지고, 다른 단어들의 확률은 상대적으로 높아지면서, 모델이 다양하고 예측 불가능한 단어를 선택할 가능성을 높여 창의적인 출력을 생성
+- 온도가 너무 높으면 문맥과 관련 없는 단어가 선택되어 텍스트의 일관성이 떨어질 가능성이 존재
 - 예제에서는 확률 감소폭이 점차 줄어드는 것을 확인
 
 <figure><img src="../img/llm-for-developer/high-temperature.png" alt=""><figcaption></figcaption></figure>
 
-낮은 Temperature 매개변수가 적용되었을 때 확률 분포에 미치는 영향
+**낮은 Temperature 매개변수가 적용되었을 때 확률 분포에 미치는 영향**
 - 온도가 낮으면(T < 1) 가장 높은 확률을 가진 단어의 확률은 더 높아지고, 다른 단어들의 확률은 더 낮아지면서, 모델이 가장 확실한 선택을 하도록 유도하여 보수적이고 반복적인 출력을 생성할 가능성을 높임
 
 <figure><img src="../img/llm-for-developer/low-temperature.png" alt=""><figcaption></figcaption></figure>
