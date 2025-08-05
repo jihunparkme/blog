@@ -344,7 +344,6 @@ LLM은 자신이 알고 있는 수만 개의 모든 단어(토큰)들을 후보�
 
 #### 👉🏻 Temperature: 
 - 소프트맥스 함수를 통해 **모델의 확률 분포를 조절**. 
-- 온도가 낮으면(T < 1) 가장 높은 확률을 가진 단어의 확률은 더 높아지고, 다른 단어들의 확률은 더 낮아지면서, 모델이 가장 확실한 선택을 하도록 유도하여 보수적이고 반복적인 출력을 생성할 가능성을 높임
 
 Temperature 매개변수가 적용되지 않았을 때의 영향
 - `T = 1` 이 적용되어 원래 점수와 동일
@@ -357,11 +356,10 @@ Temperature 매개변수가 적용되지 않았을 때의 영향
 
 <figure><img src="../img/llm-for-developer/high-temperature.png" alt=""><figcaption></figcaption></figure>
 
+낮은 Temperature 매개변수가 적용되었을 때 확률 분포에 미치는 영향
+- 온도가 낮으면(T < 1) 가장 높은 확률을 가진 단어의 확률은 더 높아지고, 다른 단어들의 확률은 더 낮아지면서, 모델이 가장 확실한 선택을 하도록 유도하여 보수적이고 반복적인 출력을 생성할 가능성을 높임
 
-
-
-
-
+<figure><img src="../img/llm-for-developer/low-temperature.png" alt=""><figcaption></figcaption></figure>
 
 > 이 과정을 통해 한 단어를 선택하고, 그 단어를 다시 입력에 추가하여 다음 단어를 예측하는 과정을 반복하면 비로소 하나의 문장이 완성
 
