@@ -395,11 +395,11 @@ LLM은 자신이 알고 있는 수만 개의 모든 단어(토큰)들을 후보�
 - **[EOS] 토큰 등장**: 모델이 문장의 끝을 의미하는 특수 토큰(End-Of-Sentence)을 생성할 때
 - **최대 길이 도달**: 우리가 미리 설정한 최대 단어 개수(예: 100개)에 도달할 때
 
+<figure><img src="../img/llm-for-developer/decoding-loop.png" alt=""><figcaption></figcaption></figure>
+
 ### Decoding
 
 루프가 모두 끝나고 최종적으로 생성된 **숫자 ID들의 배열** `[3141, 912, 114, ...]`을 사람이 읽을 수 있는 **하나의 완성된 텍스트**로 다시 변환하는 과정
-
-<figure><img src="../img/llm-for-developer/decoding-loop.png" alt=""><figcaption></figcaption></figure>
 
 ## 더 정확한 답변을 얻기 위한 팁
 
@@ -424,8 +424,6 @@ LLM의 동작 원리를 이해하면 LLM을 단순한 채팅봇이 아닌, **프
 
 6️⃣ **결과를 비판적으로 검토하고 피드백**: 첫 답변이 만족스럽지 않다면, "그 답변은 이러이러한 점에서 틀렸어. 그 점을 수정해서 다시 설명해줘."와 같이 구체적인 피드백을 주며 대화를 이어가세요. 이는 6단계(Loop) 과정을 개발자가 직접 제어하며 원하는 결과로 유도하는 것과 같습니다.
 
-https://anthropic.skilljar.com/claude-with-the-anthropic-api/287726
-
 ## Reference
 
 - [Gemini Tokenization Explained](https://llm-calculator.com/blog/gemini-tokenization-explained/)
@@ -433,3 +431,4 @@ https://anthropic.skilljar.com/claude-with-the-anthropic-api/287726
 - [Ashish Vaswani, Noam Shazeer, 2017, "Attention Is All You Need", 『Neural Information Processing Systems』](https://arxiv.org/abs/1706.03762v7)
 - [LLM Prompt Engineering with Random Sampling: Temperature, Top-k, Top-p](https://www.youtube.com/watch?v=-BBulGM6xF0&ab_channel=DataMListic)
 - [Understanding Next Token Prediction: Concept To Code: 1st part!](https://medium.com/@akash.kesrwani99/understanding-next-token-prediction-concept-to-code-1st-part-7054dabda347)
+- [Claude with the Anthropic API](https://anthropic.skilljar.com/claude-with-the-anthropic-api/287726)
