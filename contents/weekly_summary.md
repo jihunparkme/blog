@@ -183,6 +183,14 @@ python3 weekly-report.py
 
 ...
 
+## Finish
+
+실행 결과는 슬랙 알림이나 메일로도 전송시킬 수가 있습니다. 
+
+이렇게 다양한 방법으로 AI를 활용하여 업무를 효율적으로, 그리고 더 쉽게 할 수 있게 되었습니다.
+
+앞으로도 다양한 시도를 해볼 예정입니다.
+
 ## Reference
 
 [Gemini API 시작하기](https://ai.google.dev/gemini-api/docs/get-started/tutorial?hl=ko&lang=python)
