@@ -1,18 +1,22 @@
 # genai로 지라 이슈 리포트 생성하기
 
 사내에서 n8n을 활용해서 여러 AI Agent를 만들어 보고 싶었지만, 보안 이슈로 아쉽게 꿈을 펼치지 못 했습니다..ㅎㅎ
+<br/>
 
 그래서 다른 방법으로라도 해보리라는 마음으로 Python 기반으로 지라 이슈 리포트를 생성하는 방법을 선택하게 되었고, 그 방법을 공유해 보려고 합니다.
 
 ## Intro
 
 👉🏼 **Gemini API용 Python SDK는 `google-generativeai` 패키지 설치**
+<br/>
 
 [google-generativeai](https://pypi.org/project/google-generativeai/)
+<br/>
 
 ```bash
 pip install -q -U google-generativeai
 ```
+<br/>
 
 👉🏼 **프로젝트 루트 디렉토리에 `.env` 파일을 만들고 API KEY 저장** 
 
@@ -107,8 +111,10 @@ if __name__ == '__main__':
 ```bash
 python3 weekly-report.py
 ```
+<br/>
 
 아래 결과는 실제 실행 결과입니다.
+<br/>
 
 ---
 
@@ -186,8 +192,10 @@ python3 weekly-report.py
 ## Finish
 
 실행 결과는 슬랙 알림이나 메일로도 전송시킬 수가 있습니다. 
+<br/>
 
 이렇게 다양한 방법으로 AI를 활용하여 업무를 효율적으로, 그리고 더 쉽게 할 수 있게 되었습니다.
+<br/>
 
 앞으로도 다양한 시도를 해볼 예정입니다.
 
