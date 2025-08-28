@@ -1,9 +1,13 @@
 # genai로 지라 이슈 리포트 생성하기
 
+최근 AI를 활용한 업무 자동화가 주목받고 있습니다. 특히 일상적인 리포트 작성이나 데이터 분석 작업에서 AI의 도움을 받으면 많은 시간을 절약할 수 있습니다.
+<br/>
+
 사내에서 n8n을 활용해서 여러 AI Agent를 만들어 보고 싶었지만, 보안 이슈로 아쉽게 꿈을 펼치지 못 했습니다..ㅎㅎ
 <br/>
 
-그래서 다른 방법으로라도 해보리라는 마음으로 Python 기반으로 지라 이슈 리포트를 생성하는 방법을 선택하게 되었고, 그 방법을 공유해 보려고 합니다.
+그래서 Python과 Gemini AI를 활용하여 AI Agent 대체품이라도 만들어 보면서 과정을 기록해 보려고 합니다.
+<br/>
 
 ## Intro
 
@@ -25,21 +29,27 @@ GEMINI_API_KEY="..."
 JIRA_API_KEY="..."
 ```
 
-## Code
+## Python Code
+
+Gemini AI API와 Jira API를 사용하여 최근 Jira 이슈들을 분석하고 리포트를 생성합니다.
+<br/>
+
+설명은 보기 쉽게 주석으로 남기게 되었습니다.
+<br/>
 
 ```python
-###################
+######################################################
 # 필요 라이브러리 임포트
-import textwrap # 텍스트 포매팅
-import google.generativeai as genai # Gemini API 사용
-from dotenv import load_dotenv # 환경변수 관리
+######################################################
+import textwrap # 텍스트 포매팅을 위한 라이브러리
+import google.generativeai as genai # Gemini AI API 사용을 위한 SDK
+from dotenv import load_dotenv # 환경변수 관리를 위한 라이브러리
 import os
-import requests # HTTP 요청
+import requests # HTTP 요청을 위한 라이브러리
 
-load_dotenv()
-gemini_api_key = os.getenv('GEMINI_API_KEY')
-jira_api_key = os.getenv('JIRA_API_KEY')
-
+######################################################
+# 유틸리티 함수
+######################################################
 # 사용 가능한 Gemini AI 모델 목록을 반환하는 함수
 def get_genai_models():
   result = []
@@ -52,7 +62,7 @@ def get_genai_models():
 def init_genai():
   global gemini_api_key
   genai.configure(api_key=gemini_api_key)
-  # print('\n'.join(get_genai_models()))
+  print('\n'.join(get_genai_models())) # 사용 가능한 모델 확인
   return genai.GenerativeModel('gemini-2.5-pro')
 
 # 최근 7일간 업데이트된 Jira 이슈들을 가져오는 함수
@@ -80,13 +90,17 @@ def get_jira_issues():
     })
   return result
 
-############################################################
+######################################################
+# 메인 실행 로직
+######################################################
+
+load_dotenv() # .env 파일의 환경변수를 로드
+gemini_api_key = os.getenv('GEMINI_API_KEY')
+jira_api_key = os.getenv('JIRA_API_KEY')
 
 if __name__ == '__main__':
   model = init_genai()
-
   jira_issues = get_jira_issues()
-
   question = f'''
     최근 업데이트된 지라 이슈 목록을 바탕으로 리포트를 작성해줘.
     목록에 제공된 정보에 대한 설명을 해주자면, key는 이슈 번호, summary는 이슈 제목, description은 이슈 설명이야.
@@ -194,10 +208,10 @@ python3 weekly-report.py
 실행 결과는 슬랙 알림이나 메일로도 전송시킬 수가 있습니다. 
 <br/>
 
-이렇게 다양한 방법으로 AI를 활용하여 업무를 효율적으로, 그리고 더 쉽게 할 수 있게 되었습니다.
+이렇게 AI를 다양한 업무에 적용하여 생산성을 향상시킬 수 있을 것이라고 기대합니다.
 <br/>
 
-앞으로도 다양한 시도를 해볼 예정입니다.
+AI를 활용한 다양한 업무 자동화를 시도하며, 그 경험을 공유해 보려고 합니다.👋🏼
 
 ## Reference
 
