@@ -79,12 +79,14 @@ Gemini CLI 설정 파일(`~/.gemini/settings.json`)에 Atlassian MCP 설정을 �
 ## 사용 방법
 
 SR 티켓 생성이 필요할 때 다음과 같이 명령어를 실행합니다.
+<br/>
 
 ```bash
 > PROJECT-12254 으로 SR 생성해 줘
 ```
 
 **실행 결과 예시**
+<br/>
 
 ```bash
 알겠습니다. PROJECT-12254 티켓을 기반으로 SR을 생성하겠습니다. 먼저 원본 티켓의 정보를 가져오겠습니다.
