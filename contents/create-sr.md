@@ -1,20 +1,20 @@
 # Gemini CLI + Atlassian MCP 조합으로 SR 생성하기
 
-사내에서는 배포 시 별도의 지라 SR 티켓이 필요한데, 기존 작업 티켓 내용을 기반으로 수기 생성하는 방식이 비효율적인 방식으로 느껴졌습니다.
+사내 배포 프로세스에서는 별도의 Service Request(SR) 지라 티켓이 필요합니다. 기존에는 작업 티켓의 내용을 수동으로 복사하여 SR 티켓을 생성하는 방식을 사용했는데, 이는 시간 소모적이고 실수가 발생할 수 있는 비효율적인 프로세스였습니다.
 <br/>
 
-그렇게 작업 기존 티켓 기반 자동으로 SR 티켓을 생성해 주는 방법을 고민하게 되었습니다.
-<br/>
+이러한 문제를 해결하기 위해 기존 작업 티켓을 기반으로 SR 티켓을 자동으로 생성하는 방법을 고민하게 되었습니다. 여러 도구들을 서칭한 결과, Atlassian에서 제공하는 `MCP`와 `Gemini CLI`를 조합하여 SR을 생성하는 방법을 공유하려고 합니다.
 
-여러 방법들이 있었지만 atlassian에서 MCP를 제공하고 있어서, Gemini CLI + MCP 조합으로 진행을 하게 되었습니다.
+## 필요한 도구
 
-> [mcp-atlassian](https://github.com/sooperset/mcp-atlassian)
->
-> [gemini-cli](https://github.com/google-gemini/gemini-cli)
+- [mcp-atlassian](https://github.com/sooperset/mcp-atlassian)
+- [gemini-cli](https://github.com/google-gemini/gemini-cli)
 
-## Intro
+## Gemini CLI 설정
 
 Gemini CLI 설정 파일(`~/.gemini/settings.json`)에 Atlassian MCP 설정을 추가합니다.
+- MCP-Atlassian 실행을 위해 `Docker`가 필요합니다.
+<br/>
 
 ```bash
 {
@@ -47,8 +47,11 @@ Gemini CLI 설정 파일(`~/.gemini/settings.json`)에 Atlassian MCP 설정을 �
 }
 ```
 
-`~/.gemini/GEMINI.md` 파일 하단애 SR 생성 관련 지시사항을 추가합니다.
-- 사내에서는 사용자 지정 필드가 사용되는데, 여러 시도 끝에 필드명과 데이터 타입을 지시사항에 추가하니 제대로 인식을 하게 되었다.
+## 프로세스 정의
+
+`~/.gemini/GEMINI.md` 파일에 SR 생성 프로세스를 정의합니다.  
+특히 사용자 지정 필드를 사용하는 경우, 필드명과 데이터 타입을 명확히 지정하는 것이 중요합니다.
+<br/>
 
 ```bash
  ---
@@ -73,15 +76,17 @@ Gemini CLI 설정 파일(`~/.gemini/settings.json`)에 Atlassian MCP 설정을 �
  4.  **이슈 연결**: 새 이슈가 생성되면, 새 이슈와 원본 `PROJECT-XXXXX` 티켓 사이에 'Relates' 관계의 링크를 생성한다.
 ```
 
-## Result
+## 사용 방법
 
-**SR 생성 요쳥**
+SR 티켓 생성이 필요할 때 다음과 같이 명령어를 실행합니다.
 
 ```bash
 > PROJECT-12254 으로 SR 생성해 줘
+```
 
----------------------------------------------------------------------------------------
+**실행 결과 예시**
 
+```bash
 알겠습니다. PROJECT-12254 티켓을 기반으로 SR을 생성하겠습니다. 먼저 원본 티켓의 정보를 가져오겠습니다.
 
 ...
@@ -96,5 +101,3 @@ SR 이슈(PROJECT-12267)가 성공적으로 생성되었습니다. 이제 원본
 
 SR 생성이 완료되었습니다. 새로운 SR 티켓 번호는 PROJECT-12267이며, 원본 티켓 PROJECT-12254와 연결되었습니다.
 ```
-
-## FINISH
