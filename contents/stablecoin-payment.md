@@ -42,6 +42,10 @@
 | **정산 시간** | **수 초 ~ 분** (블록 생성 속도) | **수 시간 ~ 일** (결제일 기준) | **즉시** |
 | **국경** | **국경 제한 없음**| **국경 간 복잡하고 느림** | 국경 간 사용 불가|
 
+<figure><img src="https://github.com/jihunparkme/blog/blob/main/img/stablecoin/commission.jpg?raw=true" alt=""><figcaption></figcaption></figure>
+
+ref. https://www.hankyung.com/article/2025091678061
+
 #### 🪙 스테이블 코인 결제의 상세 과정
 
 1️⃣. **결제 요청 및 주소 확인:** 
