@@ -2,7 +2,7 @@
 
 https://docs.n8n.io/hosting/installation/docker/#prerequisites
 
-
+## Run n8n
 
 ```bash
 docker volume create n8n_data # Docker 볼륨 생성
@@ -18,69 +18,58 @@ docker run -itd \
  docker.n8n.io/n8nio/n8n
  ``` 
 
+## HTTP Request
+
 기사 페이지 가져오기
 
 ```http
 GET https://www.aitimes.com/news/articleList.html
 ```
 
-✅ Code in Javascript
+## Code in Javascript
 
 기사 내용만 추출하기
 
 ```javascript
-// 입력 데이터를 'items' 변수에서 가져오는 것은 동일합니다.
 const results = [];
 
-// 추출하려는 영역의 시작 태그와 닫는 태그를 정의합니다.
 const startTag = '<article id="section-list"';
 const endTag = '</article>';
 
 for (const item of $input.all()) {
-    // 1. 입력 HTML 문자열을 가져옵니다. (필드 이름에 맞게 수정하세요)
     const htmlString = item.json.data; 
     let extractedContent = null; 
 
-    if (htmlString) {
-        // 2. 시작 태그의 위치를 찾습니다. (클래스 등 다른 속성 포함)
-        const startIndex = htmlString.indexOf(startTag);
-
-        // 3. 시작 태그를 찾았다면, 실제 내용이 시작되는 위치를 계산합니다.
-        if (startIndex !== -1) {
-            
-            // 3-1. 시작 태그를 찾은 후, 태그가 닫히는 '>' 문자의 위치를 찾습니다.
-            // 검색 시작 지점은 startIndex 바로 다음입니다.
-            const tagEndIndex = htmlString.indexOf('>', startIndex);
-
-            if (tagEndIndex !== -1) {
-                // 실제 내용의 시작 위치: 태그 닫는 괄호 '>' 바로 다음 위치
-                const contentStartIndex = tagEndIndex + 1;
-
-                // 3-2. 내용이 끝나는 닫는 태그(</article>)의 위치를 찾습니다.
-                // 검색 시작 지점은 태그 닫는 괄호 '>' 바로 다음입니다.
-                const contentEndIndex = htmlString.indexOf(endTag, contentStartIndex);
-
-                if (contentEndIndex !== -1) {
-                    // 4. 내용 추출: contentStartIndex부터 contentEndIndex 바로 앞까지 자릅니다.
-                    extractedContent = htmlString.substring(contentStartIndex, contentEndIndex);
-                    
-                    // 추출된 내용의 앞뒤 공백과 줄바꿈을 제거합니다.
-                    extractedContent = extractedContent.trim();
-                }
+    // 시작 태그 위치 찾기
+    const startIndex = htmlString.indexOf(startTag);
+    // 실제 내용이 시작되는 위치 계산
+    if (startIndex !== -1) {
+        // 태그가 닫히는 '>' 문자 위치 찾기
+        const tagEndIndex = htmlString.indexOf('>', startIndex);
+        if (tagEndIndex !== -1) {
+            // 실제 내용의 시작 위치: 태그 닫는 괄호 '>' 바로 다음 위치
+            const contentStartIndex = tagEndIndex + 1;
+            // 내용이 끝나는 닫는 태그(</article>) 위치 찾기
+            const contentEndIndex = htmlString.indexOf(endTag, contentStartIndex);
+            if (contentEndIndex !== -1) {
+                // 내용 추출: contentStartIndex부터 contentEndIndex 바로 앞까지
+                extractedContent = htmlString.substring(contentStartIndex, contentEndIndex);
+                // 추출된 내용의 앞뒤 공백과 줄바꿈을 제거
+                extractedContent = extractedContent.trim();
             }
         }
     }
 
-    // 5. 결과를 새 JSON 객체에 담아 results 배열에 추가합니다.
-    results.push({
+  results.push({
         json: {
-            sectionListContent: extractedContent.replace(/\r\n/g, '\n').replace(/\t/g, ' ')
+            sectionListContent: extractedContent.replace(/\r\n/g, ' ').replace(/\t/g, ' ')
         }
     });
 }
 
 return results;
 ```
+
 
 
 
