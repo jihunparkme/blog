@@ -16,7 +16,14 @@ docker run -itd \
  -e N8N_RUNNERS_ENABLED=true \ # 크플로우 실행 기능을 활성화
  -v n8n_data:/Users/aaron/study/n8n \ # 볼륨 마운트 설정
  docker.n8n.io/n8nio/n8n
- ```
+ ``` 
+
+기사 페이지 가져오기
+
+```http
+GET https://www.aitimes.com/news/articleList.html
+```
+
 
 
 
@@ -44,3 +51,8 @@ Selector: 'article#section-list'
 
 {{ $json.data }}
 ```
+
+
+
+
+
