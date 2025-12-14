@@ -114,7 +114,7 @@ Selector: 'article#section-list'
 [
   {
     "title": "검색 결과의 제목",
-    "date": "검색 결과 날짜,
+    "date": "검색 결과 날짜 (YYYY-MM-DD 형식으로 변환, 현재 연도는 2025년),
     "url": "정보의 출처 URL"
   },
 ]
