@@ -1,8 +1,16 @@
 # n8n News crawler
 
-https://docs.n8n.io/hosting/installation/docker/#prerequisites
+`n8n`을 활용해서 뉴스 크롤러를 만들어 보려고 해요.
+
+기존에는 직접 코드를 작성해서 만들었는데 이제는 코드 없이도 만들 수 있는 범위가 넓어진 것 같네요.
+
+기본적인 흐름은 `기사 페이지 가져오기` ➜ `기사 내용 추출하기` ➜ `메일 또는 메신저로 전송하기` 정도가 될 것 같아요.
 
 ## Run n8n
+
+`n8n`은 도커를 통해 쉽게 호스팅이 가능합니다. 
+
+[Docker Installation](https://docs.n8n.io/hosting/installation/docker/)
 
 ```bash
 docker volume create n8n_data # Docker 볼륨 생성
@@ -17,6 +25,8 @@ docker run -itd \
  -v n8n_data:/Users/aaron/study/n8n \ # 볼륨 마운트 설정
  docker.n8n.io/n8nio/n8n
  ``` 
+
+> 이제 본격적으로 n8n에서 노드를 하나씩 생성해 크롤러를 만들어 볼게요.
 
 ## HTTP Request
 
