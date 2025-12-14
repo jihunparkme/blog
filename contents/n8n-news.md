@@ -62,7 +62,7 @@ for (const item of $input.all()) {
 
   results.push({
         json: {
-            sectionListContent: extractedContent.replace(/\r\n/g, ' ').replace(/\t/g, ' ')
+            news_list: extractedContent.replace(/\r\n/g, ' ').replace(/\t/g, ' ')
         }
     });
 }
@@ -70,14 +70,12 @@ for (const item of $input.all()) {
 return results;
 ```
 
+## AI Agent
 
+✅ Prompt
 
-
-```
-다음은 AI 기사 사이트의 HTML 구조입니다.
-
-**태그와 ID 정보:**
-최신 기사 목록은 HTML 내에서 다음 선택자에 해당하는 영역에 있습니다.
+```text
+**기사 목록이 포함된 태그와 ID 정보:**
 Selector: 'article#section-list'
 
 **추출할 데이터 필드 및 세부 선택자:**
@@ -90,13 +88,51 @@ Selector: 'article#section-list'
 3.  **링크 (URL):** 기사 본문으로 연결되는 URL.
     * 선택자: '.altlist-subject' 요소의 'href' 속성 값.
 
-**요청 형식:**
-추출된 데이터는 JSON 형식으로 반환해 주세요.
-
 --- 
 
-{{ $json.data }}
+{{ $json.news_list }}
 ```
+
+✅ System Message
+
+```text
+당신의 업무는 HTML 포맷의 데이터가 주어지면 기사 목록이 포함된 태그와 ID 정보를 통해 기사 목록 위치를 파악하고, 추출할 데이터 필드 및 세부 선택자를 참고해서 정보를 추출하는 것입니다. 
+
+당신의 모든 답변은 오직 다음 JSON 형식으로만 반환되어야 합니다.
+다른 어떠한 설명, 서론, 결론 문장 없이 JSON 배열만을 반환해야 합니다.
+
+[
+  {
+    "title": "검색 결과의 제목",
+    "date": "검색 결과 날짜,
+    "url": "정보의 출처 URL"
+  },
+]
+```
+
+✅ Structured Output Parser
+
+```text
+[
+  {
+	"type": "object",
+	"properties": {
+		"title": {
+			"type": "string"
+		},
+        "date": {
+			"type": "string"
+		},
+        "url": {
+			"type": "string"
+		}
+	}
+  }
+]
+```
+
+
+
 
 
 
