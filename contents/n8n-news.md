@@ -163,8 +163,8 @@ const filteredList = $input.first(). json.output.filter(item => {
 return filteredList.map(item => ({ json: item }));
 ```
 
+## Send Result
 
+이후 단계에서는 메일 또는 메신저로 결과를 전송할 수 있답니다.
 
-
-
-
+이번에는 특정 사이트 기사를 가져오는 방법을 알아보았는데, 여러 사이트의 기사를 가져오는 방법도 알아보려고 해요.
