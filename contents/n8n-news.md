@@ -146,7 +146,21 @@ Selector: 'article#section-list'
 오늘 날짜의 기사만 추출하기
 
 ```text
+function getTodayString() {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    
+    return `${year}-${month}-${day}`;
+}
 
+const todayDateString = getTodayString();
+const filteredList = $input.first(). json.output.filter(item => {
+    return item.date === todayDateString;
+});
+
+return filteredList.map(item => ({ json: item }));
 ```
 
 
