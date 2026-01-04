@@ -14,3 +14,13 @@
 
 ## Partitioner 사용하기
 
+> [partitioning](https://docs.spring.io/spring-batch/reference/scalability.html#partitioning)
+>
+> 일반적인 배치는 데이터를 순차적으로 처리하지만, `Partitioner`를 사용하면 하나의 마스터 스텝이 데이터를 여러 개의 범위로 나누고, 이를 여러 개의 슬레이브 스텝이 병렬로 처리
+
+한 달치 데이터를 처리하는데 하루치씩 분할해서 병렬로 처리하기 위해 `Partitioner`를 사용하게 되었어요.
+
+```kotlin
+
+```
+
