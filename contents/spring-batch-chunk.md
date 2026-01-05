@@ -21,6 +21,28 @@
 한 달치 데이터를 처리하는데 하루치씩 분할해서 병렬로 처리하기 위해 `Partitioner`를 사용하게 되었어요.
 
 ```kotlin
-
+class SamplePartitioner(
+    private val startDate: LocalDate,
+    private val endDate: LocalDate,
+    private val timestamp: Long,
+) : Partitioner {
+    override fun partition(gridSize: Int): Map<String, ExecutionContext> {
+        val partitions: MutableMap<String, ExecutionContext> = mutableMapOf<String, ExecutionContext>()
+        val days: Long = ChronoUnit.DAYS.between(startDate, endDate) + 1 // 총 일자 계산
+        repeat(days.toInt()) { // 하루치씩 반복
+            val currentDate: LocalDate! = startDate.plusDays(it.toLong())
+            val executionContext = ExecutionContext()
+            // 각 파티션(슬레이브 스텝)이 읽어야 할 날짜 정보를 저장
+            executionContext.putString("startDate", currentDate.format(DateTimeFormatter.ISO_LOCAL_DATE))
+            executionContext.putString("endDate", currentDate.format(DateTimeFormatter.ISO_LOCAL_DATE))
+            // 파티션 개수 지정
+            executionContext.putLong("SimpleStepExecutionSplitter.GRID_SIZE", 6L)
+            // 파티션 식별자에 유니크한 키를 부여
+            partitions["MigCardStatisticsPartition_$fit_$timestamp"] = executionContext
+        }
+        return partitions
+    }
+}
 ```
 
+여기서 하루치씩 데이터는 k8s pods 기본 리소스로 충분히 가능했습니다.
