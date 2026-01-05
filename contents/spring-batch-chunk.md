@@ -18,21 +18,44 @@ Spring Batch 는 `Scaling`과 `Parallel Processing` 관련 기능을 제공하�
 병렬 처리 모드는 크게 단일 프로세스, 다중 프로세스 두 가지가 있습니다.
 
 1️⃣ 단일 프로세스(Single-process): 주로 한 개의 JVM 내에서 멀티스레드를 활용하는 방식
-- Multi-threaded Step: 하나의 Step 내에서 Chunk 단위로 여러 스레드가 병렬로 실행
-- Parallel Steps: 서로 의존성이 없는 여러 개의 Step들을 동시에 실행
-- Local Chunking of Step: Master 스텝이 데이터를 읽고(Read), 내부의 전용 Worker 스레드들에게 Process와 Write를 분담
-- Partitioning a Step (Local): Master 스텝이 데이터를 범위를 나누고, 각 범위를 담당하는 Slave 스텝들을 로컬 스레드에서 독립적으로 실행
+- **Multi-threaded Step**: 하나의 Step 내에서 Chunk 단위로 여러 스레드가 병렬로 실행
+- **Parallel Steps**: 서로 의존성이 없는 여러 개의 Step들을 동시에 실행
+- **Local Chunking of Step**: Master 스텝이 데이터를 읽고(Read), 내부의 전용 Worker 스레드들에게 Process와 Write를 분담
+- **Partitioning a Step (Local)**: Master 스텝이 데이터를 범위를 나누고, 각 범위를 담당하는 Slave 스텝들을 로컬 스레드에서 독립적으로 실행
 
 2️⃣ 다중 프로세스 (Multi-process): 여러 대의 서버(JVM)로 부하를 분산하여 처리하는 방식
-- Remote Chunking of Step: Master가 데이터를 읽어 메시지 큐를 통해 여러 외부 Worker 노드에 Process와 Write 처리를 전달
-- Partitioning a Step (Remote): 로컬 파티셔닝과 동일한 논리로 데이터를 나누되, 나뉘어진 Slave 스텝들을 실제 다른 서버에서 실행
-- Remote Step: 전체 Step 실행 자체를 외부의 독립적인 프로세스나 서버에 위임하여 실행
+- **Remote Chunking of Step**: Master가 데이터를 읽어 메시지 큐를 통해 여러 외부 Worker 노드에 Process와 Write 처리를 전달
+- **Partitioning a Step (Remote)**: 로컬 파티셔닝과 동일한 논리로 데이터를 나누되, 나뉘어진 Slave 스텝들을 실제 다른 서버에서 실행
+- **Remote Step**: 전체 Step 실행 자체를 외부의 독립적인 프로세스나 서버에 위임하여 실행
 
 .
 
 이같이 Spring Batch 가 제공하는 다양한 병렬 처리 기능들 중, 한 달치 데이터를 처리하는데 하루치씩 분할해서 병렬로 처리하기 위해 [partitioning](https://docs.spring.io/spring-batch/reference/scalability.html#partitioning) 방식을 적용하게 되었어요.
 
 ## Partitioner 사용하기
+
+<figure><img src="https://raw.githubusercontent.com/jihunparkme/blog/refs/heads/main/img/spring-batch/partitioning-overview.png" alt=""><figcaption></figcaption></figure>
+
+`Partitioning` 방식은 **Partitioner Step**에서 데이터를 작은 파티션으로 나누어, 각 파티션을 **Worker Step**들이 병렬로 처리하는 방식이에요.
+- 각 **Worker Step**은 ItemReader, ItemProcessor, ItemWriter 등을 가지고 동작해요.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 **Partitioner**
 
