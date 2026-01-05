@@ -12,7 +12,7 @@
 
 한달 단위로 나누더라도 한 번의 배치 작업에 7,500만 건의 원장 데이터가 사용되게 되므로, 배치 안에서도 하루씩 분할해서 처리가 되도록 구현하는 전략을 추가하게 되었어요.
 
-## Partitioner 사용하기
+## Spring Batch Scaling And Parallel Processing
 
 Spring Batch 는 `Scaling`과 `Parallel Processing` 관련 기능을 제공하고 있는데,<br/>
 병렬 처리 모드는 크게 단일 프로세스, 다중 프로세스 두 가지가 있습니다.
@@ -31,6 +31,8 @@ Spring Batch 는 `Scaling`과 `Parallel Processing` 관련 기능을 제공하�
 .
 
 이같이 Spring Batch 가 제공하는 다양한 병렬 처리 기능들 중, 한 달치 데이터를 처리하는데 하루치씩 분할해서 병렬로 처리하기 위해 [partitioning](https://docs.spring.io/spring-batch/reference/scalability.html#partitioning) 방식을 적용하게 되었어요.
+
+## Partitioner 사용하기
 
 **Partitioner**
 
