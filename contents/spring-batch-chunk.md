@@ -151,9 +151,27 @@ class SampleJobConfig(
 
 ## ItemReader 방식의 변경
 
+ItemReader 방식으로 `PagingItemReader`를 사용하거나, `CursorItemReader`를 사용해서 메모리에 방대한 데이터가 쌓여서 OOM이 발생하는 현상을 해결할 수도 있어요.
 
+하지만, 이 방법을 사용하지는 않았는데요.<br/>
+그 이유는, 작업이 필요한 모든 채널의 하루치 데이터가 모두 많은 것이 아니었고, 최소 1,000 건 ~ 최대 2,500,000 건이었어요.<br/>
+데이터가 많은 특정 채널을 위해 ItemReader 방식을 변경하는 작업이 효율적인 작업이라고 생각하지 못 했어요.
 
+## Resources
 
+해당 배치는 k9s pods 로 동작하기 때문에 리소스를 올려도 괜찮을 것이라고 판단을 하였고, 리소스를 올리게 되었어요.
 
+```text
+// 기본 리소스
+limits.cpu=4
+limits.memory=3072Mi
+requests.cpu=2
+requests.cpu=2048Mi
 
+// 변경 리소스
+limits.cpu=8
+limits.memory=4096Mi
+requests.cpu=8
+requests.cpu=4096Mi
+```
 
