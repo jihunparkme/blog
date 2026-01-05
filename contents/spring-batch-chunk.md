@@ -20,6 +20,8 @@
 
 한 달치 데이터를 처리하는데 하루치씩 분할해서 병렬로 처리하기 위해 `Partitioner`를 사용하게 되었어요.
 
+**Partitioner**
+
 ```kotlin
 class SamplePartitioner(
     private val startDate: LocalDate,
@@ -29,7 +31,7 @@ class SamplePartitioner(
     override fun partition(gridSize: Int): Map<String, ExecutionContext> {
         val partitions: MutableMap<String, ExecutionContext> = mutableMapOf<String, ExecutionContext>()
         val days: Long = ChronoUnit.DAYS.between(startDate, endDate) + 1 // 총 일자 계산
-        repeat(days.toInt()) { // 하루치씩 반복
+        repeat(days.toInt()) { // 하루치씩 반복하며 ExecutionContext를 생성
             val currentDate: LocalDate! = startDate.plusDays(it.toLong())
             val executionContext = ExecutionContext()
             // 각 파티션(슬레이브 스텝)이 읽어야 할 날짜 정보를 저장
@@ -45,4 +47,113 @@ class SamplePartitioner(
 }
 ```
 
-여기서 하루치씩 데이터는 k8s pods 기본 리소스로 충분히 가능했습니다.
+**JobConfig**
+
+```kotlin
+@Configuration
+class SampleJobConfig(
+    private val jobRepository: JobRepository,
+    private val transactionManager: PlatformTransactionManager,
+    private val properties: SampleProperties,
+    // ...
+) {
+    private val log by logger()
+
+    /**
+     * Master Job
+     */
+    @Bean
+    fun SampleJob( 
+        partitionHandler: PartitionHandler,
+    ): Job {
+        return JobBuilder("${properties.channelType}SampleJob", jobRepository)
+            .incrementer(RunIdIncrementer())
+            .start(SampleManagerStep(partitionHandler))
+            .build()
+    }
+
+    /**
+     * Master Step
+     */
+    @Bean
+    fun SampleManagerStep(
+        partitionHandler: PartitionHandler,
+    ): Step {
+        val timestamp = System.currentTimeMillis()
+        return StepBuilder("SampleManagerStep_$timestamp", jobRepository)
+            .partitioner( // 작업을 어떻게 나눌지 설정
+                "sampleStep",
+                MiCardStatisticsPartitioner(properties.startDate, properties.endDate, System.currentTimeMillis())
+            )
+            .partitionHandler(partitionHandler) // 나눈 작업을 어떻게 실행할지 설정
+            .build()
+    }
+
+    @Bean
+    fun partitionHandler(sampleStep: Step, threadPoolExecutor: ThreadPoolTaskExecutor)
+        : PartitionHandler {
+        val handler = object : TaskExecutorPartitionHandler() {
+            override fun handle(
+                stepSplitter: StepExecutionSplitter,
+                managerStepExecution: StepExecution
+            ): Collection<StepExecution> {
+                managerStepExecution.executionContext.putLong(
+                    "SimpleStepExecutionSplitter.GRID_SIZE", this.gridSize.toLong()
+                )
+                return super.handle(stepSplitter, managerStepExecution)
+            }
+        }
+        handler.gridSize = 6 // 한 번에 최대 6개의 스레드가 병렬로 작동
+        handler.setTaskExecutor(threadPoolExecutor)
+        handler.step = sampleStep
+        handler.afterPropertiesSet()
+
+        return handler
+    }
+
+    /**
+     * Slave Step
+     */
+    @Bean
+    fun sampleStep(
+        sampleTasklet: Tasklet
+    ): Step {
+        return StepBuilder("sampleStep", jobRepository)
+            .tasklet(sampleTasklet, transactionManager)
+            .build()
+    }
+
+    /**
+     * Slave Step
+     */
+    @Bean
+    @StepScope
+    @Transactional(transactionManager = ALOHA_MONGO_TRANSACTION)
+    fun sampleTasklet(
+        @Value("#{stepExecutionContext['startDate']}") startDate: LocalDate,
+        @Value("#{stepExecutionContext['endDate']}") endDate: LocalDate,
+    ): Tasklet {
+        return Tasklet {
+            contribution, chunkContext →
+            // 기존 통계 상태 업데이트 
+
+            // 신규 통계 생성 및 저장(1,000 개 데이터 단위로 벌크 인서트)
+            // ...
+
+            RepeatStatus.FINISHED
+        }
+    }
+}
+```
+
+이제 배치 안에서 하루씩 분할해서 처리가 되도록 구현을 했지만,<br/>
+한 번에 최대 6개의 스레드가 병렬로 처리가 되면서 결국 "250만 x 6"에 달하는 1500만 건의 데이터가 메모리에 쌓이게 되면서 OOM이 발생하게 되었어요.🥲
+
+## ItemReader 방식의 변경
+
+
+
+
+
+
+
