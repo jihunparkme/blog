@@ -39,7 +39,18 @@ Spring Batch 는 `Scaling`과 `Parallel Processing` 관련 기능을 제공하�
 `Partitioning` 방식은 **Partitioner Step**에서 데이터를 작은 파티션으로 나누어, 각 파티션을 **Worker Step**들이 병렬로 처리하는 방식이에요.
 - 각 **Worker Step**은 ItemReader, ItemProcessor, ItemWriter 등을 가지고 동작해요.
 
+.
 
+주요 인터페이스로는 `Partitioner`, `PartitionHandler`가 있어요.
+
+1️⃣ **Partitioner**: 전체 데이터를 어떤 기준으로 나눌지 결정하고, 나뉜 조각들에 대한 정보를 생성하는 역할
+
+|-|설명|
+|---|---|
+|역할|데이터를 나누는 전략을 정의|
+|핵심 메서드|Map<String, ExecutionContext> partition(int gridSize)|
+|동작 방식|- 사용자가 지정한 gridSize를 활용하여 데이터 나누기<br/>- 나뉜 각 조각(파티션)의 정보를 ExecutionContext라는 바구니에 담기<br/>- 각 바구니에 고유한 이름(Key)을 붙여 Map 형태로 반환하기|
+|특징|실제 로직을 실행하는 것이 아니라, 실행에 필요한 데이터 범위 정보만 생성|
 
 
 
