@@ -214,92 +214,21 @@ MongoDB를 사용 중이므로, ItemReader 방식으로 `MongoCursorItemReader` 
 
 ```kotlin
 // MongoCursorItemReader 적용 코드
+
+// 청크 사이즈 1,000 ?
 ```
 
+## ItemWriter 방식의 변경
+
+ItemWriter 자체가 직접적인 OOM의 주범이 되는 경우는 드물지만, 쓰기 속도가 읽기 속도를 못 따라가면 처리 대기 중인 객체들이 메모리에 오래 머물게 되어 간접적으로 OOM을 유발할 수 있어요.
+
+MongoDB를 사용 중이므로, `MongoItemWriter`를 사용하는데 스프링 배치에서 제공하는 기본 MongoItemWriter는 내부적으로 Bulk Operations를 지원해요</br>
+청크 사이즈만큼 데이터를 모았다가, 한 번의 네트워크 통신으로 하나씩 insert 하는 방식보다 속도 측면에서도 이득을 볼 수 있고, 네트워크 I/O 비용을 획기적으로 줄일 수 있어요.
 
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
----
-
-### 2. 추천 청크 사이즈 (Chunk Size) & 페이지 사이즈
-
-1,500만 건 처리 시 6개 스레드가 동시에 가동되는 점을 고려한 추천 값입니다.
-
-* **추천 청크 사이즈: `500 ~ 1,000**`
-* **이유:** 한 번에 너무 크게 잡으면(예: 10,000) 6개 스레드가 각각 만 개씩 객체를 들고 있게 되어 메모리 압박이 커집니다. 1,000 정도가 성능과 메모리 사이의 가장 안정적인 합의점입니다.
-
-
-* **Page Size (Reader 설정):** 청크 사이즈와 동일하게 **`1,000`**으로 맞추는 것을 권장합니다.
-
----
-
-### 3. 구체적인 설정 가이드 (Tasklet 대신 Chunk 구조 추천)
-
-현재 코드는 `Tasklet`을 사용하고 계신데, 1,500만 건 정도의 대량 데이터라면 스프링 배치의 **`Chunk` 지향 처리(Reader-Processor-Writer)**로 전환하는 것이 OOM 방지에 훨씬 유리합니다.
-
-```kotlin
-@Bean
-@StepScope
-fun sampleStep(
-    @Value("#{stepExecutionContext['startDate']}") startDate: String,
-    @Value("#{stepExecutionContext['endDate']}") endDate: String
-): Step {
-    return StepBuilder("sampleStep", jobRepository)
-        .chunk<InputDoc, OutputDoc>(1000, transactionManager) // 청크 사이즈 1,000
-        .reader(mongoReader(startDate, endDate))
-        .processor(sampleProcessor())
-        .writer(mongoWriter())
-        .build()
-}
-
-@Bean
-@StepScope
-fun mongoReader(
-    @Value("#{stepExecutionContext['startDate']}") startDate: String,
-    @Value("#{stepExecutionContext['endDate']}") endDate: String
-): MongoCursorItemReader<InputDoc> {
-    return MongoCursorItemReaderBuilder<InputDoc>()
-        .name("mongoReader")
-        .template(mongoTemplate)
-        .targetType(InputDoc::class.java)
-        .query(Query(Criteria.where("targetDate").gte(startDate).lte(endDate)))
-        .sorts(mapOf("_id" to Sort.Direction.ASC)) // 정렬 필수
-        .batchSize(1000) // 한 번에 가져올 데이터 묶음
-        .build()
-}
-
-```
+ 
 
 ---
 
