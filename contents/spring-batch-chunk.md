@@ -32,7 +32,7 @@ Spring Batch 는 `Scaling`과 `Parallel Processing` 관련 기능을 제공하�
 
 이같이 Spring Batch 가 제공하는 다양한 병렬 처리 기능들 중, 한 달치 데이터를 처리하는데 하루치씩 분할해서 병렬로 처리하기 위해 [partitioning](https://docs.spring.io/spring-batch/reference/scalability.html#partitioning) 방식을 적용하게 되었어요.
 
-## Partitioner 사용하기
+### Partitioner 사용하기
 
 <figure><img src="https://raw.githubusercontent.com/jihunparkme/blog/refs/heads/main/img/spring-batch/partitioning-overview.png" alt=""><figcaption></figcaption></figure>
 
@@ -71,14 +71,6 @@ Spring Batch 는 `Scaling`과 `Parallel Processing` 관련 기능을 제공하�
 > 4. **Slave Step 실행**: 각 스레드에서는 실제 로직(ItemReader, Processor, Writer)이 담긴 `Slave Step`이 각자의 파티션 정보를 가지고 독립적으로 작업을 수행
 > 
 > 5. **종료**: 모든 스레드 작업이 완료되면 `PartitionHandler`가 상태를 취합하고 전체 스텝이 종료
-
-
-
-
-
-
-
-
 
 
 **Partitioner**
@@ -212,32 +204,16 @@ class SampleJobConfig(
 
 ## ItemReader 방식의 변경
 
-데이터베이스에 있는 수백만 건의 데이터를 한꺼번에 자바 객체로 변환하여 메모리에 적재하려고 한다면, OOM이 발생할 수 있어요.<br/>
-데이터가 100만 건이라고 가정할 때, 각 객체가 차지하는 메모리 양이 합쳐지면서 설정된 최대 힙 사이즈(-Xmx)를 초과하게 되고,<br/>
-메모리가 가득 차기 직전, JVM은 이를 해소하기 위해 Full GC를 빈번하게 실행하며 GC 부하로 시스템 성능이 급격히 저하되다가 결국 에러를 뿜으며 중단되게 돼요.
+그렇다면 `ItemReader` 방식의 변경이 필요할 때입니다.
 
-ItemReader 방식으로 `PagingItemReader`를 사용하거나, `CursorItemReader`를 사용해서 메모리에 방대한 데이터가 쌓여서 OOM이 발생하는 현상을 해결할 수도 있어요.
+`Partitioner`를 통해 날짜별로 범위를 나누었으므로,<br/>
+각 스레드 즉, `Slave Step` 내부에서 데이터를 어떻게 읽고 쓰느냐가 핵심이에요.
 
-하지만, 이 방법을 사용하지는 않았는데요.<br/>
-그 이유는, 작업이 필요한 모든 채널의 하루치 데이터가 모두 많은 것이 아니었고, 최소 1,000 건 ~ 최대 2,500,000 건이었어요.<br/>
-데이터가 많은 특정 채널을 위해 ItemReader 방식을 변경하는 작업이 효율적인 작업이라고 생각하지 못 했어요.
+MongoDB를 사용 중이므로, ItemReader 방식으로 `MongoCursorItemReader` 또는 `MongoPagingItemReader`를 적용할 수 있는데요.<br/>
+최대한 메모리 사용량을 줄이기 위해 스트리밍 방식인 `MongoCursorItemReader` 방식을 적용하게 되었어요.
 
-## Resources
-
-해당 배치는 k9s pods 로 동작하기 때문에 리소스를 올려도 괜찮을 것이라고 판단을 하였고, 리소스를 올리게 되었어요.
-
-```text
-// 기본 리소스
-limits.cpu=4
-limits.memory=3072Mi
-requests.cpu=2
-requests.cpu=2048Mi
-
-// 변경 리소스
-limits.cpu=8
-limits.memory=4096Mi
-requests.cpu=8
-requests.cpu=4096Mi
+```kotlin
+// MongoCursorItemReader 적용 코드
 ```
 
 
@@ -265,27 +241,14 @@ requests.cpu=4096Mi
 
 
 
-1,500만 건이라는 대규모 데이터를 6개의 스레드로 병렬 처리(Partitioning)하면서 OOM을 방지하고 성능을 최적화하기 위한 **ItemReader와 청크 사이즈** 전략을 추천해 드립니다.
 
-이미 `Partitioner`를 통해 날짜별로 범위를 나누셨으므로, 각 스레드(Slave Step) 내부에서 데이터를 어떻게 읽고 쓰느냐가 핵심입니다.
 
----
 
-### 1. 추천 ItemReader: `MongoCursorItemReader` 또는 `MongoPagingItemReader`
 
-MongoDB를 사용 중이시라면, 메모리 효율을 위해 다음 두 가지 중 하나를 선택해야 합니다.
 
-#### **A. MongoCursorItemReader (가장 추천)**
 
-* **특징:** DB와 커서를 유지하며 스트리밍 방식으로 데이터를 읽어옵니다.
-* **장점:** 데이터를 한꺼번에 메모리에 올리지 않고 한 건씩(또는 설정된 Batch Size만큼) 가져오기 때문에 **메모리 사용량이 매우 적고 일정하게 유지**됩니다.
-* **주의:** DB 연결 시간이 길어질 수 있으므로 타임아웃 설정을 확인해야 합니다.
 
-#### **B. MongoPagingItemReader**
 
-* **특징:** 페이지 단위(예: 1,000건씩)로 `find` 쿼리를 나누어 실행합니다.
-* **장점:** DB 연결을 계속 유지하지 않아도 되어 안정적입니다.
-* **단점:** 페이지를 넘길수록 `skip/limit` 부하가 발생할 수 있으므로, 반드시 정렬(Sort)과 인덱스가 잘 잡혀 있어야 합니다.
 
 ---
 
