@@ -57,13 +57,20 @@ Spring Batch 는 `Scaling`과 `Parallel Processing` 관련 기능을 제공하�
 |-|설명|
 |---|---|
 |역할|파티션들의 실행 방식을 결정하고 관리|
-|핵심 설정|- **gridSize**: 몇 개의 파티션을 만들지 결정하는 수치<br/>- **taskExecutor**: 작업을 병렬로 돌릴 스레드 풀을 설정<br/>- **step**: 실제 비즈니스 로직을 수행할 슬레이브 스텝을 지정|
-|동작 방식|- Partitioner를 호출하여 파티션 정보 조회<br/>- 설정된 TaskExecutor를 사용하여 각 파티션 정보를 슬레이브 스텝에 전달하고 실행<br/>- 모든 슬레이브 스텝이 끝날 때까지 기다렸다가 최종 결과를 수집하여 마스터 스텝에 보고|
+|핵심 설정|- **gridSize**: 몇 개의 파티션을 만들지 결정하는 수치<br/>- **taskExecutor**: 작업을 병렬로 돌릴 스레드 풀을 설정<br/>- **step**: 실제 비즈니스 로직을 수행할 Slave Step을 지정|
+|동작 방식|- Partitioner를 호출하여 파티션 정보 조회<br/>- 설정된 TaskExecutor를 사용하여 각 파티션 정보를 Slave Step에 전달하고 실행<br/>- 모든 Slave Step이 끝날 때까지 기다렸다가 최종 결과를 수집하여 Master Step에 보고|
 
-
-
-
-
+> 두 인터페이스의 흐름
+>
+> 1. **Master Step 시작**: 사용자가 배치를 실행하면 `Master Step`이 가동
+> 
+> 2. **Partitioner 작동**: Master Step 내의 `Partitioner`가 호출되어 **데이터를 n개로 나눈 정보를 생성**
+> 
+> 3. **PartitionHandler 배분**: `PartitionHandler`가 이 정보를 받아, 지정된 `TaskExecutor`의 스레드들에게 작업을 분배
+> 
+> 4. **Slave Step 실행**: 각 스레드에서는 실제 로직(ItemReader, Processor, Writer)이 담긴 `Slave Step`이 각자의 파티션 정보를 가지고 독립적으로 작업을 수행
+> 
+> 5. **종료**: 모든 스레드 작업이 완료되면 `PartitionHandler`가 상태를 취합하고 전체 스텝이 종료
 
 
 
@@ -88,7 +95,7 @@ class SamplePartitioner(
         repeat(days.toInt()) { // 하루치씩 반복하며 ExecutionContext를 생성
             val currentDate: LocalDate! = startDate.plusDays(it.toLong())
             val executionContext = ExecutionContext()
-            // 각 파티션(슬레이브 스텝)이 읽어야 할 날짜 정보를 저장
+            // 각 파티션(Slave Step)이 읽어야 할 날짜 정보를 저장
             executionContext.putString("startDate", currentDate.format(DateTimeFormatter.ISO_LOCAL_DATE))
             executionContext.putString("endDate", currentDate.format(DateTimeFormatter.ISO_LOCAL_DATE))
             // 파티션 개수 지정
@@ -335,7 +342,7 @@ fun mongoReader(
 
 ### 4. 1,500만 건 처리를 위한 최종 체크리스트
 
-1. **메모리 격리:** 각 슬레이브 스텝이 `@StepScope`로 설정되어 있는지 확인하세요. 그래야 각 스레드가 자신만의 `Reader` 객체를 가져 메모리 혼선이 없습니다.
+1. **메모리 격리:** 각 Slave Step이 `@StepScope`로 설정되어 있는지 확인하세요. 그래야 각 스레드가 자신만의 `Reader` 객체를 가져 메모리 혼선이 없습니다.
 2. **인덱스 최적화:** `Partitioner`에서 사용하는 날짜 필드(`startDate`, `endDate`)와 Reader의 정렬 필드에 반드시 **복합 인덱스**가 있어야 합니다. 인덱스가 없으면 Reader가 데이터를 찾는 속도가 느려져 배치가 타임아웃될 수 있습니다.
 3. **No-State 처리:** 가능하다면 `ItemProcessor`에서 엔티티의 상태를 변경하기보다, 새로운 DTO를 만들어 `ItemWriter`로 넘기는 방식이 GC(Garbage Collection) 효율에 더 좋습니다.
 4. **Bulk Write 활성화:** `MongoItemWriter`를 사용하면 내부적으로 `Bulk Operations`를 수행하므로, 1,000개씩 모아서 한 번에 insert/update를 처리하여 네트워크 I/O를 최적화할 수 있습니다.
