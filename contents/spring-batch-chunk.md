@@ -215,6 +215,8 @@ MongoDB를 사용 중이므로, ItemReader 방식으로 `MongoCursorItemReader` 
 ```kotlin
 // MongoCursorItemReader 적용 코드
 
+// 우리는 MongoCursorReader 로 데이터 읽는 코드
+
 // 청크 사이즈 1,000 ?
 ```
 
@@ -225,7 +227,11 @@ ItemWriter 자체가 직접적인 OOM의 주범이 되는 경우는 드물지만
 MongoDB를 사용 중이므로, `MongoItemWriter`를 사용하는데 스프링 배치에서 제공하는 기본 MongoItemWriter는 내부적으로 Bulk Operations를 지원해요</br>
 청크 사이즈만큼 데이터를 모았다가, 한 번의 네트워크 통신으로 하나씩 insert 하는 방식보다 속도 측면에서도 이득을 볼 수 있고, 네트워크 I/O 비용을 획기적으로 줄일 수 있어요.
 
+```kotlin
+// mongoTemplate.bulkOps() 활용 코드
 
+
+```
 
 
  
