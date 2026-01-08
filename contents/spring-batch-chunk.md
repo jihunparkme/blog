@@ -230,7 +230,20 @@ MongoDB를 사용 중이므로, `MongoItemWriter`를 사용하는데 스프링 �
 ```kotlin
 // mongoTemplate.bulkOps() 활용 코드
 
+private fun saveAndClearResults(results: MutableList<StatisticsResult>) {
+    if (results.isEmpty()) return
 
+    val stats = results.map { it.toStatistics() }
+    val bulkOps = mongoTemplate.bulkOps(
+        BulkOperations.BulkMode.UNORDERED,
+        properties.channelType.statisticsCollectionName()
+    )
+
+    bulkOps.insert(stats)
+
+    val bulkWriteResult = bulkOps.exectue()
+    results.clear() // 이미 저장한 결과 리스트의 메모리 비우기
+}
 ```
 
 
