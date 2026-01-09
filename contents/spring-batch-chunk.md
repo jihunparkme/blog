@@ -228,7 +228,15 @@ MongoDB를 사용 중이므로, `MongoItemWriter`를 사용하는데 스프링 �
 청크 사이즈만큼 데이터를 모았다가, 한 번의 네트워크 통신으로 하나씩 insert 하는 방식보다 속도 측면에서도 이득을 볼 수 있고, 네트워크 I/O 비용을 획기적으로 줄일 수 있어요.
 
 ```kotlin
-// mongoTemplate.bulkOps() 활용 코드
+// bulkOps.insert 쪽 코드
+private fun generateCardStatistics(startDate: LocalDate, endDate: LocalDate): MutableList<StatisticsResult> {
+    val results = mutableListOf<StatistcsResult>()
+    val batchSize = 1_000
+
+    mongoTemplate.aggregateStream(
+        
+    )
+}
 
 private fun saveAndClearResults(results: MutableList<StatisticsResult>) {
     if (results.isEmpty()) return
