@@ -61,38 +61,10 @@ Spring Batch가 제공하는 다양한 기능 중, 저는 [partitioning](https:/
 |동작 방식|- gridSize를 참고하여 데이터 범위를 계산<br/>- 각 파티션 정보를 ExecutionContext라는 바구니에 저장<br/>- 고유한 이름을 붙인 Map 형태로 반환|
 |특징|비즈니스 로직을 실행하지 않고, **'어디서부터 어디까지 처리하라'** 는 정보만 생성|
 
-### PartitionHandler
-
-> 👷🏼 작업을 배분하는 현장 소장
-> 
-> Partitioner가 만든 작업 지시서를 받아, 실제로 어떻게 실행하고 관리할지를 결정
-
-|구분|설명|
-|---|---|
-|역할|파티션의 실행 방식 결정 및 전체 프로세스 관리|
-|주요 설정|- **gridSize**: 생성할 파티션의 목표 개수<br/>- **taskExecutor**: 병렬 처리를 수행할 스레드 풀<br/>- **step**: 실제 로직을 수행할 Worker Step 지정|
-|동작 방식|- `Partitioner`를 호출하여 분할 정보를 가져옴<br/>- `TaskExecutor`를 통해 Worker Step들에게 정보를 전달 및 실행<br/>- 모든 작업이 완료될 때까지 대기 후 최종 상태를 취합|
-
-> 🔄 두 인터페이스가 협력하여 데이터를 처리하는 과정
->
-> 1. **Manager Step 가동**: 배치가 시작되면 관리자 역할을 하는 Manager Step이 실행
->
-> 2. **Partitioner의 데이터 분할**: Partitioner가 호출되어 전체 데이터를 n개로 나눈 **파티션 정보(ExecutionContext)**를 생성
-> 
-> 3. **PartitionHandler의 작업 분배**: PartitionHandler가 이 정보를 토대로 TaskExecutor에 작업을 할당
->
-> 4. **Worker Step의 독립 실행**: 각 스레드에서 Worker Step이 할당받은 파티션 정보를 사용해 실제 로직(Reader-Processor-Writer)을 수행
->
-> 5. **상태 수집 및 종료**: 모든 Worker Step이 완료되면 PartitionHandler가 결과를 취합하여 Master Step에 보고하고 작업을 마무리
-
-
-
-
-
-
-**Partitioner**
+**Partitioner 코드**
 
 ```kotlin
+// TODO: 코드 다시 적용
 class SamplePartitioner(
     private val startDate: LocalDate,
     private val endDate: LocalDate,
@@ -117,9 +89,34 @@ class SamplePartitioner(
 }
 ```
 
-**JobConfig**
+### PartitionHandler
+
+> 👷🏼 작업을 배분하는 현장 소장
+> 
+> Partitioner가 만든 작업 지시서를 받아, 실제로 어떻게 실행하고 관리할지를 결정
+
+|구분|설명|
+|---|---|
+|역할|파티션의 실행 방식 결정 및 전체 프로세스 관리|
+|주요 설정|- **gridSize**: 생성할 파티션의 목표 개수<br/>- **taskExecutor**: 병렬 처리를 수행할 스레드 풀<br/>- **step**: 실제 로직을 수행할 Worker Step 지정|
+|동작 방식|- `Partitioner`를 호출하여 분할 정보를 가져옴<br/>- `TaskExecutor`를 통해 Worker Step들에게 정보를 전달 및 실행<br/>- 모든 작업이 완료될 때까지 대기 후 최종 상태를 취합|
+
+> 🔄 두 인터페이스가 협력하여 데이터를 처리하는 과정
+>
+> 1. **Manager Step 가동**: 배치가 시작되면 관리자 역할을 하는 Manager Step이 실행
+>
+> 2. **Partitioner의 데이터 분할**: Partitioner가 호출되어 전체 데이터를 n개로 나눈 **파티션 정보(ExecutionContext)**를 생성
+> 
+> 3. **PartitionHandler의 작업 분배**: PartitionHandler가 이 정보를 토대로 TaskExecutor에 작업을 할당
+>
+> 4. **Worker Step의 독립 실행**: 각 스레드에서 Worker Step이 할당받은 파티션 정보를 사용해 실제 로직(Reader-Processor-Writer)을 수행
+>
+> 5. **상태 수집 및 종료**: 모든 Worker Step이 완료되면 PartitionHandler가 결과를 취합하여 Master Step에 보고하고 작업을 마무
+
+**PartitionHandler 적용 코드**
 
 ```kotlin
+// TODO: 코드 다시 적용
 @Configuration
 class SampleJobConfig(
     private val jobRepository: JobRepository,
@@ -216,8 +213,30 @@ class SampleJobConfig(
 }
 ```
 
-이제 배치 안에서 하루씩 분할해서 처리가 되도록 구현을 했지만,<br/>
-한 번에 최대 6개의 스레드가 병렬로 처리가 되면서 결국 "250만 x 6"에 달하는 1500만 건의 데이터가 메모리에 쌓이게 되면서 OOM이 발생하게 되었어요.🥲
+Spring Batch의 partitioning 기능 덕분에 배치 내부에서 데이터를 하루 단위로 분할해 병렬로 처리하도록 쉽게 적용할 수 있었어요. 하지만 기쁨도 잠시.. 어느정도는 예상했던 난관에 봉착했답니다.
+
+데이터를 쪼개어 처리하도록 설정했지만, 한 번에 최대 6개의 스레드가 동시에 가동되면서 문제가 발생한 것이죠.
+- 계산된 데이터 부하: 하루치(250만 건) × 6개 스레드 = 약 1,500만 건
+
+결국 1,500만 건에 달하는 방대한 데이터가 한꺼번에 메모리에 적재되면서, 그토록 피하고 싶었던 OOM(Out Of Memory)의 늪에 빠지게 되었습니다. 🥲
+
+단순히 '병렬로 처리한다'는 전략만으로는 부족했었죠. 한정된 메모리 자원 안에서 이 거대한 데이터를 어떻게 효율적으로 제어하며 흘려보낼지, 더 세밀한 최적화가 필요한 시점이었어요.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ## ItemReader 방식의 변경
 
