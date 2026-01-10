@@ -46,22 +46,31 @@ Spring Batch가 제공하는 다양한 기능 중, 저는 [partitioning](https:/
 
 `Partitioning` 방식은 **Manager(Master) Step**이 전체 데이터를 작은 조각(Partition)으로 나누고, 이 조각들을 **Worker(Slave) Step**들이 병렬로 처리하는 구조에요.
 
-각 `Worker Step`은 독립적인 **ItemReader**, **ItemProcessor**, **ItemWriter**를 가지고 동작하므로, 서로의 작업에 영향을 주지 않고 효율적으로 대량의 데이터를 처리할 수 있어요. 이를 가능하게 하는 두 가지 핵심 인터페이스를 살펴보고 가볼까요?
+각 `Worker Step`은 독립적인 **ItemReader**, **ItemProcessor**, **ItemWriter**를 가지고 동작하므로, 서로의 작업에 영향을 주지 않고 효율적으로 대량의 데이터를 처리할 수 있어요. 이를 가능하게 하는 두 가지 핵심 인터페이스인 `Partitioner`, `PartitionHandler`를 살펴보고 가볼까요~?
 
+### Partitioner
 
+> 전체 데이터를 어떤 기준으로 나눌지 결정하고, 각 조각에 대한 메타데이터를 생성
 
-.
-
-주요 인터페이스로는 `Partitioner`, `PartitionHandler`가 있어요.
-
-1️⃣ **Partitioner**: 전체 데이터를 어떤 기준으로 나눌지 결정하고, 나뉜 조각들에 대한 정보를 생성하는 역할
-
-|-|설명|
+|구분|설명|
 |---|---|
-|역할|데이터를 나누는 전략을 정의|
-|핵심 메서드|Map<String, ExecutionContext> partition(int gridSize)|
-|동작 방식|- 사용자가 지정한 gridSize를 활용하여 데이터 나누기<br/>- 나뉜 각 조각(파티션)의 정보를 ExecutionContext라는 바구니에 담기<br/>- 각 바구니에 고유한 이름(Key)을 붙여 Map 형태로 반환하기|
-|특징|실제 로직을 실행하는 것이 아니라, 실행에 필요한 데이터 범위 정보만 생성|
+|역할|데이터 분할 전략 정의 및 실행 정보 생성|
+|핵심 메서드|`Map<String, ExecutionContext> partition(int gridSize)`|
+|동작 방식|- gridSize를 참고하여 데이터 범위를 계산<br/>- 각 파티션 정보를 ExecutionContext라는 바구니에 저장<br/>- 고유한 이름을 붙인 Map 형태로 반환|
+|특징|비즈니스 로직을 실행하지 않고, **'어디서부터 어디까지 처리하라'** 는 정보만 생성|
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 2️⃣ **PartitionHandler**: `Partitioner`가 만든 작업 지시서(ExecutionContext)를 받아서 실제로 작업을 어떻게 실행할지 결정
 
