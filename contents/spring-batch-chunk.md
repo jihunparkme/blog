@@ -33,7 +33,12 @@ Spring Batch는 대용량 처리를 위해 다양한 확장 및 병렬 처리 �
 
 .
 
-이같이 Spring Batch 가 제공하는 다양한 병렬 처리 기능들 중, 한 달치 데이터를 처리하는데 하루치씩 분할해서 병렬로 처리하기 위해 [partitioning](https://docs.spring.io/spring-batch/reference/scalability.html#partitioning) 방식을 적용하게 되었어요.
+이번 작업의 핵심은 **'한 달치 데이터를 하루 단위로 쪼개어 독립적으로 처리하는 것'** 이었기 때문에,
+Spring Batch가 제공하는 다양한 기능 중, 저는 [partitioning](https://docs.spring.io/spring-batch/reference/scalability.html#partitioning) 방식을 선택하게 되었어요.
+
+단순히 스레드만 늘리는 Multi-threaded Step은 데이터 읽기 과정에서 스레드 간 경합이나 순서 보장이 어려울 수 있는 반면, Partitioning은 데이터의 범위를 명확히 나누어 각 Step이 자신만의 상태를 가지고 독립적으로 실행될 수 있다는 장점이 있어요.
+
+따라서 한 달치 데이터인 7,500만 건이라는 방대한 부하를 안정적으로 격리하고 병렬성을 극대화하기 위해, 로컬 환경에서의 [partitioning](https://docs.spring.io/spring-batch/reference/scalability.html#partitioning) 전략을 최종적으로 채택하게 되었어요.
 
 ### Partitioner 사용하기
 
