@@ -24,11 +24,11 @@ Spring Batch는 대용량 처리를 위해 다양한 확장 및 병렬 처리 �
 - **Multi-threaded Step**: 하나의 Step 내에서 Chunk 단위로 여러 스레드가 병렬 처리 (가장 일반적인 방식)
 - **Parallel Steps**: 서로 의존성이 없는 독립적인 Step들을 동시에 실행
 - **Local Chunking**: Master Step이 데이터를 읽고(Read), 내부의 Worker 스레드들이 가공(Process)과 쓰기(Write)를 분담
-- **Local Partitioning**: Master Step이 데이터 범위를 나누고, 각 범위를 담당하는 Slave Worker Step들이 로컬 스레드에서 독립적으로 실행
+- **Local Partitioning**: Master Step이 데이터 범위를 나누고, 각 범위를 담당하는 Worker Step들이 로컬 스레드에서 독립적으로 실행
 
 2️⃣ 다중 프로세스 (Multi-process): 여러 대의 서버(JVM)로 부하를 분산하여 물리적인 한계를 극복
 - **Remote Chunking**: Master가 읽은 데이터를 메시지 큐를 통해 외부 Worker 노드들에 Process와 Write 처리를 전달
-- **Remote Partitioning**: Local Partitioning과 동일한 논리로 데이터를 나눈 뒤, 실제 다른 서버의 Slave Worker Step들이 실행하도록 위임
+- **Remote Partitioning**: Local Partitioning과 동일한 논리로 데이터를 나눈 뒤, 실제 다른 서버의 Worker Step들이 실행하도록 위임
 - **Remote Step**: 전체 Step 실행 자체를 외부의 독립적인 프로세스나 서버에 위임하여 실행
 
 .
@@ -40,12 +40,15 @@ Spring Batch가 제공하는 다양한 기능 중, 저는 [partitioning](https:/
 
 따라서 한 달치 데이터인 7,500만 건이라는 방대한 부하를 안정적으로 격리하고 병렬성을 극대화하기 위해, 로컬 환경에서의 [partitioning](https://docs.spring.io/spring-batch/reference/scalability.html#partitioning) 전략을 최종적으로 채택하게 되었어요.
 
-### Partitioner 사용하기
+## Partitioner 사용하기
 
 <figure><img src="https://raw.githubusercontent.com/jihunparkme/blog/refs/heads/main/img/spring-batch/partitioning-overview.png" alt=""><figcaption></figcaption></figure>
 
-`Partitioning` 방식은 **Partitioner Step**에서 데이터를 작은 파티션으로 나누어, 각 파티션을 **Worker Step**들이 병렬로 처리하는 방식이에요.
-- 각 **Worker Step**은 ItemReader, ItemProcessor, ItemWriter 등을 가지고 동작해요.
+`Partitioning` 방식은 **Manager(Master) Step**이 전체 데이터를 작은 조각(Partition)으로 나누고, 이 조각들을 **Worker(Slave) Step**들이 병렬로 처리하는 구조에요.
+
+각 `Worker Step`은 독립적인 **ItemReader**, **ItemProcessor**, **ItemWriter**를 가지고 동작하므로, 서로의 작업에 영향을 주지 않고 효율적으로 대량의 데이터를 처리할 수 있어요. 이를 가능하게 하는 두 가지 핵심 인터페이스를 살펴보고 가볼까요?
+
+
 
 .
 
@@ -79,6 +82,22 @@ Spring Batch가 제공하는 다양한 기능 중, 저는 [partitioning](https:/
 > 4. **Slave Step 실행**: 각 스레드에서는 실제 로직(ItemReader, Processor, Writer)이 담긴 `Slave Step`이 각자의 파티션 정보를 가지고 독립적으로 작업을 수행
 > 
 > 5. **종료**: 모든 스레드 작업이 완료되면 `PartitionHandler`가 상태를 취합하고 전체 스텝이 종료
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 **Partitioner**
