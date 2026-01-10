@@ -73,29 +73,17 @@ Spring Batch가 제공하는 다양한 기능 중, 저는 [partitioning](https:/
 |주요 설정|- **gridSize**: 생성할 파티션의 목표 개수<br/>- **taskExecutor**: 병렬 처리를 수행할 스레드 풀<br/>- **step**: 실제 로직을 수행할 Worker Step 지정|
 |동작 방식|- `Partitioner`를 호출하여 분할 정보를 가져옴<br/>- `TaskExecutor`를 통해 Worker Step들에게 정보를 전달 및 실행<br/>- 모든 작업이 완료될 때까지 대기 후 최종 상태를 취합|
 
-> 두 인터페이스의 흐름
+> 🔄 두 인터페이스가 협력하여 데이터를 처리하는 과정
 >
-> 1. **Master Step 시작**: 사용자가 배치를 실행하면 `Master Step`이 가동
+> 1. **Manager Step 가동**: 배치가 시작되면 관리자 역할을 하는 Manager Step이 실행
+>
+> 2. **Partitioner의 데이터 분할**: Partitioner가 호출되어 전체 데이터를 n개로 나눈 **파티션 정보(ExecutionContext)**를 생성
 > 
-> 2. **Partitioner 작동**: Master Step 내의 `Partitioner`가 호출되어 **데이터를 n개로 나눈 정보를 생성**
-> 
-> 3. **PartitionHandler 배분**: `PartitionHandler`가 이 정보를 받아, 지정된 `TaskExecutor`의 스레드들에게 작업을 분배
-> 
-> 4. **Slave Step 실행**: 각 스레드에서는 실제 로직(ItemReader, Processor, Writer)이 담긴 `Slave Step`이 각자의 파티션 정보를 가지고 독립적으로 작업을 수행
-> 
-> 5. **종료**: 모든 스레드 작업이 완료되면 `PartitionHandler`가 상태를 취합하고 전체 스텝이 종료
-
-
-
-
-
-
-
-
-
-
-
-
+> 3. **PartitionHandler의 작업 분배**: PartitionHandler가 이 정보를 토대로 TaskExecutor에 작업을 할당
+>
+> 4. **Worker Step의 독립 실행**: 각 스레드에서 Worker Step이 할당받은 파티션 정보를 사용해 실제 로직(Reader-Processor-Writer)을 수행
+>
+> 5. **상태 수집 및 종료**: 모든 Worker Step이 완료되면 PartitionHandler가 결과를 취합하여 Master Step에 보고하고 작업을 마무리
 
 
 
