@@ -1,4 +1,4 @@
-# 9년 치 데이터와의 사투: Spring Batch Partitioner로 OOM 탈출하기
+# Spring Batch Partitioner로 OOM 탈출하기
 
 스프링 배치를 이용해 대량의 데이터를 처리하다 보면 누구나 한 번쯤 '메모리'라는 벽에 부딪히곤 하죠. 저 역시 최근 9년 치 원장 데이터를 재처리하며 발생했던 OOM(Out Of Memory) 문제를 경험했는데요. 이 위기를 어떻게 Spring Batch의 기능들로 해결했는지 그 과정을 공유하고자 해요.
 
@@ -44,7 +44,7 @@ Spring Batch가 제공하는 다양한 기능 중, 저는 [partitioning](https:/
 
 <figure><img src="https://raw.githubusercontent.com/jihunparkme/blog/refs/heads/main/img/spring-batch/partitioning-overview.png" alt=""><figcaption></figcaption></figure>
 
-`Partitioning` 방식은 **Manager(Master) Step**이 전체 데이터를 작은 조각(Partition)으로 나누고, 이 조각들을 **Worker(Slave) Step**들이 병렬로 처리하는 구조에요.
+`Partitioning` 방식은 **Manager(Master) Step**이 전체 데이터를 작은 조각(Partition)으로 나누고, 이 조각들을 각 스레드에서 **Worker(Slave) Step**들이 병렬로 처리하는 구조에요.
 
 각 `Worker Step`은 독립적인 **ItemReader**, **ItemProcessor**, **ItemWriter**를 가지고 동작하므로, 서로의 작업에 영향을 주지 않고 효율적으로 대량의 데이터를 처리할 수 있어요. 이를 가능하게 하는 두 가지 핵심 인터페이스인 `Partitioner`, `PartitionHandler`를 살펴보고 가볼까요~?
 
