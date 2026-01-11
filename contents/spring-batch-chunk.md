@@ -64,7 +64,8 @@ Spring Batch가 제공하는 다양한 기능 중, 저는 [partitioning](https:/
 **Partitioner 코드**
 
 ```kotlin
-// TODO: 코드 다시 적용
+// TODO: 적용 코드로 수정
+
 class SamplePartitioner(
     private val startDate: LocalDate,
     private val endDate: LocalDate,
@@ -104,7 +105,8 @@ class SamplePartitioner(
 **PartitionHandler 적용 코드**
 
 ```kotlin
-// TODO: 코드 다시 적용
+// TODO: 적용 코드로 수정
+
 @Configuration
 class SampleJobConfig(
     private val jobRepository: JobRepository,
@@ -167,35 +169,51 @@ class SampleJobConfig(
     }
 
     /**
-     * Slave Step
+     * Slave Step: Tasklet에서 Chunk 기반으로 변경
      */
     @Bean
     fun sampleStep(
-        sampleTasklet: Tasklet
+        sampleReader: ItemReader<UserEntity>,
+        sampleProcessor: ItemProcessor<UserEntity, StatisticsResult>,
+        sampleWriter: ItemWriter<StatisticsResult>
     ): Step {
         return StepBuilder("sampleStep", jobRepository)
-            .tasklet(sampleTasklet, transactionManager)
+            .chunk<UserEntity, StatisticsResult>(1000, transactionManager) // 1,000건 단위로 처리
+            .reader(sampleReader)
+            .processor(sampleProcessor)
+            .writer(sampleWriter)
             .build()
     }
 
     /**
-     * Slave Step
+     * Reader: MongoCursorItemReader를 통해 스트리밍 방식으로 조회
      */
     @Bean
     @StepScope
-    @Transactional(transactionManager = ALOHA_MONGO_TRANSACTION)
-    fun sampleTasklet(
+    fun sampleReader(
         @Value("#{stepExecutionContext['startDate']}") startDate: LocalDate,
         @Value("#{stepExecutionContext['endDate']}") endDate: LocalDate,
-    ): Tasklet {
-        return Tasklet {
-            contribution, chunkContext →
-            // 기존 통계 상태 업데이트 
+    ): MongoCursorItemReader<UserEntity> {
+        return MongoCursorItemReaderBuilder<UserEntity>()
+            .name("sampleReader")
+            .template(mongoTemplate)
+            .targetType(UserEntity::class.java)
+            .jsonQuery("{ 'createdAt': { \$gte: ?0, \$lt: ?1 } }")
+            .parameterValues(listOf(startDate, endDate))
+            .sorts(mapOf("createdAt" to Sort.Direction.ASC))
+            .cursorBatchSize(1000)
+            .build()
+    }
 
-            // 신규 통계 생성 및 저장(1,000 개 데이터 단위로 벌크 인서트)
-            // ...
-
-            RepeatStatus.FINISHED
+    /**
+     * Processor: 데이터를 통계 객체로 변환 (비즈니스 로직)
+     */
+    @Bean
+    @StepScope
+    fun sampleProcessor(): ItemProcessor<UserEntity, StatisticsResult> {
+        return ItemProcessor { user ->
+            // 기존 generateCardStatistics 내부에 있던 변환 로직을 여기서 수행
+            user.toStatistics() 
         }
     }
 }
@@ -238,6 +256,7 @@ MongoDB 환경에서 선택할 수 있는 방식은 크게 두 가지가 있어�
 
 ```kotlin
 // TODO: 적용 코드로 수정
+
 @Bean
 @StepScope
 fun reader(
@@ -260,6 +279,7 @@ Cursor 방식을 적용하면서 메모리 효율성과 안정성을 모두 얻�
 - **메모리 효율성**: 페이징 방식은 다음 페이지를 부를 때마다 이전 데이터만큼 Skip해야 하므로 뒤로 갈수록 느려질 수 있지만, 커서는 스트리밍 방식이라 메모리 사용량이 일정하게 유지.
 - **안정성**: 병렬로 Slave Step이 돌아가더라도, 각 스레드가 커서 방식으로 데이터를 조금씩 가져오기 때문에 OOM 위험을 낮출 수 있음.
 
+## ItemWriter 최적화: Chunk 기반 Bulk Operations 적용
 
 
 
@@ -273,7 +293,6 @@ Cursor 방식을 적용하면서 메모리 효율성과 안정성을 모두 얻�
 
 
 
-## ItemWriter 방식의 변경
 
 ItemWriter 자체가 직접적인 OOM의 주범이 되는 경우는 드물지만, 쓰기 속도가 읽기 속도를 못 따라가면 처리 대기 중인 객체들이 메모리에 오래 머물게 되어 간접적으로 OOM을 유발할 수 있어요.
 
@@ -281,29 +300,27 @@ MongoDB를 사용 중이므로, `MongoItemWriter`를 사용하는데 스프링 �
 청크 사이즈만큼 데이터를 모았다가, 한 번의 네트워크 통신으로 하나씩 insert 하는 방식보다 속도 측면에서도 이득을 볼 수 있고, 네트워크 I/O 비용을 획기적으로 줄일 수 있어요.
 
 ```kotlin
-// bulkOps.insert 쪽 코드
-private fun generateCardStatistics(startDate: LocalDate, endDate: LocalDate): MutableList<StatisticsResult> {
-    val results = mutableListOf<StatistcsResult>()
-    val batchSize = 1_000
+/**
+* Writer: Spring Batch가 모아준 1,000개를 한 번에 Bulk Insert
+*/
+@Bean
+@StepScope
+fun sampleWriter(): ItemWriter<StatisticsResult> {
+    return ItemWriter { chunk ->
+        if (chunk.isEmpty) return@ItemWriter
 
-    mongoTemplate.aggregateStream(
+        val bulkOps = mongoTemplate.bulkOps(
+            BulkOperations.BulkMode.UNORDERED,
+            properties.channelType.statisticsCollectionName()
+        )
+
+        // chunk.items에 이미 1,000개의 데이터가 들어있음
+        bulkOps.insert(chunk.items)
+        bulkOps.execute()
         
-    )
-}
-
-private fun saveAndClearResults(results: MutableList<StatisticsResult>) {
-    if (results.isEmpty()) return
-
-    val stats = results.map { it.toStatistics() }
-    val bulkOps = mongoTemplate.bulkOps(
-        BulkOperations.BulkMode.UNORDERED,
-        properties.channelType.statisticsCollectionName()
-    )
-
-    bulkOps.insert(stats)
-
-    val bulkWriteResult = bulkOps.exectue()
-    results.clear() // 이미 저장한 결과 리스트의 메모리 비우기
+        // 별도의 list.clear()를 호출하지 않아도 
+        // 메서드가 종료되면 chunk 객체는 GC 대상이 됨
+    }
 }
 ```
 
