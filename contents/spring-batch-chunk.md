@@ -236,6 +236,29 @@ MongoDB 환경에서 선택할 수 있는 방식은 크게 두 가지가 있어�
 
 두 가지 방식 중 제한된 메모리 내에서 대량의 데이터를 안정적으로 처리하기 위해, 데이터를 메모리에 쌓아두지 않고 즉시 흘려보내는 `MongoCursorItemReader` 방식을 채택하게 되었어요.
 
+```kotlin
+// TODO: 적용 코드로 수정
+@Bean
+@StepScope
+fun reader(
+    @Value("#{stepExecutionContext['fromDate']}") fromDate: String,
+    @Value("#{stepExecutionContext['toDate']}") toDate: String
+): MongoCursorItemReader<UserEntity> {
+    return MongoCursorItemReaderBuilder<UserEntity>()
+        .name("userItemReader")
+        .template(mongoTemplate)
+        .targetType(UserEntity::class.java)
+        .jsonQuery("{ 'createdAt': { \$gte: ?0, \$lt: ?1 } }")
+        .parameterValues(listOf(fromDate, toDate))
+        .sorts(mapOf("createdAt" to Sort.Direction.ASC))
+        .cursorBatchSize(1000) // MongoDB 커서가 한 번에 가져올 데이터 양
+        .build()
+}
+```
+
+Cursor 방식을 적용하면서 메모리 효율성과 안정성을 모두 얻을 수 있었어요.
+- **메모리 효율성**: 페이징 방식은 다음 페이지를 부를 때마다 이전 데이터만큼 Skip해야 하므로 뒤로 갈수록 느려질 수 있지만, 커서는 스트리밍 방식이라 메모리 사용량이 일정하게 유지.
+- **안정성**: 병렬로 Slave Step이 돌아가더라도, 각 스레드가 커서 방식으로 데이터를 조금씩 가져오기 때문에 OOM 위험을 낮출 수 있음.
 
 
 
