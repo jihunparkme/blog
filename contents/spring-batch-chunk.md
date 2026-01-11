@@ -101,18 +101,6 @@ class SamplePartitioner(
 |주요 설정|- **gridSize**: 생성할 파티션의 목표 개수<br/>- **taskExecutor**: 병렬 처리를 수행할 스레드 풀<br/>- **step**: 실제 로직을 수행할 Worker Step 지정|
 |동작 방식|- `Partitioner`를 호출하여 분할 정보를 가져옴<br/>- `TaskExecutor`를 통해 Worker Step들에게 정보를 전달 및 실행<br/>- 모든 작업이 완료될 때까지 대기 후 최종 상태를 취합|
 
-> 🔄 두 인터페이스가 협력하여 데이터를 처리하는 과정
->
-> 1. **Manager Step 가동**: 배치가 시작되면 관리자 역할을 하는 Manager Step이 실행
->
-> 2. **Partitioner의 데이터 분할**: Partitioner가 호출되어 전체 데이터를 n개로 나눈 **파티션 정보(ExecutionContext)**를 생성
-> 
-> 3. **PartitionHandler의 작업 분배**: PartitionHandler가 이 정보를 토대로 TaskExecutor에 작업을 할당
->
-> 4. **Worker Step의 독립 실행**: 각 스레드에서 Worker Step이 할당받은 파티션 정보를 사용해 실제 로직(Reader-Processor-Writer)을 수행
->
-> 5. **상태 수집 및 종료**: 모든 Worker Step이 완료되면 PartitionHandler가 결과를 취합하여 Master Step에 보고하고 작업을 마무
-
 **PartitionHandler 적용 코드**
 
 ```kotlin
@@ -213,6 +201,20 @@ class SampleJobConfig(
 }
 ```
 
+> 🔄 두 인터페이스가 협력하여 데이터를 처리하는 과정
+>
+> 1. **Manager Step 가동**: 배치가 시작되면 관리자 역할을 하는 Manager Step이 실행
+>
+> 2. **Partitioner의 데이터 분할**: Partitioner가 호출되어 전체 데이터를 n개로 나눈 **파티션 정보(ExecutionContext)**를 생성
+> 
+> 3. **PartitionHandler의 작업 분배**: PartitionHandler가 이 정보를 토대로 TaskExecutor에 작업을 할당
+>
+> 4. **Worker Step의 독립 실행**: 각 스레드에서 Worker Step이 할당받은 파티션 정보를 사용해 실제 로직(Reader-Processor-Writer)을 수행
+>
+> 5. **상태 수집 및 종료**: 모든 Worker Step이 완료되면 PartitionHandler가 결과를 취합하여 Master Step에 보고하고 작업을 마무
+
+⚠️ TODO 두 인터페이스 처리에 대한 이미지 
+
 Spring Batch의 partitioning 기능 덕분에 배치 내부에서 데이터를 하루 단위로 분할해 병렬로 처리하도록 쉽게 적용할 수 있었어요. 하지만 기쁨도 잠시.. 어느정도는 예상했던 난관에 봉착했답니다.
 
 데이터를 쪼개어 처리하도록 설정했지만, 한 번에 최대 6개의 스레드가 동시에 가동되면서 문제가 발생한 것이죠.
@@ -222,6 +224,17 @@ Spring Batch의 partitioning 기능 덕분에 배치 내부에서 데이터를 �
 
 단순히 '병렬로 처리한다'는 전략만으로는 부족했었죠. 한정된 메모리 자원 안에서 이 거대한 데이터를 어떻게 효율적으로 제어하며 흘려보낼지, 더 세밀한 최적화가 필요한 시점이었어요.
 
+## ItemReader 방식의 최적화: Cursor 기반 스트리밍
+
+하루치 데이터도 적은 양이 아니었기 때문에 기존의 전체 로드 방식 대신, 리소스를 효율적으로 사용하는 ItemReader로의 변경이 필요해졌어요.
+
+이미 Partitioner를 통해 날짜별로 범위를 나누어 두었으므로, 이제 각 스레드(Slave Step) 내부에서 메모리 점유율을 최소화하며 데이터를 읽어오는 것이 핵심이 되었어요.
+
+MongoDB 환경에서 선택할 수 있는 방식은 크게 두 가지가 있어요.
+- `MongoPagingItemReader`: 페이지 단위로 데이터를 끊어서 조회
+- `MongoCursorItemReader`: DB 서버와 커서를 유지하며 스트리밍 방식으로 데이터를 한 건씩 호출
+
+두 가지 방식 중 제한된 메모리 내에서 대량의 데이터를 안정적으로 처리하기 위해, 데이터를 메모리에 쌓아두지 않고 즉시 흘려보내는 `MongoCursorItemReader` 방식을 채택하게 되었어요.
 
 
 
@@ -236,25 +249,6 @@ Spring Batch의 partitioning 기능 덕분에 배치 내부에서 데이터를 �
 
 
 
-
-
-## ItemReader 방식의 변경
-
-그렇다면 `ItemReader` 방식의 변경이 필요할 때입니다.
-
-`Partitioner`를 통해 날짜별로 범위를 나누었으므로,<br/>
-각 스레드 즉, `Slave Step` 내부에서 데이터를 어떻게 읽고 쓰느냐가 핵심이에요.
-
-MongoDB를 사용 중이므로, ItemReader 방식으로 `MongoCursorItemReader` 또는 `MongoPagingItemReader`를 적용할 수 있는데요.<br/>
-최대한 메모리 사용량을 줄이기 위해 스트리밍 방식인 `MongoCursorItemReader` 방식을 적용하게 되었어요.
-
-```kotlin
-// MongoCursorItemReader 적용 코드
-
-// 우리는 MongoCursorReader 로 데이터 읽는 코드
-
-// 청크 사이즈 1,000 ?
-```
 
 ## ItemWriter 방식의 변경
 
