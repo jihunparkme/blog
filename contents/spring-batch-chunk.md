@@ -231,7 +231,12 @@ class SampleJobConfig(
 >
 > 5. **상태 수집 및 종료**: 모든 Worker Step이 완료되면 PartitionHandler가 결과를 취합하여 Master Step에 보고하고 작업을 마무
 
-⚠️ TODO 두 인터페이스 처리에 대한 이미지 
+⚠️ TODO 두 인터페이스 처리에 대한 이미지
+
+
+
+
+
 
 Spring Batch의 partitioning 기능 덕분에 배치 내부에서 데이터를 하루 단위로 분할해 병렬로 처리하도록 쉽게 적용할 수 있었어요. 하지만 기쁨도 잠시.. 어느정도는 예상했던 난관에 봉착했답니다.
 
