@@ -231,7 +231,7 @@ class SampleJobConfig(
 >
 > 5. **상태 수집 및 종료**: 모든 Worker Step이 완료되면 PartitionHandler가 결과를 취합하여 Master Step에 보고하고 작업을 마무
 
-⚠️ TODO 두 인터페이스 처리에 대한 이미지
+<figure><img src="https://raw.githubusercontent.com/jihunparkme/blog/refs/heads/main/img/spring-batch/partitioning.png" alt=""><figcaption></figcaption></figure>
 
 
 
