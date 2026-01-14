@@ -1,4 +1,4 @@
-# Spring Batch Partitioner로 OOM 탈출하기
+# Spring Batch Partitioning으로 OOM 탈출하기
 
 스프링 배치를 이용해 대량의 데이터를 처리하다 보면 누구나 한 번쯤 '메모리'라는 벽에 부딪히곤 하죠. 저 역시 최근 9년 치 원장 데이터를 재처리하며 발생했던 OOM(Out Of Memory) 문제를 경험했는데요. 이 위기를 어떻게 Spring Batch의 기능들로 해결했는지 그 과정을 공유하고자 해요.
 
@@ -20,13 +20,13 @@
 > 
 Spring Batch는 대용량 처리를 위해 다양한 확장 및 병렬 처리 모델을 제공해요. 이 모델들은 크게 단일 프로세스(Single-process) 방식과 다중 프로세스(Multi-process) 방식 두 가지로 분류할 수 있어요
 
-1️⃣ 단일 프로세스: 주로 하나의 JVM 내에서 멀티스레드를 활용하여 성능을 최적화
+1️⃣. 단일 프로세스: 주로 하나의 JVM 내에서 멀티스레드를 활용하여 성능을 최적화
 - **Multi-threaded Step**: 하나의 Step 내에서 Chunk 단위로 여러 스레드가 병렬 처리 (가장 일반적인 방식)
 - **Parallel Steps**: 서로 의존성이 없는 독립적인 Step들을 동시에 실행
 - **Local Chunking**: Manager Step이 데이터를 읽고(Read), 내부의 Worker 스레드들이 가공(Process)과 쓰기(Write)를 분담
 - **Local Partitioning**: Manager Step이 데이터 범위를 나누고, 각 범위를 담당하는 Worker Step들이 로컬 스레드에서 독립적으로 실행
 
-2️⃣ 다중 프로세스 (Multi-process): 여러 대의 서버(JVM)로 부하를 분산하여 물리적인 한계를 극복
+2️⃣. 다중 프로세스 (Multi-process): 여러 대의 서버(JVM)로 부하를 분산하여 물리적인 한계를 극복
 - **Remote Chunking**: Manager가 읽은 데이터를 메시지 큐를 통해 외부 Worker 노드들에 Process와 Write 처리를 전달
 - **Remote Partitioning**: Local Partitioning과 동일한 논리로 데이터를 나눈 뒤, 실제 다른 서버의 Worker Step들이 실행하도록 위임
 - **Remote Step**: 전체 Step 실행 자체를 외부의 독립적인 프로세스나 서버에 위임하여 실행
@@ -40,7 +40,7 @@ Spring Batch가 제공하는 다양한 기능 중, 저는 [partitioning](https:/
 
 따라서 한 달치 데이터인 7,500만 건이라는 방대한 부하를 안정적으로 격리하고 병렬성을 극대화하기 위해, 로컬 환경에서의 [partitioning](https://docs.spring.io/spring-batch/reference/scalability.html#partitioning) 전략을 최종적으로 채택하게 되었어요.
 
-## Partitioner 사용하기
+## Partitioning 사용하기
 
 <figure><img src="https://raw.githubusercontent.com/jihunparkme/blog/refs/heads/main/img/spring-batch/partitioning-overview.png" alt=""><figcaption></figcaption></figure>
 
@@ -48,10 +48,14 @@ Spring Batch가 제공하는 다양한 기능 중, 저는 [partitioning](https:/
 
 각 `Worker Step`은 독립적인 **ItemReader**, **ItemProcessor**, **ItemWriter**를 가지고 동작하므로, 서로의 작업에 영향을 주지 않고 효율적으로 대량의 데이터를 처리할 수 있어요. 이를 가능하게 하는 두 가지 핵심 인터페이스는 `Partitioner`, `PartitionHandler`이랍니다.
 
-두 인터페이스를 살펴보기 전에 Partitioner의 큰 흐름을 먼저 보고 가볼까요~?
+두 인터페이스를 살펴보기 전에 Partitioning의 큰 흐름을 먼저 보고 가볼까요~?
+
+## Partitioning의 전체적인 동작 과정
 
 <figure><img src="https://raw.githubusercontent.com/jihunparkme/blog/refs/heads/main/img/spring-batch/partitioning.png" alt=""><figcaption></figcaption></figure>
 
+1️⃣. 준비 및 분할 단계
+- 가장 먼저 `Manager` 역할을 하는 `PartitionStep`이 전체 작업을 어떻게 나눌지 결정
 
 
 
@@ -60,6 +64,31 @@ Spring Batch가 제공하는 다양한 기능 중, 저는 [partitioning](https:/
 
 
 
+
+
+PartitionStep의 실행: Job이 시작되면 Master 역할을 하는 PartitionStep이 execute()를 호출하며 시작됩니다.
+
+작업 위임: PartitionStep은 실제 분할 로직을 관리하는 PartitionHandler에게 제어권을 넘깁니다.
+
+ExecutionContext 생성: StepExecutionSplitter가 Partitioner를 호출하면, 설정된 gridSize에 따라 데이터를 쪼갭니다. 이때 이미지 예시처럼 **Data(1~50), Data(51~100)**와 같이 각 스레드가 처리할 데이터의 범위 정보가 담긴 ExecutionContext가 생성됩니다.
+
+2. 병렬 실행 단계 (Parallel Execution)
+분할된 작업들이 각자 독립적인 환경(Slave Step)에서 동시에 실행되는 단계입니다.
+
+스레드 할당: PartitionHandler는 TaskExecutor를 통해 gridSize만큼의 워커 스레드를 생성하고, 각각에 Slave Step을 할당합니다.
+
+독립적 처리: 다이어그램의 par (Parallel) 블록에 해당하며, 각 워커 스레드는 자신만의 ExecutionContext를 가지고 데이터를 읽고 쓰고 처리(Read-Process-Write)하는 청크 로직을 수행합니다.
+
+동기화: 모든 Slave Step이 자신의 작업을 마치고 ExitStatus를 반환할 때까지 PartitionHandler는 대기(join)합니다.
+
+3. 합산 및 종료 단계 (Aggregation & Completion)
+개별적으로 흩어져 처리된 결과를 하나로 모아 전체 상태를 결정하는 단계입니다.
+
+결과 취합: 모든 Slave Step의 실행 결과(읽은 건수, 성공 여부 등)가 PartitionStep으로 반환됩니다.
+
+최종 상태 업데이트: **StepExecutionAggregator**가 호출되어 여러 개의 슬레이브 스텝 결과들을 합산합니다.
+
+Job 종료: 합산된 결과를 바탕으로 Master Step의 최종 상태를 업데이트하고 전체 Step을 마무리합니다.
 
 
 
