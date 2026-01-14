@@ -46,11 +46,30 @@ Spring Batch가 제공하는 다양한 기능 중, 저는 [partitioning](https:/
 
 `Partitioning` 방식은 **Manager(Master) Step**이 전체 데이터를 작은 조각(Partition)으로 나누고, 이 조각들을 각 스레드에서 **Worker(Slave) Step**들이 병렬로 처리하는 구조에요.
 
-각 `Worker Step`은 독립적인 **ItemReader**, **ItemProcessor**, **ItemWriter**를 가지고 동작하므로, 서로의 작업에 영향을 주지 않고 효율적으로 대량의 데이터를 처리할 수 있어요. 이를 가능하게 하는 두 가지 핵심 인터페이스인 `Partitioner`, `PartitionHandler`를 살펴보고 가볼까요~?
+각 `Worker Step`은 독립적인 **ItemReader**, **ItemProcessor**, **ItemWriter**를 가지고 동작하므로, 서로의 작업에 영향을 주지 않고 효율적으로 대량의 데이터를 처리할 수 있어요. 이를 가능하게 하는 두 가지 핵심 인터페이스는 `Partitioner`, `PartitionHandler`이랍니다.
+
+두 인터페이스를 살펴보기 전에 Partitioner의 큰 흐름을 먼저 보고 가볼까요~?
 
 <figure><img src="https://raw.githubusercontent.com/jihunparkme/blog/refs/heads/main/img/spring-batch/partitioning.png" alt=""><figcaption></figcaption></figure>
 
-### Partitioner
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+### Partitioner Interface
 
 > 👩🏼‍💻 작업 지시서를 만드는 기획자
 > 
@@ -92,7 +111,7 @@ class SamplePartitioner(
 }
 ```
 
-### PartitionHandler
+### PartitionHandler Interface
 
 > 👷🏼 작업을 배분하는 현장 소장
 > 
