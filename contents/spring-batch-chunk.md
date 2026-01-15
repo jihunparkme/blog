@@ -54,25 +54,15 @@ Spring Batch가 제공하는 다양한 기능 중, 저는 [partitioning](https:/
 
 <figure><img src="https://raw.githubusercontent.com/jihunparkme/blog/refs/heads/main/img/spring-batch/partitioning.png" alt=""><figcaption></figcaption></figure>
 
-1️⃣. 준비 및 분할 단계
-- 가장 먼저 `Manager` 역할을 하는 `PartitionStep`이 전체 작업을 어떻게 나눌지 결정
+1️⃣. 준비 및 분할 단계<br/>
+가장 먼저 `Manager` 역할을 하는 `PartitionStep`이 전체 작업을 어떻게 나눌지 결정하는 단계
+- **PartitionStep 실행**: `Job`이 시작되면 Manager 역할을 하는 `PartitionStep`이 `execute()`를 호출하며 시작
+- **작업 위임**: `PartitionStep`은 실제 분할 로직을 관리하는 `PartitionHandler`에게 제어권을 넘김
+- **ExecutionContext 생성**: `StepExecutionSplitter`가 `Partitioner`를 호출하면, 설정된 gridSize에 따라 데이터를 분할
+  - 이때 각 스레드가 처리할 데이터의 범위 정보가 담긴 `ExecutionContext`가 생성
 
 
-
-
-
-
-
-
-
-
-PartitionStep의 실행: Job이 시작되면 Master 역할을 하는 PartitionStep이 execute()를 호출하며 시작됩니다.
-
-작업 위임: PartitionStep은 실제 분할 로직을 관리하는 PartitionHandler에게 제어권을 넘깁니다.
-
-ExecutionContext 생성: StepExecutionSplitter가 Partitioner를 호출하면, 설정된 gridSize에 따라 데이터를 쪼갭니다. 이때 이미지 예시처럼 **Data(1~50), Data(51~100)**와 같이 각 스레드가 처리할 데이터의 범위 정보가 담긴 ExecutionContext가 생성됩니다.
-
-2. 병렬 실행 단계 (Parallel Execution)
+1. 병렬 실행 단계 (Parallel Execution)
 분할된 작업들이 각자 독립적인 환경(Slave Step)에서 동시에 실행되는 단계입니다.
 
 스레드 할당: PartitionHandler는 TaskExecutor를 통해 gridSize만큼의 워커 스레드를 생성하고, 각각에 Slave Step을 할당합니다.
