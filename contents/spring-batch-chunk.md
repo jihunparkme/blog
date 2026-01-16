@@ -61,17 +61,16 @@ Spring Batch가 제공하는 다양한 기능 중, 저는 [partitioning](https:/
 - **ExecutionContext 생성**: `StepExecutionSplitter`가 `Partitioner`를 호출하면, 설정된 gridSize에 따라 데이터를 분할
   - 이때 각 스레드가 처리할 데이터의 범위 정보가 담긴 `ExecutionContext`가 생성
 
+2️⃣. 병렬 실행 단계<br/>
+분할된 작업들이 각자 독립적인 환경(Slave Step)에서 동시에 실행되는 단계
+- **스레드 할당**: `PartitionHandler`는 TaskExecutor를 통해 gridSize만큼의 워커 스레드를 생성하고, 각각에 `Slave Step`을 할당
+- **독립적 처리**: 각 워커 스레드는 자신만의 `ExecutionContext`를 가지고 데이터를 읽고 쓰고 처리하는 청크 로직을 수행
+- **동기화**: 모든 `Slave Step`이 자신의 작업을 마치고 ExitStatus를 반환할 때까지 PartitionHandler는 대기(join)
 
-1. 병렬 실행 단계 (Parallel Execution)
-분할된 작업들이 각자 독립적인 환경(Slave Step)에서 동시에 실행되는 단계입니다.
 
-스레드 할당: PartitionHandler는 TaskExecutor를 통해 gridSize만큼의 워커 스레드를 생성하고, 각각에 Slave Step을 할당합니다.
 
-독립적 처리: 다이어그램의 par (Parallel) 블록에 해당하며, 각 워커 스레드는 자신만의 ExecutionContext를 가지고 데이터를 읽고 쓰고 처리(Read-Process-Write)하는 청크 로직을 수행합니다.
 
-동기화: 모든 Slave Step이 자신의 작업을 마치고 ExitStatus를 반환할 때까지 PartitionHandler는 대기(join)합니다.
-
-3. 합산 및 종료 단계 (Aggregation & Completion)
+1. 합산 및 종료 단계 (Aggregation & Completion)
 개별적으로 흩어져 처리된 결과를 하나로 모아 전체 상태를 결정하는 단계입니다.
 
 결과 취합: 모든 Slave Step의 실행 결과(읽은 건수, 성공 여부 등)가 PartitionStep으로 반환됩니다.
