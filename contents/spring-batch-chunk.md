@@ -67,25 +67,11 @@ Spring Batch가 제공하는 다양한 기능 중, 저는 [partitioning](https:/
 - **독립적 처리**: 각 워커 스레드는 자신만의 `ExecutionContext`를 가지고 데이터를 읽고 쓰고 처리하는 청크 로직을 수행
 - **동기화**: 모든 `Slave Step`이 자신의 작업을 마치고 ExitStatus를 반환할 때까지 PartitionHandler는 대기(join)
 
-
-
-
-1. 합산 및 종료 단계 (Aggregation & Completion)
-개별적으로 흩어져 처리된 결과를 하나로 모아 전체 상태를 결정하는 단계입니다.
-
-결과 취합: 모든 Slave Step의 실행 결과(읽은 건수, 성공 여부 등)가 PartitionStep으로 반환됩니다.
-
-최종 상태 업데이트: **StepExecutionAggregator**가 호출되어 여러 개의 슬레이브 스텝 결과들을 합산합니다.
-
-Job 종료: 합산된 결과를 바탕으로 Master Step의 최종 상태를 업데이트하고 전체 Step을 마무리합니다.
-
-
-
-
-
-
-
-
+3️⃣. 합산 및 종료 단계<br/>
+개별적으로 흩어져 처리된 결과를 하나로 모아 전체 상태를 결정하는 단계
+- **결과 취합**: 모든 Slave Step의 실행 결과(읽은 건수, 성공 여부 등)가 `PartitionStep`으로 반환
+- **최종 상태 업데이트**: `StepExecutionAggregator` 병렬 실행 단계가 호출되어 여러 개의 Slave Step 결과들을 합산
+- **Job 종료**: 합산된 결과를 바탕으로 Master Step의 최종 상태를 업데이트하고 전체 Step을 마무리
 
 ### Partitioner Interface
 
