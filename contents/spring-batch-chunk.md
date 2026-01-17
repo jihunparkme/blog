@@ -1,18 +1,28 @@
-# Spring Batch Partitioning으로 OOM 탈출하기
+# 수억 건의 데이터, 맛있게 쪼개 먹는 방법 (with. Partitioning)
 
-스프링 배치를 이용해 대량의 데이터를 처리하다 보면 누구나 한 번쯤 '메모리'라는 벽에 부딪히곤 하죠. 저 역시 최근 9년 치 원장 데이터를 재처리하며 발생했던 OOM(Out Of Memory) 문제를 경험했는데요. 이 위기를 어떻게 Spring Batch의 기능들로 해결했는지 그 과정을 공유하고자 해요.
+스프링 배치를 이용해 대량의 데이터를 처리하다 보면 누구나 한 번쯤 '메모리'라는 벽에 부딪히곤 하죠. 저 역시 원장 통계 데이터를 재생성하며 OOM(Out Of Memory) 문제를 경험했는데요. 이 위기를 어떻게 Spring Batch의 기능들로 해결했는지 그 과정을 공유하고자 해요.
 
-## 문제의 시작: 9년, 그리고 수억 건의 데이터
+## 전략 세우기
 
-원장 통계 데이터의 구조를 변경해야 하는 과제가 주어졌어요. 대상은 2017년부터 2025년까지, 무려 9년 분량의 데이터였죠.
+원장 통계 데이터의 구조가 변경되어 데이터를 다시 생성해야하는 과제가 주어졌어요. 무려 수억건 분량의 데이터였죠.  
+트래픽이 집중되는 채널의 경우, 하루치 원장 데이터만 약 250만 건에 달했어요. 이를 계산해 보면 한 달이면 7,500만 건, 일 년이면 수억 건의 데이터가 쌓여 있었던 셈이죠.
 
-트래픽이 집중되는 채널의 경우, 하루치 데이터만 약 250만 건에 달했어요. 이를 계산해 보니 한 달이면 7,500만 건, 일 년이면 수억 건의 데이터가 쌓여 있었던 셈이죠.
-
-방대한 운영 데이터를 다루는 만큼, 데이터 정합성을 실시간으로 확인하기 위해 다음과 같은 단계별 전략을 세우게 되었어요.
+방대한 운영 데이터를 다루는 만큼, **데이터 정합성**과 **속도**를 위해 다음과 같이 단계별 전략을 세우게 되었어요.
 - 1차 분할: 전체 기간을 '한 달' 단위로 나누어 배치 작업 실행
-- 2차 분할: 한 달(7,500만 건)의 부하를 줄이기 위해 배치 내부에서 다시 '하루' 단위로 나누어 처리
+- 2차 분할: 한 달치 데이터(약 7,500만 건)에 대한 부하를 줄이기 위해 배치 내부에서 다시 '하루' 단위로 나누어 처리
 
-이러한 전략에도 불구하고, 한정된 자원 안에서 이 거대한 데이터를 처리하기 위해 함께 산을 넘어보려고 해요.
+그럼 이제 함께 방대한 데이터를 맛있게 먹기 위해 쪼개러 가볼까요~? 🎂🍰
+
+
+
+
+
+
+
+
+
+
+
 
 ## Spring Batch의 확장성과 병렬 처리
 
@@ -54,20 +64,20 @@ Spring Batch가 제공하는 다양한 기능 중, 저는 [partitioning](https:/
 
 <figure><img src="https://raw.githubusercontent.com/jihunparkme/blog/refs/heads/main/img/spring-batch/partitioning.png" alt=""><figcaption></figcaption></figure>
 
-1️⃣. 준비 및 분할 단계<br/>
+1️⃣. 준비 및 분할 단계  
 가장 먼저 `Manager` 역할을 하는 `PartitionStep`이 전체 작업을 어떻게 나눌지 결정하는 단계
 - **PartitionStep 실행**: `Job`이 시작되면 Manager 역할을 하는 `PartitionStep`이 `execute()`를 호출하며 시작
 - **작업 위임**: `PartitionStep`은 실제 분할 로직을 관리하는 `PartitionHandler`에게 제어권을 넘김
 - **ExecutionContext 생성**: `StepExecutionSplitter`가 `Partitioner`를 호출하면, 설정된 gridSize에 따라 데이터를 분할
   - 이때 각 스레드가 처리할 데이터의 범위 정보가 담긴 `ExecutionContext`가 생성
 
-2️⃣. 병렬 실행 단계<br/>
+2️⃣. 병렬 실행 단계  
 분할된 작업들이 각자 독립적인 환경(Slave Step)에서 동시에 실행되는 단계
 - **스레드 할당**: `PartitionHandler`는 TaskExecutor를 통해 gridSize만큼의 워커 스레드를 생성하고, 각각에 `Slave Step`을 할당
 - **독립적 처리**: 각 워커 스레드는 자신만의 `ExecutionContext`를 가지고 데이터를 읽고 쓰고 처리하는 청크 로직을 수행
 - **동기화**: 모든 `Slave Step`이 자신의 작업을 마치고 ExitStatus를 반환할 때까지 PartitionHandler는 대기(join)
 
-3️⃣. 합산 및 종료 단계<br/>
+3️⃣. 합산 및 종료 단계  
 개별적으로 흩어져 처리된 결과를 하나로 모아 전체 상태를 결정하는 단계
 - **결과 취합**: 모든 Slave Step의 실행 결과(읽은 건수, 성공 여부 등)가 `PartitionStep`으로 반환
 - **최종 상태 업데이트**: `StepExecutionAggregator` 병렬 실행 단계가 호출되어 여러 개의 Slave Step 결과들을 합산
@@ -83,7 +93,7 @@ Spring Batch가 제공하는 다양한 기능 중, 저는 [partitioning](https:/
 |---|---|
 |역할|데이터 분할 전략 정의 및 실행 정보 생성|
 |핵심 메서드|`Map<String, ExecutionContext> partition(int gridSize)`|
-|동작 방식|- gridSize를 참고하여 데이터 범위를 계산<br/>- 각 파티션 정보를 ExecutionContext라는 바구니에 저장<br/>- 고유한 이름을 붙인 Map 형태로 반환|
+|동작 방식|- gridSize를 참고하여 데이터 범위를 계산  - 각 파티션 정보를 ExecutionContext라는 바구니에 저장  - 고유한 이름을 붙인 Map 형태로 반환|
 |특징|비즈니스 로직을 실행하지 않고, **'어디서부터 어디까지 처리하라'** 는 정보만 생성|
 
 **Partitioner 코드**
@@ -124,8 +134,8 @@ class SamplePartitioner(
 |구분|설명|
 |---|---|
 |역할|파티션의 실행 방식 결정 및 전체 프로세스 관리|
-|주요 설정|- **gridSize**: 생성할 파티션의 목표 개수<br/>- **taskExecutor**: 병렬 처리를 수행할 스레드 풀<br/>- **step**: 실제 로직을 수행할 Worker Step 지정|
-|동작 방식|- `Partitioner`를 호출하여 분할 정보를 가져옴<br/>- `TaskExecutor`를 통해 Worker Step들에게 정보를 전달 및 실행<br/>- 모든 작업이 완료될 때까지 대기 후 최종 상태를 취합|
+|주요 설정|- **gridSize**: 생성할 파티션의 목표 개수  - **taskExecutor**: 병렬 처리를 수행할 스레드 풀  - **step**: 실제 로직을 수행할 Worker Step 지정|
+|동작 방식|- `Partitioner`를 호출하여 분할 정보를 가져옴  - `TaskExecutor`를 통해 Worker Step들에게 정보를 전달 및 실행  - 모든 작업이 완료될 때까지 대기 후 최종 상태를 취합|
 
 **PartitionHandler 적용 코드**
 
