@@ -13,33 +13,22 @@
 
 그럼 이제 함께 방대한 데이터를 맛있게 먹기 위해 쪼개러 가볼까요~? 🎂🍰
 
-
-
-
-
-
-
-
-
-
-
-
-## Spring Batch의 확장성과 병렬 처리
+## Spring Batch의 확장 및 병렬 처리
 
 > [Scaling and Parallel Processing](https://docs.spring.io/spring-batch/reference/scalability.html)
 > 
-Spring Batch는 대용량 처리를 위해 다양한 확장 및 병렬 처리 모델을 제공해요. 이 모델들은 크게 단일 프로세스(Single-process) 방식과 다중 프로세스(Multi-process) 방식 두 가지로 분류할 수 있어요
+Spring Batch는 대용량 처리를 위해 다양한 확장 및 병렬 처리 모델을 제공해요. 이 모델들은 크게 **`단일 프로세스`(Single-process)** 방식과 **`다중 프로세스`(Multi-process)** 방식 두 가지로 분류할 수 있어요.
 
-1️⃣. 단일 프로세스: 주로 하나의 JVM 내에서 멀티스레드를 활용하여 성능을 최적화
-- **Multi-threaded Step**: 하나의 Step 내에서 Chunk 단위로 여러 스레드가 병렬 처리 (가장 일반적인 방식)
-- **Parallel Steps**: 서로 의존성이 없는 독립적인 Step들을 동시에 실행
-- **Local Chunking**: Manager Step이 데이터를 읽고(Read), 내부의 Worker 스레드들이 가공(Process)과 쓰기(Write)를 분담
-- **Local Partitioning**: Manager Step이 데이터 범위를 나누고, 각 범위를 담당하는 Worker Step들이 로컬 스레드에서 독립적으로 실행
+1️⃣. **단일 프로세스**: 주로 하나의 JVM 내에서 `멀티스레드`를 활용하여 성능을 최적화
+- `Multi-threaded Step`: 하나의 Step 내에서 **Chunk 단위로 여러 스레드가 병렬 처리** (일반적인 방식)
+- `Parallel Steps`: 서로 의존성이 없는 **독립적인 Step들을 동시에 실행**
+- `Local Chunking`: Manager Step이 데이터를 읽고(Read), 내부의 Worker 스레드들이 **가공(Process)과 쓰기(Write)를 분담**
+- `Local Partitioning`: Manager Step이 데이터 범위를 나누고, 각 범위를 담당하는 **Worker Step들이 로컬 스레드에서 독립적으로 실행**
 
-2️⃣. 다중 프로세스 (Multi-process): 여러 대의 서버(JVM)로 부하를 분산하여 물리적인 한계를 극복
-- **Remote Chunking**: Manager가 읽은 데이터를 메시지 큐를 통해 외부 Worker 노드들에 Process와 Write 처리를 전달
-- **Remote Partitioning**: Local Partitioning과 동일한 논리로 데이터를 나눈 뒤, 실제 다른 서버의 Worker Step들이 실행하도록 위임
-- **Remote Step**: 전체 Step 실행 자체를 외부의 독립적인 프로세스나 서버에 위임하여 실행
+2️⃣. **다중 프로세스**: `여러 대의 서버`(JVM)로 부하를 분산하여 물리적인 한계를 극복
+- `Remote Chunking`: Manager Step에서 읽은 데이터를 메시지 큐를 통해 **외부 Worker 노드**들에 가공과 쓰기 처리를 전달
+- `Remote Partitioning`: Local Partitioning과 동일한 논리로 데이터를 나눈 뒤, 실제 **다른 서버의 Worker Step들이 실행**하도록 위임
+- `Remote Step`: 전체 Step 실행 자체를 **외부의 독립적인 프로세스나 서버에 위임**하여 실행
 
 .
 
