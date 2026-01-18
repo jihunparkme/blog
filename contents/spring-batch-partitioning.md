@@ -53,7 +53,7 @@ Spring Batch가 제공하는 다양한 기능 중, [Partitioning](https://docs.s
 
 <figure><img src="https://raw.githubusercontent.com/jihunparkme/blog/refs/heads/main/img/spring-batch/partitioning.png" alt=""><figcaption></figcaption></figure>
 
-1️⃣. 준비 및 분할 단계  
+1️⃣. **준비 및 분할 단계**  
 가장 먼저 `Manager` 역할을 하는 `PartitionStep`이 전체 작업을 어떻게 나눌지 결정하는 단계
 - `Job`이 시작되면 Manager 역할을 하는 `PartitionStep`이 **execute**를 호출하며 시작
   - [void doExecute(StepExecution stepExecution)](https://docs.spring.io/spring-batch/docs/current/api/org/springframework/batch/core/partition/support/PartitionStep.html#doExecute(org.springframework.batch.core.StepExecution))
@@ -65,21 +65,11 @@ Spring Batch가 제공하는 다양한 기능 중, [Partitioning](https://docs.s
   - 이때 각 스레드가 처리할 데이터의 범위 정보가 담긴 `ExecutionContext`가 생성
   - [Map\<String, ExecutionContext\> partition(int gridSize)](https://docs.spring.io/spring-batch/docs/current/api/org/springframework/batch/core/partition/support/Partitioner.html#partition(int))
 
-
-
-
-
-
-
-
-
-
-
-2️⃣. 병렬 실행 단계  
+2️⃣. **병렬 실행 단계**  
 분할된 작업들이 각자 독립적인 환경(Slave Step)에서 동시에 실행되는 단계
-- **스레드 할당**: `PartitionHandler`는 TaskExecutor를 통해 gridSize만큼의 워커 스레드를 생성하고, 각각에 `Slave Step`을 할당
-- **독립적 처리**: 각 워커 스레드는 자신만의 `ExecutionContext`를 가지고 데이터를 읽고 쓰고 처리하는 청크 로직을 수행
-- **동기화**: 모든 `Slave Step`이 자신의 작업을 마치고 ExitStatus를 반환할 때까지 PartitionHandler는 대기(join)
+- `PartitionHandler`는 TaskExecutor를 통해 gridSize만큼의 워커 스레드를 생성하고, 각각에 `Slave Step`을 할당
+- 각 워커 스레드는 자신만의 `ExecutionContext`를 가지고 데이터를 읽고 쓰고 처리하는 청크 로직을 수행
+- 모든 `Slave Step`이 자신의 작업을 마치고 ExitStatus를 반환할 때까지 PartitionHandler는 대기
 
 3️⃣. 합산 및 종료 단계  
 개별적으로 흩어져 처리된 결과를 하나로 모아 전체 상태를 결정하는 단계
