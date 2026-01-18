@@ -78,6 +78,8 @@ Spring Batch가 제공하는 다양한 기능 중, [Partitioning](https://docs.s
   - [aggregate(StepExecution result, Collection\<StepExecution\> executions)](https://docs.spring.io/spring-batch/docs/current/api/org/springframework/batch/core/partition/support/StepExecutionAggregator.html#aggregate(org.springframework.batch.core.StepExecution,java.util.Collection))
 - 합산된 결과를 바탕으로 `PartitionStep`의 최종 상태를 업데이트하고 전체 Step을 마무리
 
+이제 본격적으로 Partitioning의 핵심 인터페이스인 `Partitioner`, `PartitionHandler`를 만나러 가보아요~!🏃🏻‍♂️🏃🏻‍♀️🏃🏻
+
 ### Partitioner Interface
 
 > 👩🏼‍💻 작업 지시서를 만드는 기획자
@@ -88,7 +90,7 @@ Spring Batch가 제공하는 다양한 기능 중, [Partitioning](https://docs.s
 |---|---|
 |역할|데이터 분할 전략 정의 및 실행 정보 생성|
 |핵심 메서드|`Map<String, ExecutionContext> partition(int gridSize)`|
-|동작 방식|- gridSize를 참고하여 데이터 범위를 계산  - 각 파티션 정보를 ExecutionContext라는 바구니에 저장  - 고유한 이름을 붙인 Map 형태로 반환|
+|동작 방식|- gridSize를 참고하여 데이터 분할 범위를 계산<br/>- 각 파티션 정보를 ExecutionContext에 저장<br/>- 고유한 이름을 붙인 Map 형태로 반환|
 |특징|비즈니스 로직을 실행하지 않고, **'어디서부터 어디까지 처리하라'** 는 정보만 생성|
 
 **Partitioner 코드**
