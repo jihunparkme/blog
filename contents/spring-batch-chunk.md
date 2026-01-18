@@ -17,7 +17,7 @@
 
 > [Scaling and Parallel Processing](https://docs.spring.io/spring-batch/reference/scalability.html)
 > 
-Spring Batch는 대용량 처리를 위해 다양한 확장 및 병렬 처리 모델을 제공해요. 이 모델들은 크게 **`단일 프로세스`(Single-process)** 방식과 **`다중 프로세스`(Multi-process)** 방식 두 가지로 분류할 수 있어요.
+Spring Batch는 대용량 처리를 위해 다양한 확장 및 병렬 처리 기능을 제공해요. 이 기능들은 크게 **`단일 프로세스`(Single-process)** 방식과 **`다중 프로세스`(Multi-process)** 방식 두 가지로 분류할 수 있어요.
 
 1️⃣. **단일 프로세스**: 주로 하나의 JVM 내에서 `멀티스레드`를 활용하여 성능을 최적화
 - `Multi-threaded Step`: 하나의 Step 내에서 **Chunk 단위로 여러 스레드가 병렬 처리** (일반적인 방식)
@@ -32,12 +32,12 @@ Spring Batch는 대용량 처리를 위해 다양한 확장 및 병렬 처리 �
 
 .
 
-이번 작업의 핵심은 **'한 달치 데이터를 하루 단위로 쪼개어 독립적으로 처리하는 것'** 이었기 때문에,
-Spring Batch가 제공하는 다양한 기능 중, 저는 [partitioning](https://docs.spring.io/spring-batch/reference/scalability.html#partitioning) 방식을 선택하게 되었어요.
+2차 분할 작업의 핵심은 **'한 달치 데이터를 하루 단위로 쪼개어 독립적으로 처리하는 것'** 이었기 때문에,
+Spring Batch가 제공하는 다양한 기능 중, [Partitioning](https://docs.spring.io/spring-batch/reference/scalability.html#partitioning) 방식을 선택하게 되었어요.
 
 단순히 스레드만 늘리는 Multi-threaded Step은 데이터 읽기 과정에서 스레드 간 경합이나 순서 보장이 어려울 수 있는 반면, Partitioning은 데이터의 범위를 명확히 나누어 각 Step이 자신만의 상태를 가지고 독립적으로 실행될 수 있다는 장점이 있어요.
 
-따라서 한 달치 데이터인 7,500만 건이라는 방대한 부하를 안정적으로 격리하고 병렬성을 극대화하기 위해, 로컬 환경에서의 [partitioning](https://docs.spring.io/spring-batch/reference/scalability.html#partitioning) 전략을 최종적으로 채택하게 되었어요.
+따라서 약 7,500만 건에 달하는 한 달치 데이터의 방대한 부하를 안정적으로 격리하고 병렬성을 극대화하기 위해, 로컬 환경에서의 [Local Partitioning](https://docs.spring.io/spring-batch/reference/scalability.html#partitioning) 전략을 최종적으로 채택하게 되었어요.
 
 ## Partitioning 사용하기
 
