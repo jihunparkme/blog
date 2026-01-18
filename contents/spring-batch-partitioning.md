@@ -68,14 +68,15 @@ Spring Batch가 제공하는 다양한 기능 중, [Partitioning](https://docs.s
 2️⃣. **병렬 실행 단계**  
 분할된 작업들이 각자 독립적인 환경(Slave Step)에서 동시에 실행되는 단계
 - `PartitionHandler`는 TaskExecutor를 통해 gridSize만큼의 워커 스레드를 생성하고, 각각에 `Slave Step`을 할당
-- 각 워커 스레드는 자신만의 `ExecutionContext`를 가지고 데이터를 읽고 쓰고 처리하는 청크 로직을 수행
-- 모든 `Slave Step`이 자신의 작업을 마치고 ExitStatus를 반환할 때까지 PartitionHandler는 대기
+- 각 워커 스레드는 자신만의 `ExecutionContext`를 가지고 데이터를 읽고, 쓰고, 처리하는 청크 로직을 수행
+- 모든 `Slave Step`이 자신의 작업을 마치고 ExitStatus를 반환할 때까지 `PartitionHandler`는 대기
 
-3️⃣. 합산 및 종료 단계  
+3️⃣. **합산 및 종료 단계**  
 개별적으로 흩어져 처리된 결과를 하나로 모아 전체 상태를 결정하는 단계
-- **결과 취합**: 모든 Slave Step의 실행 결과(읽은 건수, 성공 여부 등)가 `PartitionStep`으로 반환
-- **최종 상태 업데이트**: `StepExecutionAggregator` 병렬 실행 단계가 호출되어 여러 개의 Slave Step 결과들을 합산
-- **Job 종료**: 합산된 결과를 바탕으로 Master Step의 최종 상태를 업데이트하고 전체 Step을 마무리
+- 모든 Slave Step의 실행 결과(읽은 건수, 성공 여부 등)가 담긴 `StepExecution`객체를 `PartitionStep`에게 반환
+- `StepExecutionAggregator`의 `aggregate` 단계가 호출되어 여러 개의 Slave Step 결과들을 합산
+  - [aggregate(StepExecution result, Collection\<StepExecution\> executions)](https://docs.spring.io/spring-batch/docs/current/api/org/springframework/batch/core/partition/support/StepExecutionAggregator.html#aggregate(org.springframework.batch.core.StepExecution,java.util.Collection))
+- 합산된 결과를 바탕으로 `PartitionStep`의 최종 상태를 업데이트하고 전체 Step을 마무리
 
 ### Partitioner Interface
 
