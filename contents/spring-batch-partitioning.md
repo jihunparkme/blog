@@ -43,7 +43,7 @@ Spring Batch가 제공하는 다양한 기능 중, [Partitioning](https://docs.s
 
 <figure><img src="https://raw.githubusercontent.com/jihunparkme/blog/refs/heads/main/img/spring-batch/partitioning-overview.png" alt=""><figcaption></figcaption></figure>
 
-`Partitioning` 방식은 **Manager(Master) Step**이 전체 데이터를 **작은 조각**(Partition)으로 나누고, 이 조각들을 각 스레드에서 **Worker(Slave) Step**들이 병렬로 처리하는 구조에요.
+**Partitioning** 방식은 `Manager(Master) Step`이 전체 데이터를 **작은 조각**(Partition)으로 나누고, 이 조각들을 각 스레드에서 `Worker(Slave) Step`들이 병렬로 처리하는 구조에요.
 
 각 `Worker Step`은 독립적인 **ItemReader**, **ItemProcessor**, **ItemWriter**를 가지고 동작하므로, 서로의 작업에 영향을 주지 않고 효율적으로 대량의 데이터를 처리할 수 있어요. 이를 가능하게 하는 두 가지 핵심 인터페이스는 `Partitioner`, `PartitionHandler`이랍니다.
 
@@ -55,10 +55,25 @@ Spring Batch가 제공하는 다양한 기능 중, [Partitioning](https://docs.s
 
 1️⃣. 준비 및 분할 단계  
 가장 먼저 `Manager` 역할을 하는 `PartitionStep`이 전체 작업을 어떻게 나눌지 결정하는 단계
-- **PartitionStep 실행**: `Job`이 시작되면 Manager 역할을 하는 `PartitionStep`이 `execute()`를 호출하며 시작
-- **작업 위임**: `PartitionStep`은 실제 분할 로직을 관리하는 `PartitionHandler`에게 제어권을 넘김
-- **ExecutionContext 생성**: `StepExecutionSplitter`가 `Partitioner`를 호출하면, 설정된 gridSize에 따라 데이터를 분할
+- `Job`이 시작되면 Manager 역할을 하는 `PartitionStep`이 **execute**를 호출하며 시작
+  - [void doExecute(StepExecution stepExecution)](https://docs.spring.io/spring-batch/docs/current/api/org/springframework/batch/core/partition/support/PartitionStep.html#doExecute(org.springframework.batch.core.StepExecution))
+- `PartitionStep`은 실제 분할 로직을 관리하는 `PartitionHandler`에게 작업 위임
+  - [Collection\<StepExecution\> handle(StepExecutionSplitter stepSplitter, StepExecution stepExecution)](https://docs.spring.io/spring-batch/docs/current/api/org/springframework/batch/core/partition/PartitionHandler.html#handle(org.springframework.batch.core.partition.StepExecutionSplitter,org.springframework.batch.core.StepExecution))
+- `PartitionHandler`는 `StepExecutionSplitter`에게 분할 정보를 전달
+  - [Set\<StepExecution\> split(StepExecution stepExecution, int gridSize)](https://docs.spring.io/spring-batch/docs/current/api/org/springframework/batch/core/partition/StepExecutionSplitter.html#split(org.springframework.batch.core.StepExecution,int))
+- `StepExecutionSplitter`가 `Partitioner`를 호출하면, 설정된 gridSize에 따라 데이터를 분할
   - 이때 각 스레드가 처리할 데이터의 범위 정보가 담긴 `ExecutionContext`가 생성
+  - [Map\<String, ExecutionContext\> partition(int gridSize)](https://docs.spring.io/spring-batch/docs/current/api/org/springframework/batch/core/partition/support/Partitioner.html#partition(int))
+
+
+
+
+
+
+
+
+
+
 
 2️⃣. 병렬 실행 단계  
 분할된 작업들이 각자 독립적인 환경(Slave Step)에서 동시에 실행되는 단계
