@@ -94,33 +94,38 @@ Spring Batch가 제공하는 다양한 기능 중, [Partitioning](https://docs.s
 |특징|비즈니스 로직을 실행하지 않고, **'어디서부터 어디까지 처리하라'** 는 정보만 생성|
 
 **Partitioner 코드**
+- 시작 날짜부터 종료 날짜까지 하루 단위로 데이터를 분할하는 역할
 
 ```kotlin
-// TODO: 적용 코드로 수정
-
-class SamplePartitioner(
+class DateRangePartitioner(
     private val startDate: LocalDate,
-    private val endDate: LocalDate,
-    private val timestamp: Long,
+    private val endDate: LocalDate
 ) : Partitioner {
     override fun partition(gridSize: Int): Map<String, ExecutionContext> {
-        val partitions: MutableMap<String, ExecutionContext> = mutableMapOf<String, ExecutionContext>()
-        val days: Long = ChronoUnit.DAYS.between(startDate, endDate) + 1 // 총 일자 계산
-        repeat(days.toInt()) { // 하루치씩 반복하며 ExecutionContext를 생성
-            val currentDate: LocalDate! = startDate.plusDays(it.toLong())
-            val executionContext = ExecutionContext()
-            // 각 파티션(Slave Step)이 읽어야 할 날짜 정보를 저장
-            executionContext.putString("startDate", currentDate.format(DateTimeFormatter.ISO_LOCAL_DATE))
-            executionContext.putString("endDate", currentDate.format(DateTimeFormatter.ISO_LOCAL_DATE))
-            // 파티션 개수 지정
-            executionContext.putLong("SimpleStepExecutionSplitter.GRID_SIZE", 6L)
-            // 파티션 식별자에 유니크한 키를 부여
-            partitions["MigCardStatisticsPartition_$fit_$timestamp"] = executionContext
+        val result = mutableMapOf<String, ExecutionContext>()
+        var targetDate = startDate
+        var partitionNumber = 0
+
+        // 시작일부터 종료일까지 루프를 돌며 파티션 생성
+        while (!targetDate.isAfter(endDate)) {
+            val context = ExecutionContext()
+            
+            // 각 Worker Step이 처리해야 할 날짜 정보를 Context에 담기
+            context.putString("targetDate", targetDate.toString())
+            
+            // 파티션에 고유한 이름을 부여하여 Map에 저장
+            result["partition_$partitionNumber"] = context
+
+            targetDate = targetDate.plusDays(1)
+            partitionNumber++
         }
-        return partitions
+
+        return result
     }
 }
 ```
+
+> 참고로, 위 코드에서는 gridSize를 직접 사용하지 않았지만, 너무 많은 파티션이 생성되지 않도록 gridSize를 적절히 활용하거나 TaskExecutor의 스레드 풀 개수를 조절하여 동시 실행 스레드 수를 관리하는 것이 좋습니다.
 
 ### PartitionHandler Interface
 
@@ -137,117 +142,48 @@ class SamplePartitioner(
 **PartitionHandler 적용 코드**
 
 ```kotlin
-// TODO: 적용 코드로 수정
+// 1. Job 설정
+@Bean
+fun datePartitionJob(masterStep: Step): Job {
+    return JobBuilder("datePartitionJob", jobRepository)
+        .incrementer(RunIdIncrementer())
+        .start(masterStep)
+        .build()
+}
 
-@Configuration
-class SampleJobConfig(
-    private val jobRepository: JobRepository,
-    private val transactionManager: PlatformTransactionManager,
-    private val properties: SampleProperties,
-    // ...
-) {
-    private val log by logger()
+// 2. Manager Step (Master) 설정
+@Bean
+fun masterStep(
+    partitionHandler: PartitionHandler,
+    partitioner: Partitioner,
+): Step {
+    return StepBuilder("masterStep", jobRepository)
+        .partitioner("workerStep", partitioner)
+        .partitionHandler(partitionHandler)
+        .build()
+}
 
-    /**
-     * Master Job
-     */
-    @Bean
-    fun SampleJob( 
-        partitionHandler: PartitionHandler,
-    ): Job {
-        return JobBuilder("${properties.channelType}SampleJob", jobRepository)
-            .incrementer(RunIdIncrementer())
-            .start(SampleManagerStep(partitionHandler))
-            .build()
-    }
+// 3. PartitionHandler 설정 (스레드 풀 및 실행 스텝 연결)
+@Bean
+fun partitionHandler(workerStep: Step): PartitionHandler {
+    val handler = TaskExecutorPartitionHandler()
+    handler.setTaskExecutor(batchTaskExecutor()) // 스레드 풀 주입
+    handler.step = workerStep
+    handler.gridSize = 6 // 동시에 실행할 최대 스레드 수
+    return handler
+}
 
-    /**
-     * Master Step
-     */
-    @Bean
-    fun SampleManagerStep(
-        partitionHandler: PartitionHandler,
-    ): Step {
-        val timestamp = System.currentTimeMillis()
-        return StepBuilder("SampleManagerStep_$timestamp", jobRepository)
-            .partitioner( // 작업을 어떻게 나눌지 설정
-                "sampleStep",
-                MiCardStatisticsPartitioner(properties.startDate, properties.endDate, System.currentTimeMillis())
-            )
-            .partitionHandler(partitionHandler) // 나눈 작업을 어떻게 실행할지 설정
-            .build()
-    }
+@Bean
+@JobScope
+fun partitioner(
+    @Value("#{jobParameters['startDate']}") startDate: String,
+    @Value("#{jobParameters['endDate']}") endDate: String
+): Partitioner {
+    val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+    val start = LocalDate.parse(startDate, formatter)
+    val end = LocalDate.parse(endDate, formatter)
 
-    @Bean
-    fun partitionHandler(sampleStep: Step, threadPoolExecutor: ThreadPoolTaskExecutor)
-        : PartitionHandler {
-        val handler = object : TaskExecutorPartitionHandler() {
-            override fun handle(
-                stepSplitter: StepExecutionSplitter,
-                managerStepExecution: StepExecution
-            ): Collection<StepExecution> {
-                managerStepExecution.executionContext.putLong(
-                    "SimpleStepExecutionSplitter.GRID_SIZE", this.gridSize.toLong()
-                )
-                return super.handle(stepSplitter, managerStepExecution)
-            }
-        }
-        handler.gridSize = 6 // 한 번에 최대 6개의 스레드가 병렬로 작동
-        handler.setTaskExecutor(threadPoolExecutor)
-        handler.step = sampleStep
-        handler.afterPropertiesSet()
-
-        return handler
-    }
-
-    /**
-     * Slave Step: Tasklet에서 Chunk 기반으로 변경
-     */
-    @Bean
-    fun sampleStep(
-        sampleReader: ItemReader<UserEntity>,
-        sampleProcessor: ItemProcessor<UserEntity, StatisticsResult>,
-        sampleWriter: ItemWriter<StatisticsResult>
-    ): Step {
-        return StepBuilder("sampleStep", jobRepository)
-            .chunk<UserEntity, StatisticsResult>(1000, transactionManager) // 1,000건 단위로 처리
-            .reader(sampleReader)
-            .processor(sampleProcessor)
-            .writer(sampleWriter)
-            .build()
-    }
-
-    /**
-     * Reader: MongoCursorItemReader를 통해 스트리밍 방식으로 조회
-     */
-    @Bean
-    @StepScope
-    fun sampleReader(
-        @Value("#{stepExecutionContext['startDate']}") startDate: LocalDate,
-        @Value("#{stepExecutionContext['endDate']}") endDate: LocalDate,
-    ): MongoCursorItemReader<UserEntity> {
-        return MongoCursorItemReaderBuilder<UserEntity>()
-            .name("sampleReader")
-            .template(mongoTemplate)
-            .targetType(UserEntity::class.java)
-            .jsonQuery("{ 'createdAt': { \$gte: ?0, \$lt: ?1 } }")
-            .parameterValues(listOf(startDate, endDate))
-            .sorts(mapOf("createdAt" to Sort.Direction.ASC))
-            .cursorBatchSize(1000)
-            .build()
-    }
-
-    /**
-     * Processor: 데이터를 통계 객체로 변환 (비즈니스 로직)
-     */
-    @Bean
-    @StepScope
-    fun sampleProcessor(): ItemProcessor<UserEntity, StatisticsResult> {
-        return ItemProcessor { user ->
-            // 기존 generateCardStatistics 내부에 있던 변환 로직을 여기서 수행
-            user.toStatistics() 
-        }
-    }
+    return DateRangePartitioner(start, end)
 }
 ```
 
