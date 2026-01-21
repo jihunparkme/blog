@@ -93,7 +93,7 @@ Spring Batch가 제공하는 다양한 기능 중, [Partitioning](https://docs.s
 |동작 방식|- gridSize를 참고하여 데이터 분할 범위를 계산<br/>- 각 파티션 정보를 ExecutionContext에 저장<br/>- 고유한 이름을 붙인 Map 형태로 반환|
 |특징|비즈니스 로직을 실행하지 않고, **'어디서부터 어디까지 처리하라'** 는 정보만 생성|
 
-**Partitioner 코드**
+**Partitioner 구현**
 - 시작 날짜부터 종료 날짜까지 하루 단위로 데이터를 분할하는 역할
 
 ```kotlin
@@ -136,13 +136,12 @@ class DateRangePartitioner(
 |구분|설명|
 |---|---|
 |역할|파티션의 실행 방식 결정 및 전체 프로세스 관리|
-|주요 설정|- **gridSize**: 생성할 파티션의 목표 개수  - **taskExecutor**: 병렬 처리를 수행할 스레드 풀  - **step**: 실제 로직을 수행할 Worker Step 지정|
-|동작 방식|- `Partitioner`를 호출하여 분할 정보를 가져옴  - `TaskExecutor`를 통해 Worker Step들에게 정보를 전달 및 실행  - 모든 작업이 완료될 때까지 대기 후 최종 상태를 취합|
+|주요 설정|- **gridSize**: 생성할 파티션의 목표 개수<br/>- **taskExecutor**: 병렬 처리를 수행할 스레드 풀<br/>- **step**: 실제 로직을 수행할 Worker Step 지정|
+|동작 방식|- `Partitioner`를 호출하여 분할 정보를 가져옴<br/>- `TaskExecutor`를 통해 Worker Step들에게 정보를 전달 및 실행<br/>- 모든 작업이 완료될 때까지 대기 후 최종 상태를 취합|
 
-**PartitionHandler 적용 코드**
+**PartitionHandler 동작**
 
 ```kotlin
-// 1. Job 설정
 @Bean
 fun datePartitionJob(masterStep: Step): Job {
     return JobBuilder("datePartitionJob", jobRepository)
@@ -151,25 +150,27 @@ fun datePartitionJob(masterStep: Step): Job {
         .build()
 }
 
-// 2. Manager Step (Master) 설정
 @Bean
 fun masterStep(
     partitionHandler: PartitionHandler,
     partitioner: Partitioner,
 ): Step {
+    // 직접 로직을 수행하지 않고, partitioner와 partitionHandler를 조합하여 작업을 관리
     return StepBuilder("masterStep", jobRepository)
-        .partitioner("workerStep", partitioner)
-        .partitionHandler(partitionHandler)
+        .partitioner("workerStep", partitioner) // "어떤 데이터"를 나눌 것인지인가?
+        .partitionHandler(partitionHandler) // "어떻게" 병렬로 실행할 것인가?
         .build()
 }
 
-// 3. PartitionHandler 설정 (스레드 풀 및 실행 스텝 연결)
+/**
+ * partitionHandler: 파티셔닝 전략의 핵심 설정
+ */
 @Bean
 fun partitionHandler(workerStep: Step): PartitionHandler {
     val handler = TaskExecutorPartitionHandler()
-    handler.setTaskExecutor(batchTaskExecutor()) // 스레드 풀 주입
-    handler.step = workerStep
-    handler.gridSize = 6 // 동시에 실행할 최대 스레드 수
+    handler.setTaskExecutor(batchTaskExecutor()) // 병렬 처리를 위한 스레드 풀 주입
+    handler.step = workerStep // 실제로 실행할 작업(Worker Step) 지정
+    handler.gridSize = 6 // 한 번에 처리할 파티션 개수(스레드 수)
     return handler
 }
 
@@ -184,6 +185,28 @@ fun partitioner(
     val end = LocalDate.parse(endDate, formatter)
 
     return DateRangePartitioner(start, end)
+}
+
+@Bean
+fun workerStep(
+    reader: ItemReader<String>,
+    writer: ItemWriter<String>
+): Step {
+    return StepBuilder("workerStep", jobRepository)
+        .chunk<String, String>(1000, transactionManager)
+        .reader(reader)
+        .writer(writer)
+        .build()
+}
+
+@Bean
+@StepScope // 파티션마다 독립적인 빈 생성
+fun reader(
+    // Partitioner가 ExecutionContext에 저장해둔 targetDate를 주입
+    @Value("#{stepExecutionContext['targetDate']}") targetDate: String
+): ItemReader<String> {
+    log.info(">>> [Thread: ${Thread.currentThread().name}] Start reading date: $targetDate")
+    return ListItemReader(listOf("Data for $targetDate"))
 }
 ```
 
@@ -209,6 +232,18 @@ Spring Batch의 partitioning 기능 덕분에 배치 내부에서 데이터를 �
 단순히 '병렬로 처리한다'는 전략만으로는 부족했었죠. 한정된 메모리 자원 안에서 이 거대한 데이터를 어떻게 효율적으로 제어하며 흘려보낼지, 더 세밀한 최적화가 필요한 시점이었어요.
 
 ## ItemReader 방식의 최적화: Cursor 기반 스트리밍
+
+gridSize와 스레드 풀의 corePoolSize가 6으로 설정되어 있습니다.
+
+만약 각 날짜별 데이터가 250만 건이라면, 6개의 스레드가 동시에 reader를 통해 데이터를 퍼 올리게 됩니다.
+
+이때 각 Step의 chunk size가 너무 크거나, ItemReader가 데이터를 한 번에 메모리에 너무 많이 올리는 구조라면? 250만 × 6의 데이터 부하가 메모리에 가해지며 OOM이 발생하게 되는 것이죠.
+
+
+
+
+
+
 
 하루치 데이터도 적은 양이 아니었기 때문에 기존의 전체 로드 방식 대신, 리소스를 효율적으로 사용하는 ItemReader로의 변경이 필요해졌어요.
 
