@@ -143,20 +143,20 @@ class DateRangePartitioner(
 
 ```kotlin
 @Bean
-fun datePartitionJob(masterStep: Step): Job {
+fun datePartitionJob(managerStep: Step): Job {
     return JobBuilder("datePartitionJob", jobRepository)
         .incrementer(RunIdIncrementer())
-        .start(masterStep)
+        .start(managerStep)
         .build()
 }
 
 @Bean
-fun masterStep(
+fun managerStep(
     partitionHandler: PartitionHandler,
     partitioner: Partitioner,
 ): Step {
     // 직접 로직을 수행하지 않고, partitioner와 partitionHandler를 조합하여 작업을 관리
-    return StepBuilder("masterStep", jobRepository)
+    return StepBuilder("managerStep", jobRepository)
         .partitioner("workerStep", partitioner) // "어떤 데이터"를 나눌 것인지인가?
         .partitionHandler(partitionHandler) // "어떻게" 병렬로 실행할 것인가?
         .build()
@@ -210,40 +210,33 @@ fun reader(
 }
 ```
 
-> 🔄 두 인터페이스가 협력하여 데이터를 처리하는 과정
+> 🔄 Partitioner, PartitionHandler 두 인터페이스가 협력하여 데이터를 처리하는 과정
 >
-> 1. **Manager Step 가동**: 배치가 시작되면 관리자 역할을 하는 Manager Step이 실행
+> 1. **Manager Step 가동**: 배치가 시작되면 관리자 역할을 하는 `Manager Step`이 실행
 >
-> 2. **Partitioner의 데이터 분할**: Partitioner가 호출되어 전체 데이터를 n개로 나눈 **파티션 정보(ExecutionContext)**를 생성
+> 2. **Partitioner의 데이터 분할**: `Partitioner`가 호출되어 전체 데이터를 n개로 나눈 **파티션 정보(ExecutionContext)** 를 생성
 > 
-> 3. **PartitionHandler의 작업 분배**: PartitionHandler가 이 정보를 토대로 TaskExecutor에 작업을 할당
+> 3. **PartitionHandler의 작업 분배**: `PartitionHandler`가 이 정보를 토대로 `TaskExecutor`에 작업을 할당
 >
-> 4. **Worker Step의 독립 실행**: 각 스레드에서 Worker Step이 할당받은 파티션 정보를 사용해 실제 로직(Reader-Processor-Writer)을 수행
+> 4. **Worker Step의 독립 실행**: 각 스레드에서 `Worker Step`이 할당받은 파티션 정보를 사용해 실제 로직(Reader-Processor-Writer)을 수행
 >
-> 5. **상태 수집 및 종료**: 모든 Worker Step이 완료되면 PartitionHandler가 결과를 취합하여 Master Step에 보고하고 작업을 마무
+> 5. **상태 수집 및 종료**: 모든 `Worker Step`이 완료되면 `PartitionHandler`가 결과를 취합하여 `Master Step`에 보고하고 작업을 마무리
 
-Spring Batch의 partitioning 기능 덕분에 배치 내부에서 데이터를 하루 단위로 분할해 병렬로 처리하도록 쉽게 적용할 수 있었어요. 하지만 기쁨도 잠시.. 어느정도는 예상했던 난관에 봉착했답니다.
+Spring Batch의 Partitioning 기능 덕분에 대용량 데이터를 하루 단위로 분할하여 병렬로 처리하는 구조를 설계할 수 있었어요. 하지만 기쁨도 잠시, 예상치 못한(어쩌면 예견되었던) 난관에 봉착하고 말았습니다.
 
-데이터를 쪼개어 처리하도록 설정했지만, 한 번에 최대 6개의 스레드가 동시에 가동되면서 문제가 발생한 것이죠.
-- 계산된 데이터 부하: 하루치(250만 건) × 6개 스레드 = 약 1,500만 건
+분명 데이터를 날짜별로 쪼갰지만, **'병렬 처리'**라는 양날의 검이 문제를 일으킨 것이었죠.
 
-결국 1,500만 건에 달하는 방대한 데이터가 한꺼번에 메모리에 적재되면서, 그토록 피하고 싶었던 OOM(Out Of Memory)의 늪에 빠지게 되었습니다. 🥲
+🚨 1,500만 건의 데이터가 메모리를 점령하다<br/>
+6개의 스레드가 각자의 파티션을 맡아 동시에 ItemReader를 가동하면서 메모리 사용량이 치솟기 시작했어요.
+- 스레드당 데이터: 약 250만 건 (하루치)
+- 병렬 실행 스레드: 6개
+- 메모리 적재 시도: 250만 × 6 = 1,500만 건
 
-단순히 '병렬로 처리한다'는 전략만으로는 부족했었죠. 한정된 메모리 자원 안에서 이 거대한 데이터를 어떻게 효율적으로 제어하며 흘려보낼지, 더 세밀한 최적화가 필요한 시점이었어요.
+결국 1,500만 건에 달하는 방대한 데이터가 한꺼번에 메모리에 적재되려 했고, 서버는 비명을 지르며 결국 **OOM(Out Of Memory)**의 늪에 빠지고 말았어요. 🥲
+
+단순히 '데이터를 쪼개고 병렬로 돌린다'는 전략만으로는 부족했어요. 한정된 메모리 자원이라는 병목 구간을 통과하기 위해서는, 데이터를 한꺼번에 조회하는 것이 아니라 일정한 크기로 끊어서 효율적으로 흘려보내는 최적화가 필요했어요.
 
 ## ItemReader 방식의 최적화: Cursor 기반 스트리밍
-
-gridSize와 스레드 풀의 corePoolSize가 6으로 설정되어 있습니다.
-
-만약 각 날짜별 데이터가 250만 건이라면, 6개의 스레드가 동시에 reader를 통해 데이터를 퍼 올리게 됩니다.
-
-이때 각 Step의 chunk size가 너무 크거나, ItemReader가 데이터를 한 번에 메모리에 너무 많이 올리는 구조라면? 250만 × 6의 데이터 부하가 메모리에 가해지며 OOM이 발생하게 되는 것이죠.
-
-
-
-
-
-
 
 하루치 데이터도 적은 양이 아니었기 때문에 기존의 전체 로드 방식 대신, 리소스를 효율적으로 사용하는 ItemReader로의 변경이 필요해졌어요.
 
