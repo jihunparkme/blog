@@ -240,7 +240,7 @@ Spring Batch의 Partitioning 기능 덕분에 대용량 데이터를 하루 단�
 
 하루치 250만 건의 데이터조차 결코 적은 양이 아니었기에, 데이터를 한꺼번에 로드하는 방식에서 벗어나 리소스를 효율적으로 사용하는 `ItemReader`로의 전환이 필요해졌어요.
 
-이미 Partitioner를 통해 날짜별로 작업 범위는 격리해 둔 상태였고, 이제 남은 과제는 각 스레드(Worker Step) 내부에서 메모리 점유율을 최소화하며 데이터를 읽어오는 것이었어요.
+이미 `Partitioner`를 통해 날짜별로 작업 범위는 격리해 둔 상태였고, 이제 남은 과제는 각 스레드(Worker Step) 내부에서 메모리 점유율을 최소화하며 데이터를 읽어오는 것이었어요.
 
 MongoDB 환경에서 선택할 수 있는 선택지는 크게 두 가지가 있답니다.
 
@@ -248,36 +248,39 @@ MongoDB 환경에서 선택할 수 있는 선택지는 크게 두 가지가 있�
 - 방식: 페이지 단위로 데이터를 끊어서 조회.
 - 단점: 대량 데이터에서 페이지 번호가 뒤로 갈수록 이전 결과를 건너뛰는 오버헤드가 발생하며, 여전히 한 페이지 분량의 데이터를 메모리에 적재해야 함.
 
-2) `MongoCursorItemReader`
+2). `MongoCursorItemReader`
 - 방식: DB 서버와 커서를 유지하며 스트리밍 방식으로 데이터를 한 건씩 호출.
 - 장점: 대량의 데이터를 메모리에 쌓아두지 않고, 읽는 즉시 처리하고 흘려보낼 수 있어 메모리 효율이 압도적.
 
-✅ 최종 선택: `MongoCursorItemReader`  
-제한된 메모리 환경에서 1,500만 건 이상의 데이터를 안정적으로 처리하기 위해 **MongoCursorItemReader**를 채택하게 되었어요.
-
-
-
+최종적으로 제한된 메모리 환경에서 1,500만 건 이상의 데이터를 안정적으로 처리하기 위해 **MongoCursorItemReader**를 채택하게 되었어요.
 
 ```kotlin
-// TODO: 적용 코드로 수정
-
 @Bean
 @StepScope
 fun reader(
-    @Value("#{stepExecutionContext['fromDate']}") fromDate: String,
-    @Value("#{stepExecutionContext['toDate']}") toDate: String
-): MongoCursorItemReader<UserEntity> {
-    return MongoCursorItemReaderBuilder<UserEntity>()
-        .name("userItemReader")
-        .template(mongoTemplate)
-        .targetType(UserEntity::class.java)
-        .jsonQuery("{ 'createdAt': { \$gte: ?0, \$lt: ?1 } }")
-        .parameterValues(listOf(fromDate, toDate))
-        .sorts(mapOf("createdAt" to Sort.Direction.ASC))
-        .cursorBatchSize(1000) // MongoDB 커서가 한 번에 가져올 데이터 양
-        .build()
+    @Value("#{stepExecutionContext['startDate']}") startDate: String,
+    @Value("#{stepExecutionContext['endDate']}") endDate: String
+): MongoCursorItemReader<Ledger> {
+    return MongoCursorItemReader(
+        mongoTemplate = mongoTemplate,
+        collectionName = properties.channelType.statisticsCollectionName(),
+        batchSize = CHUNK_SIZE,
+        name = "generate_statistics_ledger_reader",
+        input = Ledger::class.java,
+        output = compactLedger::class.java,
+        criteria = {
+            searchCriteria(startDate, endDate)
+        },
+        isDiskUseAllowed = true,
+    )
 }
 ```
+
+
+
+
+
+
 
 Cursor 방식을 적용하면서 메모리 효율성과 안정성을 모두 얻을 수 있었어요.
 - **메모리 효율성**: 페이징 방식은 다음 페이지를 부를 때마다 이전 데이터만큼 Skip해야 하므로 뒤로 갈수록 느려질 수 있지만, 커서는 스트리밍 방식이라 메모리 사용량이 일정하게 유지.
