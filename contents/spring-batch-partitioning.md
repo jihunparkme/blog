@@ -39,7 +39,7 @@ Spring Batch가 제공하는 다양한 기능 중, [Partitioning](https://docs.s
 
 따라서 약 7,500만 건에 달하는 한 달치 데이터의 방대한 부하를 안정적으로 격리하고 병렬성을 극대화하기 위해, 로컬 환경에서의 [Local Partitioning](https://docs.spring.io/spring-batch/reference/scalability.html#partitioning) 전략을 최종적으로 채택하게 되었어요.
 
-## Partitioning 사용하기
+## Partitioning
 
 <figure><img src="https://raw.githubusercontent.com/jihunparkme/blog/refs/heads/main/img/spring-batch/partitioning-overview.png" alt=""><figcaption></figcaption></figure>
 
@@ -238,15 +238,25 @@ Spring Batch의 Partitioning 기능 덕분에 대용량 데이터를 하루 단�
 
 ## ItemReader 방식의 최적화: Cursor 기반 스트리밍
 
-하루치 데이터도 적은 양이 아니었기 때문에 기존의 전체 로드 방식 대신, 리소스를 효율적으로 사용하는 ItemReader로의 변경이 필요해졌어요.
+하루치 250만 건의 데이터조차 결코 적은 양이 아니었기에, 데이터를 한꺼번에 로드하는 방식에서 벗어나 리소스를 효율적으로 사용하는 `ItemReader`로의 전환이 필요해졌어요.
 
-이미 Partitioner를 통해 날짜별로 범위를 나누어 두었으므로, 이제 각 스레드(Slave Step) 내부에서 메모리 점유율을 최소화하며 데이터를 읽어오는 것이 핵심이 되었어요.
+이미 Partitioner를 통해 날짜별로 작업 범위는 격리해 둔 상태였고, 이제 남은 과제는 각 스레드(Worker Step) 내부에서 메모리 점유율을 최소화하며 데이터를 읽어오는 것이었어요.
 
-MongoDB 환경에서 선택할 수 있는 방식은 크게 두 가지가 있어요.
-- `MongoPagingItemReader`: 페이지 단위로 데이터를 끊어서 조회
-- `MongoCursorItemReader`: DB 서버와 커서를 유지하며 스트리밍 방식으로 데이터를 한 건씩 호출
+MongoDB 환경에서 선택할 수 있는 선택지는 크게 두 가지가 있답니다.
 
-두 가지 방식 중 제한된 메모리 내에서 대량의 데이터를 안정적으로 처리하기 위해, 데이터를 메모리에 쌓아두지 않고 즉시 흘려보내는 `MongoCursorItemReader` 방식을 채택하게 되었어요.
+1). `MongoPagingItemReader`
+- 방식: 페이지 단위로 데이터를 끊어서 조회.
+- 단점: 대량 데이터에서 페이지 번호가 뒤로 갈수록 이전 결과를 건너뛰는 오버헤드가 발생하며, 여전히 한 페이지 분량의 데이터를 메모리에 적재해야 함.
+
+2) `MongoCursorItemReader`
+- 방식: DB 서버와 커서를 유지하며 스트리밍 방식으로 데이터를 한 건씩 호출.
+- 장점: 대량의 데이터를 메모리에 쌓아두지 않고, 읽는 즉시 처리하고 흘려보낼 수 있어 메모리 효율이 압도적.
+
+✅ 최종 선택: `MongoCursorItemReader`  
+제한된 메모리 환경에서 1,500만 건 이상의 데이터를 안정적으로 처리하기 위해 **MongoCursorItemReader**를 채택하게 되었어요.
+
+
+
 
 ```kotlin
 // TODO: 적용 코드로 수정
