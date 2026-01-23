@@ -236,7 +236,7 @@ Spring Batch의 Partitioning 기능 덕분에 대용량 데이터를 하루 단�
 
 단순히 '데이터를 쪼개고 병렬로 돌린다'는 전략만으로는 부족했어요. 한정된 메모리 자원이라는 병목 구간을 통과하기 위해서는, 데이터를 한꺼번에 조회하는 것이 아니라 일정한 크기로 끊어서 효율적으로 흘려보내는 최적화가 필요했어요.
 
-## ItemReader 방식의 최적화: Cursor 기반 스트리밍
+## ItemReader 최적화: Cursor 기반 스트리밍
 
 하루치 250만 건의 데이터조차 결코 적은 양이 아니었기에, 데이터를 한꺼번에 로드하는 방식에서 벗어나 리소스를 효율적으로 사용하는 `ItemReader`로의 전환이 필요해졌어요.
 
@@ -276,29 +276,26 @@ fun reader(
 }
 ```
 
-
-
-
-
-
+`MongoCursorItemReader` 는 `AbstractItemCountingItemStreamItemReader` 를 구현한 커스텀 ItemReader 에요.
 
 Cursor 방식을 적용하면서 메모리 효율성과 안정성을 모두 얻을 수 있었어요.
 - **메모리 효율성**: 페이징 방식은 다음 페이지를 부를 때마다 이전 데이터만큼 Skip해야 하므로 뒤로 갈수록 느려질 수 있지만, 커서는 스트리밍 방식이라 메모리 사용량이 일정하게 유지.
 - **안정성**: 병렬로 Slave Step이 돌아가더라도, 각 스레드가 커서 방식으로 데이터를 조금씩 가져오기 때문에 OOM 위험을 낮출 수 있음.
 
-## ItemWriter 최적화: Chunk 기반 Bulk Operations 적용
+## ItemWriter 최적화: Chunk 기반 Bulk Operations
 
-ItemWriter 자체가 직접적인 OOM의 주범이 되는 경우는 드물지만, 쓰기 속도가 읽기 속도를 따라가지 못할 경우, 처리 대기 중인 객체들이 메모리(JVM Heap)에 머무는 시간이 길어져 간접적으로 OOM을 유발하는 원인이 될 수 있어요.
+흔히 OOM의 주범으로 ItemReader를 지목하지만, 사실 ItemWriter 역시 간접적인 원인을 제공하곤 해요. 쓰기 속도가 읽기 속도를 따라가지 못하면, 처리된 객체들이 DB에 저장되기 위해 대기하며 메모리에 머무는 시간이 길어지기 때문이죠.
 
-이러한 병목을 방지하기 위해 `Bulk Operations`를 적용해보았어요. Spring Batch의 Chunk 구조를 활용하면, 설정한 청크 사이즈만큼 데이터가 모였을 때 단 한 번의 네트워크 통신으로 일괄 insert를 수행해요. 이는 개별 insert 방식보다 네트워크 I/O 비용을 획기적으로 낮추고 쓰기 속도를 극대화하여 메모리 회수 주기를 앞당길 수 있어요.
+이러한 병목 현상을 해결하고 GC 주기를 앞당기기 위해, **Bulk Operations**를 적용하게 되었어요.
+
+**왜 Bulk Operations인가?**
+- Spring Batch의 Chunk 구조를 활용하면, 설정한 청크 사이즈만큼 데이터가 모였을 때 단 한 번의 네트워크 통신으로 일괄 Insert를 수행해요.
+- 1,000번의 개별 Insert를 1번의 Bulk Insert로 줄여 I/O 오버헤드를 낮추기 때문에 네트워크 비용이 절감돼요.
+- 쓰기 속도가 빨라지면 메모리에 머물던 객체들이 빠르게 비워지며, 전체적인 메모리 사용량이 안정화돼요
 
 ```kotlin
-/**
-* Writer: Spring Batch가 모아준 1,000개를 한 번에 Bulk Insert
-*/
 @Bean
-@StepScope
-fun sampleWriter(): ItemWriter<StatisticsResult> {
+fun writer(): ItemWriter<StatisticsResult> {
     return ItemWriter { chunk ->
         if (chunk.isEmpty) return@ItemWriter
 
@@ -307,15 +304,17 @@ fun sampleWriter(): ItemWriter<StatisticsResult> {
             properties.channelType.statisticsCollectionName()
         )
 
-        // chunk.items에 이미 1,000개의 데이터가 들어있음
         bulkOps.insert(chunk.items)
         bulkOps.execute()
-        
-        // 별도의 list.clear()를 호출하지 않아도 
-        // 메서드가 종료되면 chunk 객체는 GC 대상이 됨
     }
 }
 ```
+
+별도의 list.clear()를 호출하지 않아도 write() 메서드가 종료되면 chunk 객체는 GC 대상이 돼요.
+
+결국 Partitioner로 작업을 쪼개고, CursorReader로 흐름을 제어하며, BulkWriter로 빠르게 마침표를 찍음으로써 수억 건의 데이터를 안전하게 처리할 수 있는 완벽한 파이프라인을 완성할 수 있었어요.
+
+mongoTemplate.bulkOps으로 UNORDERED 모드를 적용했는데, 각 데이터는 서로 독립적이기 때문에 순서가 중요하지 않고, 대용량 데이터를 빠르게 처리하기 위해 적용하게 되었어요.
 
 
  
@@ -325,8 +324,3 @@ fun sampleWriter(): ItemWriter<StatisticsResult> {
 ### 4. 1,500만 건 처리를 위한 최종 체크리스트
 
 1. **메모리 격리:** 각 Slave Step이 `@StepScope`로 설정되어 있는지 확인하세요. 그래야 각 스레드가 자신만의 `Reader` 객체를 가져 메모리 혼선이 없습니다.
-2. **인덱스 최적화:** `Partitioner`에서 사용하는 날짜 필드(`startDate`, `endDate`)와 Reader의 정렬 필드에 반드시 **복합 인덱스**가 있어야 합니다. 인덱스가 없으면 Reader가 데이터를 찾는 속도가 느려져 배치가 타임아웃될 수 있습니다.
-3. **No-State 처리:** 가능하다면 `ItemProcessor`에서 엔티티의 상태를 변경하기보다, 새로운 DTO를 만들어 `ItemWriter`로 넘기는 방식이 GC(Garbage Collection) 효율에 더 좋습니다.
-4. **Bulk Write 활성화:** `MongoItemWriter`를 사용하면 내부적으로 `Bulk Operations`를 수행하므로, 1,000개씩 모아서 한 번에 insert/update를 처리하여 네트워크 I/O를 최적화할 수 있습니다.
-
-**결론적으로,** `MongoCursorItemReader`를 사용하고 **청크 사이즈를 1,000**으로 설정한 뒤, **JVM 힙 메모리를 8GB 이상** 할당하신다면 6개 스레드로 1,500만 건을 안전하게 처리할 수 있습니다.
