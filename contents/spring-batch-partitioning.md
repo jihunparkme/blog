@@ -266,8 +266,8 @@ MongoDB 환경에서 선택할 수 있는 선택지는 크게 두 가지가 있�
 fun reader(
     @Value("#{stepExecutionContext['startDate']}") startDate: String,
     @Value("#{stepExecutionContext['endDate']}") endDate: String
-): MongoCursorItemReader<Ledger> {
-    return MongoCursorItemReader(
+): MongoCursorCustomItemReader<Ledger> {
+    return MongoCursorCustomItemReader(
         mongoTemplate = mongoTemplate,
         collectionName = properties.channelType.statisticsCollectionName(),
         batchSize = CHUNK_SIZE,
@@ -282,7 +282,17 @@ fun reader(
 }
 ```
 
-`MongoCursorItemReader` 는 `AbstractItemCountingItemStreamItemReader` 를 구현한 커스텀 ItemReader 에요.
+`MongoCursorCustomItemReader` 는 `MongoCursorItemReader`와 유사한 기능을 가진  `bstractItemCountingItemStreamItemReader` 를 구현한 커스텀 ItemReader 에요.
+
+> 📚 **MongoCursorItemReader**
+> 
+> The `MongoCursorItemReader` is an ItemReader that reads documents from MongoDB by using a streaming technique. Spring Batch provides a MongoCursorItemReaderBuilder to construct an instance of the MongoCursorItemReader.
+>
+> 📚 **AbstractItemCountingItemStreamItemReader**
+>
+> Abstract base class that provides basic restart capabilities by counting the number of items returned from an ItemReader.
+>
+> *by. [Spring Batch Documentation](https://docs.spring.io/spring-batch/reference/readers-and-writers/item-reader-writer-implementations.html#databaseReaders)*
 
 Cursor 방식을 적용하면서 메모리 효율성과 안정성을 모두 얻을 수 있었어요.
 - **메모리 효율성**: 페이징 방식은 다음 페이지를 부를 때마다 이전 데이터만큼 Skip해야 하므로 뒤로 갈수록 느려질 수 있지만, 커서는 스트리밍 방식이라 메모리 사용량이 일정하게 유지.
