@@ -326,6 +326,14 @@ fun writer(): ItemWriter<StatisticsResult> {
 }
 ```
 
+> 📚 **BulkOperations**
+>
+> Bulk operations for insert/update/remove actions on a collection. ...
+>
+> This interface defines a fluent API to add multiple single operations or list of similar operations in sequence which can then eventually be executed by calling execute().
+>
+> by. [Interface BulkOperations](https://docs.spring.io/spring-data/mongodb/docs/current/api/org/springframework/data/mongodb/core/BulkOperations.html)
+
 Spring Batch의 Chunk 지향 프로세싱 모델 덕분에, write() 메서드가 종료되면 해당 Chunk 리스트는 자연스럽게 스코프를 벗어나므로 별도의 list.clear()를 호출하지 않아도 해당 객체들은 즉시 GC 대상이 되어 메모리에서 해제돼요.
 
 `mongoTemplate.bulkOps`를 사용할 때 UNORDERED 모드를 채택한 이유는, 재처리 대상인 각 데이터는 서로 독립적이며 저장 순서가 결과에 영향을 주지 않았기대문이에요.<br/>
