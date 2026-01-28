@@ -20,11 +20,24 @@ spring:
         timeout-per-shutdown-phase: 1m # default 30s
 ```
 
+## Thread pools
 
+ThreadPoolTaskExecutor를 사용하는 경우 `WaitForTaskToCompleteOnShutdown` 옵션을 통해 
 
+종료 요청이 수신되면 작업 실행자는 새 작업을 추가할 수 없도록 대기열을 닫고, 현재 실행 중인 작업과 대기 중인 작업이 모두 완료해요.
 
+진행 중인 작업과 대기열에 있는 작업이 완료될 때까지 기다리도록 구성. 최대 대기 시간을 지정.
 
-
-
-
+```java
+@Bean
+fun taskExecutor(): TaskExecutor {
+    val executor = ThreadPoolTaskExecutor()
+    executor.corePoolSize = 2
+    executor.maxPoolSize = 2
+    executor.setAwaitTerminationSeconds(30);
+    executor.setWaitForTasksToCompleteOnShutdown(true)
+    executor.initialize()
+    return executor
+}
+```
 
