@@ -8,25 +8,36 @@
 
 **Web Server의 Graceful Shutdown**
 
-[Spring Boot 2.3](https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-2.3-Release-Notes#graceful-shutdown)부터 주요 4대 임베디드 웹 서버(Tomcat, Jetty, Undertow, Netty) 모두에서 Graceful Shutdown을 지원하기 시작했어요
+[Spring Boot 2.3](https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-2.3-Release-Notes#graceful-shutdown)부터 주요 4대 임베디드 웹 서버(Tomcat, Jetty, Undertow, Netty) 모두에서 **Graceful Shutdown**을 지원하기 시작했어요.
 
-Graceful Shutdown 활성화를 위해 `server.shutdown` 속성을 `graceful`로 설정하기만 하면 돼요.
-- 참고로, [SpringBoot 3.4](https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-3.4-Release-Notes#graceful-shutdown) 버전 부터는 기본적으로 graceful로 설정되어 있어요.
+이 옵션을 활성화하면 서버는 종료 신호를 받았을 때 새로운 요청을 거절하고, 기존에 처리 중이던 요청이 완료될 때까지 기다린답니다.
+
+✅ **설정 방법**
+
+application.yml에 아래 설정을 추가하는 것만으로 간단히 활성화할 수 있어요.
 
 ```yml
 server:
     shutdown: graceful
 ```
 
-일부 요청은 정상 종료 단계가 시작되기 직전에 처리될 수 있는데, 이 경우 서버는 지정된 시간까지 작업이 완료되기를 기다려요. 이 유예 기간은 `spring.lifecycle.timeout-per-shutdown-phase` 구성 속성을 사용하여 구성할 수 있어요.
+> 💡 참고, [SpringBoot 3.4](https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-3.4-Release-Notes#graceful-shutdown) 부터는 기본값이 `immediate`에서 `graceful`로 변경되었어요.
+> 
+> 따라서, 최신 버전을 사용 중이라면 별도 설정 없이도 기본적인 우아한 종료가 작동해요.
+
+✅ **종료 유예 기간 설정**
+
+서버가 무한정 대기할 수는 없으므로, 특정 시간이 지나면 강제로 종료되도록 유예 기간을 설정해야 해요.
 
 ```yml
 spring:
     lifecycle:
-        timeout-per-shutdown-phase: 1m # default 30s
+        timeout-per-shutdown-phase: 1m # 기본값은 30초
 ```
 
-## Thread pools
+이 설정은 웹 서버뿐만 아니라 Spring Context 내의 다른 Bean들이 종료되는 단계별 타임아웃을 의미해요.
+
+## Thread Pool (TaskExecutor)
 
 ThreadPoolTaskExecutor를 사용하는 경우 `WaitForTaskToCompleteOnShutdown` 옵션을 통해 
 
