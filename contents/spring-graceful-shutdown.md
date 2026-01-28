@@ -1,8 +1,14 @@
 # Spring Graceful Shutdown
 
+**서비스의 품격 있는 퇴장, Spring Graceful Shutdown**
+
+갑작스러운 서버 종료는 처리 중이던 요청의 끊김이나 데이터 유실을 초래할 수 있어요. 이를 방지하기 위해 Spring Boot는 실행 중인 작업을 안전하게 마무리하고 종료하는 **Graceful Shutdown** 기능을 제공해요.
+
 ## Web Server
 
-[Spring Boot 2.3](https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-2.3-Release-Notes#graceful-shutdown)부터 네 개의 임베디드 웹 서버(Tomcat, Jetty, Undertow, Netty) 모두에 대해 **Graceful Shutdown** 기능을 지원해요.
+**Web Server의 Graceful Shutdown**
+
+[Spring Boot 2.3](https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-2.3-Release-Notes#graceful-shutdown)부터 주요 4대 임베디드 웹 서버(Tomcat, Jetty, Undertow, Netty) 모두에서 Graceful Shutdown을 지원하기 시작했어요
 
 Graceful Shutdown 활성화를 위해 `server.shutdown` 속성을 `graceful`로 설정하기만 하면 돼요.
 - 참고로, [SpringBoot 3.4](https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-3.4-Release-Notes#graceful-shutdown) 버전 부터는 기본적으로 graceful로 설정되어 있어요.
