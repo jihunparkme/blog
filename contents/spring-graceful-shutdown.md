@@ -39,22 +39,25 @@ spring:
 
 ## Thread Pool (TaskExecutor)
 
-ThreadPoolTaskExecutor를 사용하는 경우 `WaitForTaskToCompleteOnShutdown` 옵션을 통해 
-
-종료 요청이 수신되면 작업 실행자는 새 작업을 추가할 수 없도록 대기열을 닫고, 현재 실행 중인 작업과 대기 중인 작업이 모두 완료해요.
-
-진행 중인 작업과 대기열에 있는 작업이 완료될 때까지 기다리도록 구성. 최대 대기 시간을 지정.
+웹 서버가 종료될 때, ThreadPoolTaskExecutor 를 통해 백그라운드에서 실행 중인 작업들은 웹 서버의 graceful 설정만으로는 안전한 종료를 완벽히 보장하기 어려워요. 따라서 Custom Thread Pool을 사용한다면 아래와 같은 명시적 설정이 필요하답니다.
 
 ```java
 @Bean
 fun taskExecutor(): TaskExecutor {
     val executor = ThreadPoolTaskExecutor()
-    executor.corePoolSize = 2
-    executor.maxPoolSize = 2
-    executor.setAwaitTerminationSeconds(30);
+    executor.corePoolSize = 5
+    executor.maxPoolSize = 10
+    
+    // 종료 시 대기 중인 작업들을 완료할 때까지 대기
     executor.setWaitForTasksToCompleteOnShutdown(true)
+    // 최대 대기 시간 설정 (lifecycle timeout보다 작거나 같게 설정 권장)
+    executor.setAwaitTerminationSeconds(30)
+
     executor.initialize()
     return executor
 }
 ```
+
+
+
 
