@@ -58,6 +58,8 @@ fun taskExecutor(): TaskExecutor {
 }
 ```
 
+## 주의사항
 
-
-
+**SIGTERM vs SIGKILL**
+- Graceful Shutdown은 OS의 SIGTERM 신호를 받았을 때 작동
+- 만약 kill -9(SIGKILL) 명령어로 프로세스를 즉시 종료하면, Spring이 손쓸 새도 없이 꺼지게 되어 Graceful Shutdown이 작동하지 
