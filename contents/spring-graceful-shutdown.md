@@ -58,6 +58,30 @@ fun taskExecutor(): TaskExecutor {
 }
 ```
 
+## Shutdown Callbacks
+
+> 종료 콜백을 사용하면 우아하게 애플리케이션 종료를 제어할 수 있습니다.
+
+🎯 **종료 콜백 접근 방식**
+
+Spring은 컴포넌트 수준과 컨텍스트 수준의 종료 콜백을 모두 지원합니다. 다음과 같이 콜백을 생성할 수 있습니다.
+- @PreDestroy
+- DisposableBean interface
+- Bean-destroy method
+- Global ServletContextListener
+
+
+
+
+
+
+
+
+
+
+
+
+
 ## 주의사항
 
 **SIGTERM vs SIGKILL**
