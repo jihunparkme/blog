@@ -2,40 +2,40 @@
 
 **서비스의 품격 있는 퇴장, Spring Graceful Shutdown**
 
-갑작스러운 서버 종료는 처리 중이던 요청의 끊김이나 데이터 유실을 초래할 수 있어요. 이를 방지하기 위해 Spring Boot는 실행 중인 작업을 안전하게 마무리하고 종료하는 **Graceful Shutdown** 기능을 제공해요.
+갑작스러운 서버 종료는 처리 중이던 요청의 연결 끊김이나 데이터 유실을 초래할 수 있습니다. 이를 방지하기 위해 Spring Boot는 실행 중인 작업을 안전하게 마무리하고 종료하는 **Graceful Shutdown** 기능을 제공합니다.
 
 ## Web Server
 
 **Web Server의 Graceful Shutdown**
 
-[Spring Boot 2.3](https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-2.3-Release-Notes#graceful-shutdown)부터 주요 4대 임베디드 웹 서버(Tomcat, Jetty, Undertow, Netty) 모두에서 **Graceful Shutdown**을 지원하기 시작했어요.
+[Spring Boot 2.3](https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-2.3-Release-Notes#graceful-shutdown)부터 주요 4대 임베디드 웹 서버(Tomcat, Jetty, Undertow, Netty) 모두에서 **Graceful Shutdown**을 지원합니다.
 
-이 옵션을 활성화하면 서버는 종료 신호를 받았을 때 새로운 요청을 거절하고, 기존에 처리 중이던 요청이 완료될 때까지 기다린답니다.
+이 옵션을 활성화하면 서버는 종료 신호(SIGTERM)를 받았을 때 다음과 같이 동작합니다.
+1. **신규 요청 차단**: 새로운 네트워크 연결을 더 이상 받지 않습니다.
+2. **기존 요청 처리**: 이미 들어와서 처리 중인 요청들이 완료될 때까지 지정된 시간 동안 기다립니다.
 
 ✅ **설정 방법**
 
-application.yml에 아래 설정을 추가하는 것만으로 간단히 활성화할 수 있어요.
+`application.yml`에 아래 설정을 추가하여 활성화할 수 있습니다.
 
 ```yml
 server:
-    shutdown: graceful
+  shutdown: graceful
 ```
 
-> 💡 참고, [SpringBoot 3.4](https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-3.4-Release-Notes#graceful-shutdown) 부터는 기본값이 `immediate`에서 `graceful`로 변경되었어요.
-> 
-> 따라서, 최신 버전을 사용 중이라면 별도 설정 없이도 기본적인 우아한 종료가 작동해요.
+> 💡 **참고**: [Spring Boot 3.4](https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-3.4-Release-Notes#graceful-shutdown)부터는 기본값이 `immediate`(즉시 종료)에서 `graceful`로 변경되었습니다. 최신 버전을 사용 중이라면 별도 설정 없이도 기본적인 우아한 종료가 작동합니다.
 
-✅ **종료 유예 기간 설정**
+✅ **종료 유예 기간(Timeout) 설정**
 
-서버가 무한정 대기할 수는 없으므로, 특정 시간이 지나면 강제로 종료되도록 유예 기간을 설정해야 해요.
+서버가 모든 요청을 무한정 기다릴 수는 없습니다. 따라서 특정 시간이 지나면 강제로 프로세스를 종료하도록 유예 기간을 설정해야 합니다.
 
 ```yml
 spring:
-    lifecycle:
-        timeout-per-shutdown-phase: 1m # 기본값은 30초
+  lifecycle:
+    timeout-per-shutdown-phase: 1m # 기본값은 30초
 ```
 
-이 설정은 웹 서버뿐만 아니라 Spring Context 내의 다른 Bean들이 종료되는 단계별 타임아웃을 의미해요.
+이 설정은 웹 서버뿐만 아니라 Spring Context 내의 다른 Bean들이 종료되는 **단계별(Phase) 타임아웃**을 의미합니다. 웹 요청 처리뿐만 아니라 백그라운드 작업 등 애플리케이션의 전반적인 정리 시간을 고려하여 적절한 값을 설정하는 것이 중요합니다.
 
 ## Thread Pool (TaskExecutor)
 
