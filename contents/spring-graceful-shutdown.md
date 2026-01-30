@@ -78,8 +78,19 @@ Spring은 컴포넌트 수준과 컨텍스트 수준의 종료 콜백을 모두 
 - **Bean-destroy method**
 - **Global ServletContextListener**
 
+### Using @PreDestroy
 
+빈 초기화 중에 스프링은 `@PreDestroy`로 주석이 달린 모든 빈 메서드를 등록하고 애플리케이션이 종료되면 이를 호출합니다.
 
+```kotlin
+@Component
+class Bean1 {
+    @PreDestroy
+    fun destroy() {
+        System.out.println("Callback triggered - @PreDestroy.")
+    }
+}
+```
 
 
 
