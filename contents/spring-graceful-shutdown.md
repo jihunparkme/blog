@@ -63,3 +63,7 @@ fun taskExecutor(): TaskExecutor {
 **SIGTERM vs SIGKILL**
 - Graceful Shutdown은 OS의 SIGTERM 신호를 받았을 때 작동
 - 만약 kill -9(SIGKILL) 명령어로 프로세스를 즉시 종료하면, Spring이 손쓸 새도 없이 꺼지게 되어 Graceful Shutdown이 작동하지 
+
+**Kubernetes 환경**
+- 쿠버네티스에서 운영 중이라면 terminationGracePeriodSeconds 설정이 Spring의 타임아웃 설정보다 충분해야 함
+- 컨테이너가 먼저 죽어버리면 Spring의 Graceful Shutdown 설정이 무의미
