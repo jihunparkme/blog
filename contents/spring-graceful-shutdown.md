@@ -39,24 +39,32 @@ spring:
 
 ## Thread Pool (TaskExecutor)
 
-웹 서버가 종료될 때, ThreadPoolTaskExecutor 를 통해 백그라운드에서 실행 중인 작업들은 웹 서버의 graceful 설정만으로는 안전한 종료를 완벽히 보장하기 어려워요. 따라서 Custom Thread Pool을 사용한다면 아래와 같은 명시적 설정이 필요하답니다.
+웹 서버의 Graceful Shutdown 설정은 'HTTP 요청'을 처리하는 스레드에 집중되어 있습니다. 따라서 `@Async`나 별도의 비동기 처리를 위해 커스텀하게 생성한 `ThreadPoolTaskExecutor`는 별도의 설정 없이는 작업 도중 즉시 종료될 위험이 있습니다.
 
-```java
+비동기 작업까지 안전하게 마무리하려면 아래와 같이 명시적인 설정이 필요합니다.
+
+```kotlin
 @Bean
 fun taskExecutor(): TaskExecutor {
     val executor = ThreadPoolTaskExecutor()
     executor.corePoolSize = 5
     executor.maxPoolSize = 10
     
-    // 종료 시 대기 중인 작업들을 완료할 때까지 대기
+    // 애플리케이션 종료 시 큐에 대기 중인 작업들을 모두 완료할 때까지 대기
     executor.setWaitForTasksToCompleteOnShutdown(true)
-    // 최대 대기 시간 설정 (lifecycle timeout보다 작거나 같게 설정 권장)
+    
+    // 종료를 기다릴 최대 시간 설정
+    // spring.lifecycle.timeout-per-shutdown-phase 값보다 작게 설정하는 것을 권장
     executor.setAwaitTerminationSeconds(30)
 
     executor.initialize()
     return executor
 }
 ```
+
+**👉🏻 주요 설정 설명**
+- **setWaitForTasksToCompleteOnShutdown(true)**: 프로세스 종료 시 해당 Executor가 즉시 멈추지 않고, 현재 실행 중인 작업과 큐에 쌓인 작업들을 처리할 때까지 기다리도록 합니다.
+- **setAwaitTerminationSeconds(30)**: 대기 중인 작업들을 처리하기 위해 최대 몇 초간 기다릴지 결정합니다. 이 시간이 지나면 남은 작업과 상관없이 스레드 풀을 강제로 종료합니다.
 
 ## Shutdown Callbacks
 
