@@ -347,6 +347,15 @@ Spring Batch의 Chunk 지향 프로세싱 모델 덕분에, write() 메서드가
 
 <figure><img src="https://raw.githubusercontent.com/jihunparkme/blog/refs/heads/main/img/spring-batch/partitioning-compare.png" alt=""><figcaption></figcaption></figure>
 
+**실제 분 형식의 데이터**
+
+|데이터 양|Basic|Partitioning|
+|---|:---:|:---:|
+|10,000|3초|2초|
+|100,000|33초|15초|
+|1,000,000|11분 22초|1분 53초|
+|5,000,000|1시간 37분 25초|8분 55초|
+
 확장성(Scalability) 차이:
 - 10,000건 정도의 소량 데이터에서는 두 방식의 차이가 미미하지만, 데이터가 100만 건, 500만 건으로 늘어날수록 기본 방식은 소요 시간이 기하급수적으로 증가하지만, 최적화 방식은 훨씬 완만한 증가 폭을 유지하는 것을 볼 수 있어요.
 
