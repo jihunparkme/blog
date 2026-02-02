@@ -339,8 +339,11 @@ Spring Batch의 Chunk 지향 프로세싱 모델 덕분에, write() 메서드가
 `mongoTemplate.bulkOps`를 사용할 때 UNORDERED 모드를 채택한 이유는, 재처리 대상인 각 데이터는 서로 독립적이며 저장 순서가 결과에 영향을 주지 않았기대문이에요.<br/>
 순서를 보장할 필요가 없으므로 MongoDB 내부에서 병렬 쓰기 최적화가 가능해지며, 특정 작업이 실패하더라도 나머지 작업을 멈추지 않고 계속 진행할 수 있어 대용량 처리에 매우 유리해요.
 
-## 비교
+## 성능 비교
 
+**데이터 규모에 따른 Batch 처리 방식별 성능 비교 (Basic vs Partitioning)**
+- chunk size: 1000
+- 10진법 분으로 나타냄
 
 <figure><img src="https://raw.githubusercontent.com/jihunparkme/blog/refs/heads/main/img/spring-batch/partitioning-compare.png" alt=""><figcaption></figcaption></figure>
 
