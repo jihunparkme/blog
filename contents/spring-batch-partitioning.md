@@ -341,11 +341,24 @@ Spring Batch의 Chunk 지향 프로세싱 모델 덕분에, write() 메서드가
 
 ## 성능 비교
 
-**데이터 규모에 따른 Batch 처리 방식별 성능 비교 (Basic vs Partitioning)**
-- chunk size: 1000
-- 10진법 분으로 나타냄
+아래 그래프는 데이터 규모가 커질수록 **기본적인 배치 방식(파란색)** 과 **최적화된 방식(Partitioning + CursorReader + Bulk Operations, 빨간색)** 간의 처리 시간 차이를 보여주고 있어요.
+- 두 방식 모두 chunk size는 1000으로 테스트를 진행했어요.
+- 그래프에 나타난 숫자는 보기 쉽게 10진법 분으로 나타낸 숫자에요.
 
 <figure><img src="https://raw.githubusercontent.com/jihunparkme/blog/refs/heads/main/img/spring-batch/partitioning-compare.png" alt=""><figcaption></figcaption></figure>
+
+확장성(Scalability) 차이:
+- 10,000건 정도의 소량 데이터에서는 두 방식의 차이가 미미하지만, 데이터가 100만 건, 500만 건으로 늘어날수록 기본 방식은 소요 시간이 기하급수적으로 증가하지만, 최적화 방식은 훨씬 완만한 증가 폭을 유지하는 것을 볼 수 있어요.
+
+성능 격차 심화:
+- 5,000,000건 처리 시 기본 방식(87.42분) 대비 최적화 방식(8.92분)은 약 10배에 가까운 속도 향상을 보이고 있어요.
+
+최적화 전략의 효과:
+- Partitioning: 데이터를 쪼개어 여러 스레드가 병렬로 처리함으로써 전체 작업 시간을 단축했어요.
+- CursorReader: 스트리밍 방식으로 데이터를 읽어 메모리 부하를 줄이고, 대량 데이터에서도 일정한 읽기 속도를 유지해요.
+- Bulk Operations: 일괄 쓰기를 통해 네트워크 I/O 오버헤드를 최소화하고, 처리된 객체를 빠르게 메모리에서 해제하여 성능을 극대화했어요.
+
+결론적으로, 데이터 규모가 커질수록 단순 병렬 처리를 넘어 메모리 효율(Cursor)과 쓰기 최적화(Bulk)가 결합된 Partitioning 전략이 필수적임을 알 수 있었어요.
 
 ## 마치며
 
