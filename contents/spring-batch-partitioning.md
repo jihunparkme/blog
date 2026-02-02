@@ -360,6 +360,8 @@ Spring Batch의 Chunk 지향 프로세싱 모델 덕분에, write() 메서드가
 
 결론적으로, 데이터 규모가 커질수록 단순 병렬 처리를 넘어 메모리 효율(Cursor)과 쓰기 최적화(Bulk)가 결합된 Partitioning 전략이 필수적임을 알 수 있었어요.
 
+배치 성능에 관심이 많으시다면 [Batch Performance를 고려한 최선의 Reader](https://tech.kakaopay.com/post/ifkakao2022-batch-performance-read/#%EC%83%88%EB%A1%9C%EC%9A%B4-cursoritemreader), [Batch Performance를 고려한 최선의 Aggregation](https://tech.kakaopay.com/post/ifkakao2022-batch-performance-aggregation/#itemreader), [Spring Batch 애플리케이션 성능 향상을 위한 주요 팁](https://tech.kakaopay.com/post/spring-batch-performance/#in-update-%EC%84%B1%EB%8A%A5-%EC%B8%A1%EC%A0%95) 글도 추천드립니다.
+
 ## 마치며
 
 처음 대용량 데이터를 처리해야 했을 때, 어느 정도 OOM을 마주할 것이라는 기대(?)는 했지만, 그 만남이 이렇게까지 길어질 줄은 몰랐습니다. 하지만 문제를 하나씩 분해하고 Spring Batch가 제공하는 도구들을 활용하면서, '메모리'라는 한정된 자원 안에서 거대한 데이터를 안전하게 통과시키는 법을 배울 수 있었어요.
