@@ -108,25 +108,18 @@ class DateRangePartitioner(
     private val endDate: LocalDate
 ) : Partitioner {
     override fun partition(gridSize: Int): Map<String, ExecutionContext> {
-        val result = mutableMapOf<String, ExecutionContext>()
-        var targetDate = startDate
-        var partitionNumber = 0
+        val daysBetween = ChronoUnit.DAYS.between(
+            startDate,
+            endDate.plusDays(1)
+        )
 
-        // 시작일부터 종료일까지 루프를 돌며 파티션 생성
-        while (!targetDate.isAfter(endDate)) {
-            val context = ExecutionContext()
-            
-            // 각 Worker Step이 처리해야 할 날짜 정보를 Context에 담기
-            context.putString("targetDate", targetDate.toString())
-            
-            // 파티션에 고유한 이름을 부여하여 Map에 저장
-            result["partition_$partitionNumber"] = context
-
-            targetDate = targetDate.plusDays(1)
-            partitionNumber++
+        return (0 until daysBetween).associate { i ->
+            val targetDate = startDate.plusDays(i)
+            val context = ExecutionContext().apply {
+                putString("targetDate", targetDate.toString())
+            }
+            "partition_$i" to context
         }
-
-        return result
     }
 }
 ```
@@ -149,36 +142,38 @@ class DateRangePartitioner(
 
 ```kotlin
 @Bean
-fun datePartitionJob(managerStep: Step): Job {
-    return JobBuilder("datePartitionJob", jobRepository)
+fun generateStatisticsJob(managerStep: Step): Job =
+    JobBuilder("generateStatisticsJob", jobRepository)
         .incrementer(RunIdIncrementer())
         .start(managerStep)
         .build()
-}
 
 @Bean
 fun managerStep(
     partitionHandler: PartitionHandler,
     partitioner: Partitioner,
-): Step {
-    // 직접 로직을 수행하지 않고, partitioner와 partitionHandler를 조합하여 작업을 관리
-    return StepBuilder("managerStep", jobRepository)
-        .partitioner("workerStep", partitioner) // "어떤 데이터"를 나눌 것인지인가?
-        .partitionHandler(partitionHandler) // "어떻게" 병렬로 실행할 것인가?
-        .build()
-}
+): Step = StepBuilder("managerStep", jobRepository)
+    .partitioner("workerStep", partitioner) // 어떻게 데이터를 쪼갤지
+    .partitionHandler(partitionHandler) // 어떤 방식으로 실행할지
+    .build()
 
-/**
- * partitionHandler: 파티셔닝 전략의 핵심 설정
- */
 @Bean
-fun partitionHandler(workerStep: Step): PartitionHandler {
-    val handler = TaskExecutorPartitionHandler()
-    handler.setTaskExecutor(batchTaskExecutor()) // 병렬 처리를 위한 스레드 풀 주입
-    handler.step = workerStep // 실제로 실행할 작업(Worker Step) 지정
-    handler.gridSize = 6 // 한 번에 처리할 파티션 개수(스레드 수)
-    return handler
-}
+fun partitionHandler(workerStep: Step): PartitionHandler =
+    TaskExecutorPartitionHandler().apply {
+        setTaskExecutor(batchTaskExecutor()) // 사용할 스레드 풀
+        step = workerStep // 실행할 Slave 스텝
+        gridSize = GRID_SIZE // 병렬 스레드 개수
+    }
+
+@Bean
+@StepScope
+fun batchTaskExecutor(): TaskExecutor =
+    ThreadPoolTaskExecutor().apply {
+        corePoolSize = GRID_SIZE
+        maxPoolSize = 10
+        setThreadNamePrefix("batch-thread-")
+        initialize()
+    }
 
 @Bean
 @JobScope
@@ -186,34 +181,22 @@ fun partitioner(
     @Value("#{jobParameters['startDate']}") startDate: String,
     @Value("#{jobParameters['endDate']}") endDate: String
 ): Partitioner {
-    val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
-    val start = LocalDate.parse(startDate, formatter)
-    val end = LocalDate.parse(endDate, formatter)
-
-    return DateRangePartitioner(start, end)
+    val formatter = DateTimeFormatter.ISO_LOCAL_DATE
+    return DateRangePartitioner(
+        startDate = LocalDate.parse(startDate, formatter),
+        endDate = LocalDate.parse(endDate, formatter)
+    )
 }
 
 @Bean
 fun workerStep(
     reader: ItemReader<String>,
     writer: ItemWriter<String>
-): Step {
-    return StepBuilder("workerStep", jobRepository)
-        .chunk<String, String>(1000, transactionManager)
-        .reader(reader)
-        .writer(writer)
-        .build()
-}
-
-@Bean
-@StepScope // 파티션마다 독립적인 빈 생성
-fun reader(
-    // Partitioner가 ExecutionContext에 저장해둔 targetDate를 주입
-    @Value("#{stepExecutionContext['targetDate']}") targetDate: String
-): ItemReader<String> {
-    log.info(">>> [Thread: ${Thread.currentThread().name}] Start reading date: $targetDate")
-    return ListItemReader(listOf("Data for $targetDate"))
-}
+): Step = StepBuilder("workerStep", jobRepository)
+    .chunk<String, String>(CHUNK_SIZE, transactionManager)
+    .reader(reader)
+    .writer(writer)
+    .build()
 ```
 
 > 🔄 Partitioner, PartitionHandler 두 인터페이스가 협력하여 데이터를 처리하는 과정
@@ -266,31 +249,23 @@ MongoDB 환경에서 선택할 수 있는 선택지는 크게 두 가지가 있�
 fun reader(
     @Value("#{stepExecutionContext['startDate']}") startDate: String,
     @Value("#{stepExecutionContext['endDate']}") endDate: String
-): MongoCursorCustomItemReader<Ledger> {
-    return MongoCursorCustomItemReader(
-        mongoTemplate = mongoTemplate,
-        collectionName = properties.channelType.statisticsCollectionName(),
-        batchSize = CHUNK_SIZE,
-        name = "generate_statistics_ledger_reader",
-        input = Ledger::class.java,
-        output = compactLedger::class.java,
-        criteria = {
-            searchCriteria(startDate, endDate)
-        },
-        isDiskUseAllowed = true,
-    )
+): MongoCursorItemReader<PaymentLedger> {
+    val query = ...
+
+    return MongoCursorItemReaderBuilder<PaymentLedger>()
+        .name("reader")
+        .template(mongoTemplate)
+        .collection(LEDGER_COLLECTION)
+        .targetType(PaymentLedger::class.java)
+        .query(query)
+        .sorts(mapOf("orderNumber" to Sort.Direction.ASC))
+        .build()
 }
 ```
-
-`MongoCursorCustomItemReader` 는 `MongoCursorItemReader`와 유사한 기능을 가진  `bstractItemCountingItemStreamItemReader` 를 구현한 커스텀 ItemReader 에요.
 
 > 📚 **MongoCursorItemReader**
 > 
 > The `MongoCursorItemReader` is an ItemReader that reads documents from MongoDB by using a streaming technique. Spring Batch provides a MongoCursorItemReaderBuilder to construct an instance of the MongoCursorItemReader.
->
-> 📚 **AbstractItemCountingItemStreamItemReader**
->
-> Abstract base class that provides basic restart capabilities by counting the number of items returned from an ItemReader.
 >
 > *by. [Spring Batch Documentation](https://docs.spring.io/spring-batch/reference/readers-and-writers/item-reader-writer-implementations.html#databaseReaders)*
 
@@ -311,18 +286,17 @@ Cursor 방식을 적용하면서 메모리 효율성과 안정성을 모두 얻�
 
 ```kotlin
 @Bean
-fun writer(): ItemWriter<StatisticsResult> {
-    return ItemWriter { chunk ->
-        if (chunk.isEmpty) return@ItemWriter
+fun writer(): ItemWriter<Statistics> = ItemWriter { items ->
+    if (items.isEmpty) return@ItemWriter
 
-        val bulkOps = mongoTemplate.bulkOps(
-            BulkOperations.BulkMode.UNORDERED,
-            properties.channelType.statisticsCollectionName()
-        )
+    val bulkOps = mongoTemplate.bulkOps(
+        BulkOperations.BulkMode.UNORDERED,
+        Statistics::class.java,
+        LEDGER_BACKUP_COLLECTION
+    )
 
-        bulkOps.insert(chunk.items)
-        bulkOps.execute()
-    }
+    bulkOps.insert(items.toList())
+    bulkOps.execute()
 }
 ```
 
