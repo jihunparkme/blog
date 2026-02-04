@@ -108,9 +108,31 @@ class Bean2 : DisposableBean {
 }
 ```
 
+### Bean Destroy Method
 
+커스텀 destroy 메드를 가진 클래스 생성
 
+```kotlin
+class Bean3 {
+    fun destroy() {
+        println(
+            "Callback triggered - bean destroy method."
+        )
+    }
+}
+```
 
+빈을 초기화하고 destroy() 메서드를 종료 콜백으로 표시하는 configuration 클래스 생성
+
+```kotlin
+@Configuration
+class ShutdownHookConfiguration {
+    @Bean(destroyMethod = "destroy")
+    fun initializeBean3(): Bean3? {
+        return Bean3()
+    }
+}
+```
 
 
 
