@@ -134,6 +134,39 @@ class ShutdownHookConfiguration {
 }
 ```
 
+### Global ServletContextListener
+
+다른 세 가지 접근 방식과 달리, 빈 레벨에서 콜백을 등록하는 `ServletContextListener`는 컨텍스트 레벨에서 콜백을 등록.
+
+```kotlin
+// custom context listener
+class ExampleServletContextListener : ServletContextListener {
+    public override fun contextDestroyed(event: ServletContextEvent) {
+        println("Callback triggered - ContextListener.")
+    }
+
+    public override fun contextInitialized(event: ServletContextEvent) {
+        // Triggers when context initializes
+    }
+}
+
+// ServletListenerRegistrationBean 등록
+@Bean
+fun servletListener(): ServletListenerRegistrationBean<ServletContextListener> {
+    val srb = ServletListenerRegistrationBean<ServletContextListener>()
+    srb.setListener(ExampleServletContextListener())
+    return srb
+}
+```
+
+
+
+
+
+
+
+
+
 
 
 
