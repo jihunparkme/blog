@@ -37,6 +37,16 @@ spring:
 
 이 설정은 웹 서버뿐만 아니라 Spring Context 내의 다른 Bean들이 종료되는 **단계별(Phase) 타임아웃**을 의미합니다. 웹 요청 처리뿐만 아니라 백그라운드 작업 등 애플리케이션의 전반적인 정리 시간을 고려하여 적절한 값을 설정하는 것이 중요합니다.
 
+### ⚠️ 주의사항
+
+**SIGTERM vs SIGKILL**
+- Graceful Shutdown은 OS의 `SIGTERM` 신호를 받았을 때 작동.
+- 만약 `kill -9(SIGKILL)` 명령어로 프로세스를 즉시 종료하면, Spring이 손쓸 새도 없이 꺼지게 되어 Graceful Shutdown이 작동하지 않음.
+
+**Kubernetes 환경**
+- 쿠버네티스에서 운영 중이라면 `terminationGracePeriodSeconds` 설정이 Spring의 타임아웃 설정보다 충분해야 함
+- 컨테이너가 먼저 죽어버리면 Spring의 Graceful Shutdown 설정이 무의미
+
 # Thread Pool (TaskExecutor)
 
 웹 서버의 Graceful Shutdown 설정은 'HTTP 요청'을 처리하는 스레드에 집중되어 있습니다. 따라서 `@Async`나 별도의 비동기 처리를 위해 커스텀하게 생성한 `ThreadPoolTaskExecutor`는 별도의 설정 없이는 작업 도중 즉시 종료될 위험이 있습니다.
@@ -158,24 +168,3 @@ fun servletListener(): ServletListenerRegistrationBean<ServletContextListener> {
     return srb
 }
 ```
-
-
-
-
-
-
-
-
-
-
-
-
-## 주의사항
-
-**SIGTERM vs SIGKILL**
-- Graceful Shutdown은 OS의 SIGTERM 신호를 받았을 때 작동
-- 만약 kill -9(SIGKILL) 명령어로 프로세스를 즉시 종료하면, Spring이 손쓸 새도 없이 꺼지게 되어 Graceful Shutdown이 작동하지 
-
-**Kubernetes 환경**
-- 쿠버네티스에서 운영 중이라면 terminationGracePeriodSeconds 설정이 Spring의 타임아웃 설정보다 충분해야 함
-- 컨테이너가 먼저 죽어버리면 Spring의 Graceful Shutdown 설정이 무의미
