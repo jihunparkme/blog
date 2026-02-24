@@ -50,6 +50,33 @@ opencode
 API 키를 설정하면 원하는 LLM 제공자를 사용 가능
 - TUI에서 `/connect` 명령을 실행한 뒤 구독하고 있는 LLM Provider 선택 및 API 적용
 
+## Init
+
+프로젝트 경로로 이동해서 OpenCode 초기화를 통해 프로젝트를 분석하고 프로젝트 루트에 AGENTS.md 파일을 생성
+- 이렇게 하면 OpenCode가 프로젝트 구조와 사용 중인 코딩 패턴을 더 잘 이해
+
+```shell
+cd /path/to/project
+opencode
+
+/init
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ## Reference
 
