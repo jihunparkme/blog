@@ -41,13 +41,14 @@ export PATH=/Users/{id}/.opencode/bin:$PATH
 
 ## Config
 
+opencode TUI 모드 실행
+
+```shell
+opencode
+```
+
 API 키를 설정하면 원하는 LLM 제공자를 사용 가능
-- LLM Provider를 처음 사용한다면 [OpenCode Zen](https://opencode.ai/docs/zen) 추천
-
-
-
-
-TUI에서 `/connect` 명령을 실행한 뒤 opencode를 선택하고 opencode.ai/auth로 이동
+- TUI에서 `/connect` 명령을 실행한 뒤 구독하고 있는 LLM Provider 선택 및 API 적용
 
 
 ## Reference
