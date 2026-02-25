@@ -88,14 +88,18 @@ TUI에서 `<TAB>` 키를 눌러서 plan 모드와 build 모드를 선택
 /share
 ```
 
+# oh-my-opencode
 
+프롬프트로 LLM 에이전트에서 설치 시키기
 
+```shell
+Install and configure oh-my-opencode by following the instructions here:
+https://raw.githubusercontent.com/code-yeongyu/oh-my-opencode/refs/heads/master/docs/guide/installation.md
+```
 
+## Key Features
 
-
-
-
-
+oh-my-opencode는 OpenCode의 플러그인으로, AI 코딩 에이전트를 오케스트레이션하는 도구
 
 
 
