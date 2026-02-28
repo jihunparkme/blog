@@ -311,13 +311,19 @@ OmO는 `Tmux`를 **`모든 것을 통합`**
 
 이건 단순한 편의 기능이 아니다. 디버깅 워크플로우가 완전히 달라진다. 에이전트가 코드를 수정하고, 바로 REPL에서 테스트하고, 문제가 있으면 디버거로 추적한다. 사람처럼 일한다.
 
+## conclusion
 
+> OmO는 도구가 아니라 시스템으로, 에이전트가 실제로 일할 수 있는 환경을 만드는 것
 
+oh-my-opencode의 각 기능은 독립적으로도 강력하지만, 결합되면 시너지가 생긴다.
 
+`Discipline Agents`는 작업을 올바른 모델에 배치하고, `ultrawork`는 끝까지 작업을 완료시키고, `Background Agents`는 병렬로 분업한다. 
 
+`IntentGate`는 의도를 정확히 파악하고, `Hashline`은 편집을 안전하게 만들고, `LSP`는 코드를 구조로 이해한다. 
 
+`Built-in MCPs`는 최신 정보를 제공하고, `Skill-Embedded MCPs`는 컨텍스트를 절약하고, `/init-deep`는 프로젝트를 자동 문서화한다. 
 
-
+`Prometheus`는 계획을 세우고, `Comment Checker`는 AI 냄새를 지우고, `Tmux`는 인터랙티브 워크플로우를 가능하게 한다.
 
 ## Reference
 
