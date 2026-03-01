@@ -1,4 +1,4 @@
-# opencode
+# 🤖 opencode
 
 오픈 소스 AI 코딩 에이전트
 
@@ -34,7 +34,7 @@
 설치 스크립트를 사용한 설치 > 최신 릴리스는 OpenCode tap 사용을 권장
 
 ```shell
-curl -fsSL https://opencode.ai/install | bash
+$ curl -fsSL https://opencode.ai/install | bash
 
 
 ...
@@ -60,7 +60,7 @@ For more information visit https://opencode.ai/docs
 다운로드가 완료되었다면 `~/.zshrc` 파일 적용을 해주어야 opencode 설치 경로가 정상적으로 등록됩니다.
 
 ```shell
-source ~/.zshrc
+$ source ~/.zshrc
 
 ...
 export PATH=/Users/{id}/.opencode/bin:$PATH
@@ -71,7 +71,7 @@ export PATH=/Users/{id}/.opencode/bin:$PATH
 opencode TUI 모드 실행
 
 ```shell
-opencode
+$ opencode
 ```
 
 API 키를 설정하면 원하는 LLM 제공자를 사용 가능
@@ -83,8 +83,8 @@ API 키를 설정하면 원하는 LLM 제공자를 사용 가능
 - 이렇게 하면 OpenCode가 프로젝트 구조와 사용 중인 코딩 패턴을 더 잘 이해
 
 ```shell
-cd /path/to/project
-opencode
+$ cd /path/to/project
+$ opencode
 ```
 
 이제, TUI에서 `/init` 명령을 실행하여 초기화
@@ -95,9 +95,11 @@ opencode
 - [opencode repo.](https://github.com/anomalyco/opencode)
 - [opencode docs.](https://opencode.ai/docs/ko)
 
-# oh-my-opencode
+# 🛠️ oh-my-opencode
 
-프롬프트로 LLM 에이전트에서 설치시키기
+oh-my-opencode(OmO)는 OpenCode의 플러그인으로, **AI 코딩 에이전트를 오케스트레이션**하는 도구
+
+👉🏻 프롬프트로 LLM 에이전트에서 설치시키기
 
 ```shell
 Install and configure oh-my-opencode by following the instructions here:
@@ -105,8 +107,6 @@ https://raw.githubusercontent.com/code-yeongyu/oh-my-opencode/refs/heads/master/
 ```
 
 ## Key Features
-
-oh-my-opencode(OmO)는 OpenCode의 플러그인으로, **AI 코딩 에이전트를 오케스트레이션**하는 도구
 
 ### 🤖 Discipline Agents
 
@@ -344,7 +344,7 @@ oh-my-opencode의 각 기능은 독립적으로도 강력하지만, 결합되면
 
 .
 
-2️⃣. Explore Agent (탐색 에이전트) — 코드베이스 패턴 발견
+2️⃣. Explore Agent (탐색 에이전트) — 코드베이스 패턴 발견<br/>
 
 리팩토링 초기에 병렬 탐색으로 사용됨:
 
@@ -361,7 +361,7 @@ oh-my-opencode의 각 기능은 독립적으로도 강력하지만, 결합되면
 
 .
 
-3️⃣. Sisyphus-Junior (Quick 카테고리) — 단순 반복 작업 위임
+3️⃣. Sisyphus-Junior (Quick 카테고리) — 단순 반복 작업 위임<br/>
 
 총 4번 위임됨 (이전 세션 2회 + 이번 세션 시도 5회 → 취소):
 
@@ -382,7 +382,7 @@ oh-my-opencode의 각 기능은 독립적으로도 강력하지만, 결합되면
 
 .
 
-4️⃣. Sisyphus (직접 수행) — 핵심 구조 변경
+4️⃣. Sisyphus (직접 수행) — 핵심 구조 변경<br/>
 
 가장 많은 작업을 직접 수행. 위임하지 않은 이유는 컨텍스트 의존성이 높은 작업이었기 때문:
 
