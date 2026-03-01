@@ -325,6 +325,100 @@ oh-my-opencode의 각 기능은 독립적으로도 강력하지만, 결합되면
 
 `Prometheus`는 계획을 세우고, `Comment Checker`는 AI 냄새를 지우고, `Tmux`는 인터랙티브 워크플로우를 가능하게 한다.
 
+## Example
+
+✅ 개인 프로젝트에 리펙토링 요청을 했을 때, 에이전트별 전략 분석 답변
+
+1️⃣. Sisyphus (메인 오케스트레이터) — 전체 설계 & 판단
+
+| 역할 | 전략 |
+|---|---|
+| 코드베이스 평가 | 먼저 ESLint, 빌드 상태, 프로젝트 구조를 파악하여 "규율 있는(Disciplined) 코드베이스인가?"를 판단 |
+| 리팩토링 범위 결정 | 유저에게 "부분 리팩토링 vs 전면 리팩토링" 선택지를 제시하여 스코프 확정 |
+| 작업 분해 & 우선순위 | 10개 작업을 의존성 순서로 배치 — ESLint 에러(blocking) → 구조 변경 → 스타일 통일(cosmetic) |
+| 직접 수행 vs 위임 판단 | 복잡한 로직 변경(hook 추출, 유틸 생성, 데이터 매니저 중복제거)은 직접 수행, 단순 스타일 통일은 위임 |
+| 도구 선택 | ast_grep_replace로 JSON.parse(JSON.stringify()) → structuredClone 7건을 한 번에 치환 (수동 편집 대신 AST 기반 자동화) |
+| 검증 루프 | 매 작업 완료 시 npm run lint 실행하여 회귀 확인 |
+
+**핵심 전략**: "가장 영향도 높은 것부터, 안전한 방법으로" — ESLint 에러를 먼저 잡아 CI를 녹색으로 만든 뒤, 구조적 개선을 진행.
+
+.
+
+2️⃣. Explore Agent (탐색 에이전트) — 코드베이스 패턴 발견
+
+리팩토링 초기에 병렬 탐색으로 사용됨:
+
+- 주간 네비게이션 패턴 탐색: 
+  - 5개 컴포넌트에서 currentDate, goToPrevWeek, goToNextWeek가 반복되는 것을 발견 → useWeekNavigation 훅 추출의 근거
+- 데이터 변환 중복 탐색: 
+  - dataManager.js에서 transformDailyData/transformTeacherDailyData, updateAttendance/updateTeacherAttendance 등이 거의 동일한 로직인 것을 발견 → generic 함수 추출의 근거
+- 낙관적 업데이트 패턴 탐색: 
+  - StudentList.jsx와 TeacherList.jsx에서 deep clone → ensure structure → apply update 패턴이 ~20줄씩 반복 → applyOptimisticUpdate 유틸 추출의 근거
+- AdminPanel 래퍼 함수 탐색: 
+  - handleDataUpdate = (newData) => setData(newData) 같은 불필요한 passthrough 래퍼 발견 → 직접 setData 전달로 단순화
+
+**핵심 전략**: "중복을 찾아라" — Explore는 grep 역할로, 여러 파일에 걸친 패턴 반복을 빠르게 식별. Sisyphus가 "이건 추출할 만한가?"를 판단하는 데이터를 제공.
+
+.
+
+3️⃣. Sisyphus-Junior (Quick 카테고리) — 단순 반복 작업 위임
+
+총 4번 위임됨 (이전 세션 2회 + 이번 세션 시도 5회 → 취소):
+
+이전 세션에서 성공한 2건:
+
+| 위임 대상 | 작업 내용 | 전략 |
+|---|---|---|
+| ClassManagement.jsx | React import 제거, export 스타일 변경, 세미콜론 제거 | "파일 하나, 3가지 기계적 변환" — 명확한 6-section 프롬프트로 지시 |
+| TeacherManagement.jsx | 동일 작업 | 위와 동일한 프롬프트 템플릿 재활용 |
+
+프롬프트 전략: 
+- TASK / EXPECTED OUTCOME / REQUIRED TOOLS / MUST DO / MUST NOT DO / CONTEXT 6개 섹션을 빠짐없이 명시하여 에이전트가 범위를 벗어나지 않도록 제한.
+
+이번 세션에서 시도 → 취소한 5건:
+세미콜론 제거를 5개 파일에 병렬 위임했으나, 에이전트 응답이 느려 직접 sed 한 줄로 처리하는 것이 더 효율적이라고 판단하여 전원 취소.
+
+**교훈**: 작업이 "에이전트 부팅 시간 > 실제 작업 시간"인 경우, 위임보다 직접 수행이 낫다. sed 's/;$//'로 3개 파일을 1초에 처리.
+
+.
+
+4️⃣. Sisyphus (직접 수행) — 핵심 구조 변경
+
+가장 많은 작업을 직접 수행. 위임하지 않은 이유는 컨텍스트 의존성이 높은 작업이었기 때문:
+
+| 작업 | 직접 수행 이유 | 전략 |
+|---|---|---|
+| useWeekNavigation 훅 생성 + 5개 컴포넌트 적용 | 5개 파일의 기존 로직을 정확히 이해한 상태에서만 안전한 추출 가능 | 공통 패턴을 훅으로 추출 → 각 컴포넌트에서 기존 코드를 훅 호출로 교체 |
+| dataManager.js 중복제거 | 6개 export 함수의 시그니처를 유지하면서 내부만 변경해야 함 | transformWeeklyData, upsertRecord, upsertPrayerRequest 3개 제네릭 함수 생성 → 기존 6개 함수를 thin wrapper로 변환 (하위호환 유지) |
+| applyOptimisticUpdate 유틸 | StudentList/TeacherList 두 파일의 ~20줄 보일러플레이트를 정확히 이해해야 추출 가능 | 순수 함수로 설계 (React hook이 아님) — deep clone + ensure structure + apply updater |
+| WeeklyListView 공통 컴포넌트 | PrayerView(배열)와 NotesView(단일 문자열)의 미묘한 차이를 extractItems 콜백으로 추상화 | 공통 렌더링 로직을 공유 컴포넌트로 추출, 데이터 추출 로직만 각 래퍼에 남김 |
+| AdminPanel 래퍼 제거 | App.jsx ↔ AdminPanel ↔ 하위 컴포넌트 3층 간의 prop 흐름을 정확히 추적해야 함 | passthrough 핸들러 3개 제거 → setData 직접 전달, 불필요한 prop 2개 제거 |
+
+.
+
+**전체 워크플로우 요약**
+
+Phase 1: 진단
+- Sisyphus → npm run lint, npm run build로 현재 상태 파악
+- Explore → 병렬로 코드베이스 패턴/중복 탐색
+
+Phase 2: 긴급 수정 (blocking issues)
+- Sisyphus 직접 → ESLint 에러 3건 수정 (CI 녹색 확보)
+
+Phase 3: 구조적 개선 (high-impact)
+- Sisyphus 직접 → 훅 추출, 유틸 생성, 중복 제거
+- AST-grep → JSON.parse 패턴 일괄 치환 (7건)
+
+Phase 4: 스타일 통일 (cosmetic)
+- Junior 위임 → ClassManagement, TeacherManagement 스타일 변경
+- Sisyphus 직접 (sed) → 나머지 파일 세미콜론 제거
+
+Phase 5: 검증
+- npm run lint → 0 errors
+- npm run build → 성공 (749ms)
+
+**핵심 원칙**: 복잡한 판단이 필요한 작업은 직접, 기계적 반복은 위임(또는 도구). 매 단계마다 lint/build로 회귀 검증.
+
 ## Reference
 
 **oh my opencode**
