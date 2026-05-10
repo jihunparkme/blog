@@ -110,6 +110,8 @@ AI 서비스를 만들 때 가장 어렵고, 그만큼 중요한 단계입니다
 
 ---
 
-# Reference.
+# Reference
 
-[Transformer Explainer](https://poloclub.github.io/transformer-explainer/): AI 내부 흐름을 시각적으로 확인
+- [Transformer Explainer](https://poloclub.github.io/transformer-explainer/): AI 내부 흐름을 시각적으로 확인
+- [LLM Visualization](https://bbycroft.net/llm)
+- [The Illustrated Transformer](https://jalammar.github.io/illustrated-transformer/)
