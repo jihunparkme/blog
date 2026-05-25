@@ -45,23 +45,63 @@ AI는 학습 시점 이후의 정보를 모릅니다. 사내 문서나 최신 �
 
 ---
 
-## 3. Agentic Workflow: "AI가 스스로 판단하고 행동하는 단계"
+## 3. Agentic Workflow의 실전 표준: "MCP로 AI-도구 연결을 구조화한다"
 
-단순히 질문에 답하는 것을 넘어, AI가 스스로 목표를 분석하고 → 필요한 도구를 골라 실행하고 → 결과를 보고 다음 행동을 결정하는 방식입니다.
+Agentic Workflow의 본질은 "AI가 도구를 안정적으로 발견하고, 실행하고, 결과를 다시 문맥에 반영하는 루프"입니다.  
+요즘 이 루프를 표준화하는 핵심 축이 바로 **MCP(Model Context Protocol)** 입니다.
+
+MCP 공식 문서(Architecture/Intro)를 한 문장으로 요약하면:
+
+> MCP는 AI 앱과 외부 시스템을 연결하는 **개방형 표준 프로토콜**이며, 핵심은 "모델"이 아니라 **문맥 교환 방식의 표준화**입니다.
+
+### MCP 아키텍처의 핵심 구조 (본질)
+
+| 구성 요소 | 역할 | 핵심 포인트 |
+| --- | --- | --- |
+| **Host** | Claude Desktop, VS Code 같은 AI 애플리케이션 | 여러 MCP 서버 연결을 총괄 |
+| **Client** | Host 내부 연결 관리자 | 서버별로 전용 연결을 유지 |
+| **Server** | 파일시스템, DB, SaaS API 등 | AI에 문맥/기능 제공 |
+
+### MCP가 정의하는 2개 레이어
+
+| 레이어 | 무엇을 표준화하나? | 왜 중요한가? |
+| --- | --- | --- |
+| **Data Layer** | JSON-RPC 2.0 기반 메시지 규약, lifecycle, primitives | "무엇을 주고받는지"를 통일 |
+| **Transport Layer** | STDIO(로컬), Streamable HTTP(원격) | "어떻게 연결하는지"를 통일 |
+
+### MCP Primitive 3종 (Agent가 실제로 쓰는 것)
+
+| Primitive | 의미 | 예시 |
+| --- | --- | --- |
+| **Tools** | 실행 가능한 함수 | 조회 API 호출, 파일 수정, DB 질의 |
+| **Resources** | 문맥 데이터 소스 | 문서 본문, 스키마, 로그 |
+| **Prompts** | 재사용 가능한 상호작용 템플릿 | 작업 지시 포맷, few-shot 예시 |
+
+즉, Agent의 "판단"은 LLM이 하고, "행동 통로"는 MCP가 표준화합니다.
+
+### Agent 실행을 MCP로 보면 이렇게 보인다
+
+1. **Initialize**: Client-Server가 버전/기능(capability) 협상
+2. **Discover**: `tools/list`, `resources/list`로 사용 가능한 기능 탐색
+3. **Act**: `tools/call`로 실제 작업 실행
+4. **Update**: `notifications/*`로 변경 사항 실시간 반영
+5. **Loop**: 결과를 바탕으로 다음 행동 결정
 
 **예시: "이번 달 매출 보고서 만들어줘"**
 
-1. 데이터베이스 조회 도구 실행 → 데이터 수집
-2. 계산 도구 실행 → 합계·비율 계산
-3. 문서 작성 도구 실행 → 보고서 초안 생성
-4. 결과 검토 후 오류 발견 시 → 스스로 재시도
+1. `tools/list`로 "매출 조회 도구" 확인
+2. `tools/call`로 데이터 수집
+3. 계산 도구 재호출로 지표 생성
+4. 결과를 문서화하고 사용자에게 제시
+5. 누락 발견 시 다시 도구 호출해 보완
 
 | 개념 | 쉬운 설명 |
-| --- | ---- |
-| **Function Calling**   | "날씨 알려줘"라는 요청에 AI가 직접 날씨 앱을 실행하고 결과를 가져오는 능력 |
-| **Chain of Thought** | 복잡한 문제를 한 번에 풀지 않고, 단계를 나눠 차근차근 생각하게 하는 방식 | **Planning & Feedback Loop** | 계획 → 실행 → 결과 확인 → 수정의 반복 구조로, 틀리면 스스로 다시 시도 |
+| --- | --- |
+| **Function Calling** | AI가 필요한 외부 기능을 선택하고 실행하는 능력 |
+| **Planning & Feedback Loop** | 계획 → 실행 → 결과 확인 → 수정의 반복 구조 |
+| **Protocol Thinking (MCP)** | 도구를 "개별 연동"이 아니라 "표준 인터페이스"로 다루는 사고방식 |
 
-> **왜 중요한가?** 요즘 화제인 'AI 에이전트'나 'AI 자동화'는 모두 이 원리를 기반으로 합니다. AI가 단순 답변자에서 '일을 처리하는 조수'로 진화하는 핵심입니다.
+> **왜 중요한가?** Agent 시대의 경쟁력은 "모델 교체"보다 "연결 구조"에서 갈립니다. MCP를 이해하면, 새로운 도구가 나와도 연결 방식이 같아 학습 비용이 급격히 줄어듭니다.
 
 ---
 
@@ -101,7 +141,7 @@ AI 서비스를 만들 때 가장 어렵고, 그만큼 중요한 단계입니다
        ↓
 ② 'RAG': 필요한 정보를 외부에서 찾아 AI에게 전달
        ↓
-③ 'Agent': 단순 답변을 넘어 도구를 사용해 실제 작업 수행
+③ 'Agent + MCP': 표준 프로토콜로 도구를 발견/실행/동기화
        ↓
 ④ 'Fine-tuning / Prompting': AI를 목적에 맞게 최적화
        ↓
@@ -115,3 +155,5 @@ AI 서비스를 만들 때 가장 어렵고, 그만큼 중요한 단계입니다
 - [Transformer Explainer](https://poloclub.github.io/transformer-explainer/): AI 내부 흐름을 시각적으로 확인
 - [LLM Visualization](https://bbycroft.net/llm): 토큰이 숫자로 변환되고 뉴런 사이를 통과하는 과정까지
 - [The Illustrated Transformer](https://jalammar.github.io/illustrated-transformer/): Transformer를 설명하는 가장 표준적인 그림
+- [What is MCP?](https://modelcontextprotocol.io/docs/getting-started/intro): MCP의 목적과 생태계 개요
+- [MCP Architecture Overview](https://modelcontextprotocol.io/docs/learn/architecture): Participants, Layers, Primitives, Lifecycle 설명
