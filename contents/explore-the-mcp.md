@@ -1,6 +1,6 @@
-# MCP로 다시 읽는 AI 프레임워크
+# MCP로 다시 읽는 AI 프레임워크: 결국 우리는 또 아키텍처를 하고 있다
 
-## 도입
+## 도입: 프레임워크는 폭발했고, 본질은 흐려졌다
 
 요즘 AI 생태계는 하루가 다르게 새 이름을 쏟아냅니다. 에이전트 프레임워크, 툴 호출, 멀티모달 오케스트레이션, 추론 체인, 메모리 계층까지. 문제는 기술이 너무 빠르게 늘어나면서, 많은 개발자가 이렇게 느낀다는 점입니다.
 
@@ -30,15 +30,63 @@ MCP는 단순히 새로운 AI 기능이 아니라, **AI 애플리케이션이 �
 
 핵심은 **Host와 Client를 분리해서 이해**하는 것입니다. Host는 오케스트레이션을 담당하고, Client는 특정 서버와의 세션을 전담합니다. 즉, Host 1개가 Server N개와 붙을 때, 내부적으로는 Client N개가 생기는 구조입니다.
 
+#### 1. Host-Client-Server 참여자 다이어그램
+
 ```mermaid
-flowchart LR
-	H[MCP Host\nAI App] --> C1[MCP Client 1]
-	H --> C2[MCP Client 2]
-	H --> C3[MCP Client 3]
-	C1 --> S1[Local MCP Server\nFilesystem via STDIO]
-	C2 --> S2[Local/Remote MCP Server\nDB or Internal API]
-	C3 --> S3[Remote MCP Server\nSaaS via Streamable HTTP]
+graph TB
+    subgraph Host["MCP Host (AI Application)<br/>e.g., Claude Desktop, VS Code"]
+        CM["Client Manager<br/>(Session Orchestrator)"]
+        subgraph Clients["Dedicated MCP Clients<br/>(1 per Server)"]
+            C1["MCP Client 1<br/>Filesystem Session"]
+            C2["MCP Client 2<br/>Database Session"]
+            C3["MCP Client 3<br/>Sentry Session"]
+        end
+        CM --> C1
+        CM --> C2
+        CM --> C3
+    end
+    
+    subgraph LocalServers["Local MCP Servers<br/>(STDIO: Same Machine)"]
+        S1["Filesystem Server<br/>Tools: read/write files<br/>Resources: directory listing"]
+        S2["Database Server<br/>Tools: query, insert, update<br/>Resources: schema info"]
+    end
+    
+    subgraph RemoteServers["Remote MCP Servers<br/>(Streamable HTTP: Network)"]
+        S3["Sentry Server<br/>Tools: log issues, fetch errors<br/>Resources: issue context"]
+    end
+    
+    C1 -->|"Dedicated Session<br/>(STDIO)<br/>No network overhead"| S1
+    C2 -->|"Dedicated Session<br/>(STDIO)<br/>Process isolation"| S2
+    C3 -->|"Dedicated Session<br/>(HTTP + OAuth)<br/>Network + Auth"| S3
+    
+    subgraph Benefits["Isolation & Governance Benefits"]
+        B1["🔒 Fault Isolation:<br/>Server A failure ≠ Host crash"]
+        B2["🎯 Per-Server Policies:<br/>Rate limits, tokens,<br/>permissions per client"]
+        B3["♻️ Independent Reconnection:<br/>Retry one session<br/>without affecting others"]
+    end
+    
+    style Host fill:#e1f5ff,stroke:#01579b,stroke-width:3px
+    style Clients fill:#b3e5fc,stroke:#0277bd
+    style LocalServers fill:#fff3e0,stroke:#e65100
+    style RemoteServers fill:#fce4ec,stroke:#c2185b
+    style Benefits fill:#f1f8e9,stroke:#558b2f
+    style C1 fill:#80deea
+    style C2 fill:#80deea
+    style C3 fill:#80deea
+    style S1 fill:#ffb74d
+    style S2 fill:#ffb74d
+    style S3 fill:#f48fb1
 ```
+
+**핵심 설계 원칙:**
+
+| 측면 | 설명 |
+|------|------|
+| **1:N 구조** | Host 1개 → Client N개 → Server N개 (각 세션 독립) |
+| **세션 격리** | 한 Server 장애 = 한 Client만 영향 (Host 전체 중단 X) |
+| **Transport 다형성** | STDIO(로컬, 빠름) vs HTTP(원격, 인증) 자유 선택 |
+| **권한 분리** | 서버별 토큰/인증서/Rate Limit 독립 적용 |
+| **재연결 정책** | 개별 세션별 재시도 전략 구사 가능 |
 
 이 구분은 운영에서 매우 중요합니다.
 
@@ -69,6 +117,57 @@ Host는 “이런 기능이 필요하다”를 선언하고, Client는 해당 �
 
 즉, REST API 설계에서 "리소스 모델"과 "네트워크 경로/인증"를 분리하듯, MCP도 의미 계층과 전달 계층을 분리합니다.
 
+#### 2. Data Layer vs Transport Layer 구조
+
+```mermaid
+flowchart TB
+    subgraph Client["MCP Client"]
+        CApp["Application<br/>(e.g., Claude)"]
+        DL_C["Data Layer<br/>(JSON-RPC Protocol)"]
+        TL_C["Transport Layer<br/>(Connection & Auth)"]
+        CApp --> DL_C
+        DL_C --> TL_C
+    end
+    
+    subgraph Transport["Network/Process Boundary"]
+        STDIO["STDIO or<br/>Streamable HTTP"]
+    end
+    
+    subgraph Server["MCP Server"]
+        TL_S["Transport Layer<br/>(Connection & Auth)"]
+        DL_S["Data Layer<br/>(JSON-RPC Protocol)"]
+        SApp["Server Logic<br/>(Tools, Resources, Prompts)"]
+        TL_S --> DL_S
+        DL_S --> SApp
+    end
+    
+    TL_C -->|"Message Framing & Auth"| STDIO
+    STDIO -->|"Authenticated Messages"| TL_S
+    
+    subgraph DLDetails["Data Layer (Same for All Transports)"]
+        LM["Lifecycle Management<br/>(initialize, notifications/initialized)"]
+        Prim["Primitives Protocol<br/>(tools/list, tools/call, resources/read, etc.)"]  
+        Notif["Notifications & Progress<br/>(notifications/*, real-time sync)"]
+    end
+    
+    subgraph TLDetails["Transport Layer (Pluggable)"]
+        STDIO_T["STDIO: Local process communication<br/>No network overhead"]
+        HTTP_T["Streamable HTTP: Remote communication<br/>OAuth/Token-based auth"]
+    end
+    
+    style Client fill:#e3f2fd
+    style Server fill:#fff3e0
+    style Transport fill:#f3e5f5
+    style DLDetails fill:#c8e6c9
+    style TLDetails fill:#ffccbc
+```
+
+**주요 통찰:**
+
+- **Data Layer는 불변**: STDIO든 HTTP든 JSON-RPC 2.0 메시지 포맷은 동일
+- **Transport Layer는 교체 가능**: "USB-C 포트" 같이 프로토콜 의미는 유지되고 물리 채널만 바뀜
+- **보안은 Transport에 속함**: 인증, 토큰, Rate Limiting은 모두 Transport Layer의 책임
+
 ### 화려한 AI가 아니라, 사실은 Json-RPC 계약
 
 많은 사람이 MCP를 들으면 복잡한 AI 런타임을 먼저 떠올립니다. 하지만 기술적 본체는 의외로 담백합니다.
@@ -83,42 +182,141 @@ Host는 “이런 기능이 필요하다”를 선언하고, Client는 해당 �
 - 잘 정의된 스키마, 타임아웃, 재시도, 에러 코드가 품질을 좌우한다
 - 결국 운영 가능한 인터페이스를 설계하는 역량이 핵심이다
 
-공식 예시 플로우도 아주 정석적입니다.
+#### 3. 라이프사이클 (Lifecycle) 초기화 및 동작 흐름
 
-1. `initialize`: 프로토콜 버전/기능 협상
-2. `notifications/initialized`: 클라이언트 준비 완료 통지
-3. `tools/list`, `resources/list`, `prompts/list`: 기능 탐색
-4. `tools/call` 또는 리소스 조회: 실제 실행/조회
-5. `notifications/*`: 서버 상태 변화의 실시간 동기화
+공식 문서는 다음 5단계 플로우를 정석으로 제시합니다.
 
-이 순서는 결국 API 부트스트랩과 동일합니다. 초기 핸드셰이크로 합의하고, Capability 기반으로 안전하게 기능을 호출하며, Notification으로 캐시를 동기화합니다.
+```mermaid
+sequenceDiagram
+    participant H as MCP Host
+    participant C as MCP Client
+    participant S as MCP Server
+    
+    Note over H,S: Phase 1: Transport Connection
+    H->>C: Create client session
+    C->>S: Establish connection (STDIO/HTTP)
+    S->>C: Connection ready
+    
+    Note over H,S: Phase 2: Capability Negotiation (initialize)
+    H->>C: Client capabilities
+    C->>S: initialize request<br/>{protocolVersion, capabilities, clientInfo}
+    S->>C: initialize response<br/>{protocolVersion, capabilities, serverInfo}
+    C->>H: Capabilities stored in session
+    
+    Note over H,S: Phase 3: Initialization Complete
+    C->>S: notifications/initialized
+    S->>C: Ready for requests
+    
+    Note over H,S: Phase 4: Discovery (Runtime)
+    H->>C: Request tool list
+    C->>S: tools/list
+    S->>C: [{name, description, inputSchema}, ...]
+    C->>H: Tools registered
+    
+    Note over H,S: Phase 5: Execution & Sync
+    H->>C: Call tool 'weather_current'
+    C->>S: tools/call {name, arguments}
+    S->>C: {content: [{type: text, ...}]}
+    C->>H: Result
+    
+    Note over H,S: Phase 6: Real-time Sync (Notifications)
+    S->>C: notifications/tools/list_changed
+    C->>S: tools/list (refresh)
+    S->>C: Updated tool list
+    C->>H: Available tools updated
+```
+
+**흐름의 본질:**
+
+1. **Transport 계층**: 채널 연결 수립 (STDIO 파이프 또는 HTTP 세션)
+2. **Capability 협상**: `initialize`로 양쪽의 지원 Primitive 선언 → 공격면 축소
+3. **Discovery**: Runtime으로 도구/리소스 목록 조회 (컴파일 타임이 아님)
+4. **Execution**: 스키마 기반 호출로 타입 안전성 확보
+5. **Notification**: 서버 상태 변화를 푸시로 동기화 (폴링 X)
+
+이는 결국 API 부트스트랩과 동일합니다. **초기 핸드셰이크로 합의하고, Capability 기반으로 안전하게 기능을 호출하며, Notification으로 캐시를 동기화**합니다.
 
 ### MCP Architecture에서 반드시 알아야 할 Primitive 전체 지도
 
 공식 문서에서 가장 중요한 파트는 프리미티브(Primitives)입니다. "무엇을 주고받을 수 있는가"를 정의하기 때문입니다.
 
-#### 서버가 제공하는 3대 Primitive
+공식 문서에서 가장 중요한 파트는 프리미티브(Primitives)입니다. "무엇을 주고받을 수 있는가"를 정의하기 때문입니다.
 
-- **Tools**: 실행 가능한 함수. (예: 파일 수정, API 호출, DB 질의)
-- **Resources**: 읽기 중심 컨텍스트. (예: 파일 내용, 스키마, 조회 결과)
-- **Prompts**: 재사용 가능한 상호작용 템플릿
+#### 5. MCP Primitives 전체 맵핑: 서버/클라이언트/유틸리티
 
-#### 클라이언트가 제공하는 Primitive
+```mermaid
+graph TB
+    subgraph ServerPrimitives["Server Exposes (What Server Provides)"]
+        direction LR
+        Tools["🔧 Tools<br/>(Executable Functions)<br/>Example: file write,<br/>API call, DB query"]
+        Resources["📄 Resources<br/>(Context Data)<br/>Example: file content,<br/>schema, query result"]
+        Prompts["💬 Prompts<br/>(Interaction Templates)<br/>Example: system prompts,<br/>few-shot examples"]
+    end
+    
+    subgraph ClientPrimitives["Client Exposes (What Client Provides)"]
+        direction LR
+        Sampling["🧠 Sampling<br/>(LLM Inference)<br/>Server requests completions<br/>from Host's LLM"]
+        Elicitation["❓ Elicitation<br/>(User Input)<br/>Server requests additional<br/>user confirmation/input"]
+        Logging["📝 Logging<br/>(Debug/Monitoring)<br/>Server sends log messages<br/>to client"]
+    end
+    
+    subgraph UtilityPrimitives["Cross-Cutting Utilities (Infrastructure)"]
+        direction LR
+        Notifications["🔔 Notifications<br/>(Push Events)<br/>e.g. tools/list_changed<br/>Real-time sync"]
+        Progress["⏳ Progress Tracking<br/>(Long-running Ops)<br/>Status updates for<br/>expensive computations"]
+        Tasks["⚙️ Tasks<br/>(Experimental)<br/>Durable execution<br/>with deferred results"]
+    end
+    
+    Host["🎯 MCP Host<br/>(AI Application)"]
+    
+    Host --> ServerPrimitives
+    Host --> ClientPrimitives
+    
+    ServerPrimitives --> UtilityPrimitives
+    ClientPrimitives --> UtilityPrimitives
+    
+    style ServerPrimitives fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px
+    style ClientPrimitives fill:#bbdefb,stroke:#1565c0,stroke-width:2px
+    style UtilityPrimitives fill:#ffe0b2,stroke:#e65100,stroke-width:2px
+    style Tools fill:#a5d6a7
+    style Resources fill:#a5d6a7
+    style Prompts fill:#a5d6a7
+    style Sampling fill:#90caf9
+    style Elicitation fill:#90caf9
+    style Logging fill:#90caf9
+    style Notifications fill:#ffcc80
+    style Progress fill:#ffcc80
+    style Tasks fill:#ffcc80
+    style Host fill:#e1bee7,stroke:#6a1b9a,stroke-width:3px
+```
 
-- **Sampling**: 서버가 Host의 LLM 추론을 요청 (`sampling/createMessage`)
-- **Elicitation**: 서버가 사용자 추가 입력/확인을 요청 (`elicitation/create`)
-- **Logging**: 서버가 클라이언트로 로그 전송
+**서버가 제공하는 3대 Primitive**
 
-#### 크로스커팅 유틸리티
+- **Tools** (행동): 실행 가능한 함수. 예: 파일 수정, API 호출, DB 질의. Discovery: `tools/list`, 실행: `tools/call`
+- **Resources** (맥락): 읽기 중심 컨텍스트. 예: 파일 내용, 스키마, 조회 결과. Discovery: `resources/list`, 조회: `resources/read`
+- **Prompts** (전략): 재사용 가능한 상호작용 템플릿. Discovery: `prompts/list`, 조회: `prompts/get`
 
-- **Notifications**: 무응답 이벤트 푸시 (예: `notifications/tools/list_changed`)
-- **Progress Tracking**: 장시간 작업 진행상태 추적
+**클라이언트가 제공하는 Primitive (역방향)**
+
+- **Sampling**: 서버가 Host의 LLM 추론을 요청 (`sampling/createMessage`). 모델 독립적 서버 구성 가능
+- **Elicitation**: 서버가 사용자 추가 입력/확인을 요청 (`elicitation/create`). 민감 액션 가이트
+- **Logging**: 서버가 클라이언트로 디버깅/모니터링 로그 전송
+
+**크로스커팅 유틸리티**
+
+- **Notifications**: 무응답 이벤트 푸시 (예: `notifications/tools/list_changed`). 폴링 없는 실시간 동기화
+- **Progress Tracking**: 장시간 작업 진행상태 추적. 대화 블로킹 방지
 - **Tasks(Experimental)**: 지연 완료/상태 조회가 필요한 Durable 실행 래퍼
 
-이 구성을 한 문장으로 정리하면 다음과 같습니다.
+**핵심 설계 통찰:**
 
-> Tools는 "행동"이고, Resources는 "맥락"이며, Prompts는 "전략"이다.  
-> Sampling/Elicitation은 인간-모델-서버의 루프를 완성하고, Notifications/Progress/Tasks는 운영성을 완성한다.
+| 개념 | 의미 | 실무 적용 |
+|------|------|----------|
+| **Tools** | "행동" | LLM이 외부에 영향을 주는 점 (마우스/키보드처럼) |
+| **Resources** | "맥락" | LLM이 읽을 배경 지식 (문서, 스키마 같이) |
+| **Prompts** | "전략" | 상호작용 재사용 패턴 (시스템 프롬프트 같이) |
+| **Discovery** | "런타임 협상" | 컴파일 타임이 아닌 세션 시작 시 Capability 물어보기 |
+| **Notifications** | "캐시 동기화" | 서버 변화 시 폴링 없이 클라이언트 자동 갱신 |
 
 ### 전송(Transport) 기술의 본질: STDIO vs Streamable HTTP
 
@@ -208,6 +406,59 @@ LLM 기반 시스템의 보안 이슈는 더 이상 이론이 아닙니다. 대�
 - **도구 스키마 검증**: `inputSchema`로 타입/범위 검증 강제
 - **사용자 확인 루프**: `elicitation/create`를 통한 고위험 액션 확인
 - **실시간 가시성**: Logging/Notifications로 이상 징후 조기 탐지
+
+#### 4. MCP 보안 계층: API Gateway 패턴 적용
+
+```mermaid
+graph TB
+    LLM["LLM / AI Model<br/>(Untrusted Input Source)"]
+    
+    subgraph SecLayer["MCP Security & Governance Layer"]
+        direction TB
+        Auth["🔐 Authentication & Authorization<br/>Token/OAuth validation<br/>Client identity verification"]
+        Validate["✅ Input Validation<br/>JSON Schema enforcement<br/>Parameter bounds checking"]
+        Rate["⏱️ Rate Limiting & Cost Control<br/>Max tools/min, token budgets<br/>Model concurrency limits"]
+        Audit["📊 Audit Logging<br/>Who/What/When/Result<br/>Anomaly detection"]
+        Elicit["⚠️ User Confirmation<br/>High-risk action gates<br/>(elicitation/create)"]
+        
+        Auth --> Validate
+        Validate --> Rate
+        Rate --> Elicit
+        Elicit --> Audit
+    end
+    
+    SafeExec["✓ Safe Tool Execution<br/>MCP Server<br/>(Controlled by Policies)"]
+    
+    LLM --> SecLayer
+    SecLayer --> SafeExec
+    
+    subgraph TrustBoundary["Trust Boundary"]
+        SecLayer
+        SafeExec
+    end
+    
+    style LLM fill:#ffebee,stroke:#c62828,stroke-width:2px
+    style SecLayer fill:#e8f5e9,stroke:#2e7d32,stroke-width:3px
+    style SafeExec fill:#e3f2fd,stroke:#1565c0
+    style TrustBoundary stroke:#f57c00,stroke-width:3px,stroke-dasharray: 5 5
+    style Auth fill:#c8e6c9
+    style Validate fill:#c8e6c9
+    style Rate fill:#c8e6c9
+    style Audit fill:#c8e6c9
+    style Elicit fill:#fff9c4
+```
+
+**보안의 핵심 아키텍처:**
+
+프롬프트 = **신뢰 경계 밖의 입력**이므로, 도구 호출은 항상 다층 검증을 거쳐야 합니다.
+
+| 레이어 | 역할 | MCP 개념 맵핑 |
+|--------|------|--------------|
+| 1. 인증 | 호출자 정체 확인 | Transport Layer Auth (OAuth/Bearer Token) |
+| 2. 검증 | 입력값이 계약 만족 | `initialize` + `inputSchema` 검증 |
+| 3. 제한 | 과도한 호출 차단 | Rate Limiting (클라이언트 레벨) |
+| 4. 확인 | 민감 액션 재확인 | `elicitation/create` (사용자 개입) |
+| 5. 감시 | 실행 흔적 기록 | `logging` + `notifications` 활용 |
 
 핵심 인식 전환은 이것입니다.
 
