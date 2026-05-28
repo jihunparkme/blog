@@ -227,3 +227,7 @@
 - 금요일: 실패 원인을 기록하고 템플릿으로 승격했는가
 - 월말: 개인 루틴을 팀 자산으로 바꿨는가
 ```
+
+## Reference.
+
+https://www.stdy.blog/create-my-own-ai-newsletter-with-chatgpt-tasks/
