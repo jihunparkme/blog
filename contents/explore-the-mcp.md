@@ -531,6 +531,62 @@ MCP를 보면 결국 한 문장으로 수렴합니다.
 
 1. **MCP 공식 Intro/Architecture 문서를 정독하고, Host-Client-Server를 직접 도식화해보기**
 2. **JSON-RPC 2.0 요청/응답/Notification 형식을 팀 위키에 템플릿으로 정리해보기**
+   - 아래 예시 템플릿을 그대로 복붙해 팀 위키에 정리하면 됩니다.
+
+#### JSON-RPC 2.0 템플릿 예시
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": "req-001",
+  "method": "tools/call",
+  "params": {
+    "name": "weather_current",
+    "arguments": {
+      "city": "Seoul",
+      "unit": "metric"
+    }
+  }
+}
+```
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": "req-001",
+  "result": {
+    "content": [
+      {
+        "type": "text",
+        "text": "현재 서울 기온은 24°C입니다."
+      }
+    ]
+  }
+}
+```
+
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "notifications/tools/list_changed"
+}
+```
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": "req-001",
+  "error": {
+    "code": -32602,
+    "message": "Invalid params",
+    "data": {
+      "field": "arguments.city",
+      "reason": "must be a non-empty string"
+    }
+  }
+}
+```
+
 3. 현재 팀 서비스에서 “도구 호출”에 해당하는 지점을 3개만 식별해보기
 4. 각 지점에 대해 입력 스키마, 에러 코드, 타임아웃 정책을 문서로 적어보기
 
