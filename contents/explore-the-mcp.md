@@ -240,9 +240,7 @@ sequenceDiagram
 
 공식 문서에서 가장 중요한 파트는 프리미티브(Primitives)입니다. "무엇을 주고받을 수 있는가"를 정의하기 때문입니다.
 
-공식 문서에서 가장 중요한 파트는 프리미티브(Primitives)입니다. "무엇을 주고받을 수 있는가"를 정의하기 때문입니다.
-
-#### 5. MCP Primitives 전체 맵핑: 서버/클라이언트/유틸리티
+#### MCP Primitives 전체 맵핑: 서버/클라이언트/유틸리티
 
 ```mermaid
 graph TB
