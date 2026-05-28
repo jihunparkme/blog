@@ -595,6 +595,131 @@ MCP를 보면 결국 한 문장으로 수렴합니다.
 1. 레거시 기능 하나를 골라 **MCP 스타일 스키마로 추상화**해보기
 2. 호출 경로에 인증/인가, 유효성 검증, 호출 제한 정책을 체크리스트로 삽입해보기
 3. `tools/list`-`tools/call`-`notifications/tools/list_changed` 흐름을 로컬 PoC로 구현해보기
+   - 아래 샘플은 STDIO 기반의 아주 작은 로컬 PoC입니다. 서버가 `tools/list`와 `tools/call`을 제공하고, `tools/call` 실행 후 `notifications/tools/list_changed`를 보내고 클라이언트가 다시 `tools/list`로 갱신하는 흐름을 보여줍니다.
+
+#### 로컬 PoC 샘플 (Python + STDIO)
+
+`server.py`
+
+```python
+import json
+import sys
+
+SERVER_TOOLS = [
+    {
+        "name": "echo",
+        "description": "간단한 문자열을 되돌려주는 예제 도구",
+        "inputSchema": {
+            "type": "object",
+            "properties": {"text": {"type": "string"}},
+            "required": ["text"],
+        },
+    }
+]
+
+
+def send(message):
+    sys.stdout.write(json.dumps(message, ensure_ascii=False) + "\n")
+    sys.stdout.flush()
+
+
+def reply(request_id, result=None, error=None):
+    payload = {"jsonrpc": "2.0", "id": request_id}
+    if error is not None:
+        payload["error"] = error
+    else:
+        payload["result"] = result
+    send(payload)
+
+
+for line in sys.stdin:
+    request = json.loads(line)
+    method = request.get("method")
+
+    if method == "initialize":
+        reply(request["id"], {
+            "protocolVersion": "2025-06-18",
+            "capabilities": {"tools": {"listChanged": True}},
+            "serverInfo": {"name": "local-poc-server", "version": "1.0.0"},
+        })
+
+    elif method == "notifications/initialized":
+        continue
+
+    elif method == "tools/list":
+        reply(request["id"], {"tools": SERVER_TOOLS})
+
+    elif method == "tools/call":
+        name = request["params"]["name"]
+        args = request["params"].get("arguments", {})
+
+        # 실제 PoC에서는 여기서 서버 상태가 바뀌는 상황을 가정한다.
+        send({"jsonrpc": "2.0", "method": "notifications/tools/list_changed"})
+
+        if name == "echo":
+            reply(request["id"], {
+                "content": [{"type": "text", "text": f"echo: {args.get('text', '')}"}]
+            })
+        else:
+            reply(request["id"], None, {
+                "code": -32601,
+                "message": "Tool not found",
+            })
+```
+
+`client.py`
+
+```python
+import json
+import subprocess
+import sys
+
+
+class StdioClient:
+    def __init__(self, cmd):
+        self.proc = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True)
+
+    def send(self, message):
+        self.proc.stdin.write(json.dumps(message, ensure_ascii=False) + "\n")
+        self.proc.stdin.flush()
+
+    def recv(self):
+        line = self.proc.stdout.readline()
+        return json.loads(line) if line else None
+
+    def close(self):
+        self.proc.terminate()
+        self.proc.wait()
+
+
+client = StdioClient([sys.executable, "server.py"])
+
+client.send({"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {"protocolVersion": "2025-06-18"}})
+print("initialize ->", client.recv())
+
+client.send({"jsonrpc": "2.0", "method": "notifications/initialized"})
+
+client.send({"jsonrpc": "2.0", "id": 2, "method": "tools/list"})
+print("tools/list ->", client.recv())
+
+client.send({"jsonrpc": "2.0", "id": 3, "method": "tools/call", "params": {"name": "echo", "arguments": {"text": "hello"}}})
+
+# 서버가 먼저 notification을 보내고, 그 다음에 응답을 돌려준다.
+print("notification ->", client.recv())
+print("tools/call ->", client.recv())
+
+client.send({"jsonrpc": "2.0", "id": 4, "method": "tools/list"})
+print("refresh tools/list ->", client.recv())
+
+client.close()
+```
+
+실행 순서는 다음과 같습니다.
+
+1. `python server.py`를 백그라운드에서 띄운다.
+2. `python client.py`로 `initialize → tools/list → tools/call → notifications/tools/list_changed → tools/list` 흐름을 확인한다.
+3. 서버가 `listChanged` 알림을 보내면, 클라이언트가 다시 `tools/list`를 조회해 캐시를 갱신하는 구조를 직접 검증한다.
+
 4. 컨텍스트 로딩을 즉시 로딩에서 온디맨드 방식으로 바꿨을 때의 비용 차이를 측정해보기
 
 ### 이번 달에 도전할 일
